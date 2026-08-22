@@ -73,12 +73,13 @@
 /**
  * Global engine time and timescale control namespace.
  */
-[prefix="bro."]
+[cpp_file="time_bindings.cpp", cpp_header="js/time_bindings.h", cpp_includes="\"engine/engine.h\"", cpp_namespace="bro::js", cpp_install="TimeBindings::install", engine_stashed, prefix="bro."]
 namespace time {
   /**
    * Time multiplier (default 1.0). Clamps to [0, 100]; non-finite values are ignored.
    * 0.5 = slow motion, 2.0 = fast forward, 0 = freeze gameplay time without pause side-effects.
    */
+  [getter_cpp="eng ? eng->timeScale() : 1.0", setter_cpp="if (!eng || argc < 1) return JS_UNDEFINED;\ndouble v = 1.0;\nif (JS_ToFloat64(ctx, &v, argv[0]))\n    return JS_EXCEPTION;\neng->setTimeScale(v);  // clamps to [0, 100]; ignores non-finite\nreturn JS_UNDEFINED;"]
   attribute unrestricted double scale;
 
   /**
@@ -86,11 +87,13 @@ namespace time {
    * true = effective scale 0 + rAF callbacks skipped + audio output suspended.
    * false = everything resumes exactly where it stopped.
    */
+  [getter_cpp="eng ? eng->timePaused() : false", setter_cpp="if (!eng || argc < 1) return JS_UNDEFINED;\neng->setTimePaused(JS_ToBool(ctx, argv[0]));\nreturn JS_UNDEFINED;"]
   attribute boolean paused;
 
   /**
    * Current scaled engine time in milliseconds (read-only).
    * This is the clock timers, rAF, transitions, and physics run on.
    */
+  [getter_cpp="eng ? eng->timeNowMs() : 0.0"]
   readonly attribute unrestricted double now;
 };

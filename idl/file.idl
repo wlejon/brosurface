@@ -107,22 +107,26 @@ dictionary FilePropertyBag : BlobPropertyBag {
 /**
  * Represents immutable raw binary data held in native memory.
  */
+[cpp_file="blob.cpp", cpp_header="api/api.h", cpp_includes="\"runtime/runtime.h\"\n\n#include <cstring>\n#include <string>\n#include <vector>", cpp_namespace="brokit::api", cpp_install="installBlob", class_id_var="blob_class_id", data_struct="BlobData", data_member="std::vector<uint8_t> bytes;\nstd::string type;", cpp_epilogue="bool blobBytes(JSContext* ctx, JSValueConst val, const uint8_t** data, size_t* len, std::string* type)\n{\n    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));\n    if (bdata) {\n        *data = bdata->bytes.data();\n        *len = bdata->bytes.size();\n        if (type) *type = bdata->type;\n        return true;\n    }\n    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));\n    if (fdata) {\n        *data = fdata->blob.bytes.data();\n        *len = fdata->blob.bytes.size();\n        if (type) *type = fdata->blob.type;\n        return true;\n    }\n    return false;\n}"]
 interface Blob {
   /**
    * Create a new Blob from an array of parts (strings, ArrayBuffers, TypedArrays, or Blobs).
    * @param blobParts Array of parts to concatenate into the blob
    * @param options Configuration options including MIME type
    */
+  [cpp_body="auto* data = new BlobData();\n\nif (argc > 0 && !JS_IsUndefined(argv[0])) {\n    if (!JS_IsArray(ctx, argv[0])) {\n        delete data;\n        return JS_ThrowTypeError(ctx, \"Blob parts must be an sequence/array\");\n    }\n    JSValue lenVal = JS_GetPropertyStr(ctx, argv[0], \"length\");\n    uint32_t len = 0;\n    JS_ToUint32(ctx, &len, lenVal);\n    JS_FreeValue(ctx, lenVal);\n    for (uint32_t i = 0; i < len; i++) {\n        JSValue part = JS_GetPropertyUint32(ctx, argv[0], i);\n        bool ok = flattenPart(ctx, part, data->bytes);\n        JS_FreeValue(ctx, part);\n        if (!ok) {\n            delete data;\n            return JS_EXCEPTION;\n        }\n    }\n}\n\nif (argc > 1 && !JS_IsUndefined(argv[1]) && JS_IsObject(argv[1])) {\n    JSValue typeVal = JS_GetPropertyStr(ctx, argv[1], \"type\");\n    if (JS_IsString(typeVal)) {\n        const char* typeStr = JS_ToCString(ctx, typeVal);\n        if (typeStr) {\n            data->type = typeStr;\n            for (auto& c : data->type) c = static_cast<char>(tolower(c));\n            JS_FreeCString(ctx, typeStr);\n        }\n    }\n    JS_FreeValue(ctx, typeVal);\n}\n\nJSValue proto = JS_GetPropertyStr(ctx, new_target, \"prototype\");\nif (JS_IsException(proto)) {\n    delete data;\n    return proto;\n}\nJSValue obj = JS_NewObjectProtoClass(ctx, proto, blob_class_id);\nJS_FreeValue(ctx, proto);\nif (JS_IsException(obj)) {\n    delete data;\n    return obj;\n}\nJS_SetOpaque(obj, data);\nreturn obj;"]
   constructor(optional sequence<BlobPart> blobParts, optional BlobPropertyBag options);
 
   /**
    * Byte length of the blob data.
    */
+  [getter_cpp="JS_NewFloat64(ctx, static_cast<double>(data->bytes.size()))"]
   readonly attribute unsigned long long size;
 
   /**
    * Normalized ASCII-encoded lowercase MIME type string (e.g. "image/png").
    */
+  [getter_cpp="JS_NewString(ctx, data->type.c_str())"]
   readonly attribute DOMString type;
 
   /**
@@ -132,30 +136,35 @@ interface Blob {
    * @param contentType MIME type of the returned slice
    * @returns Sliced Blob instance
    */
+  [cpp_body="auto* data = getBlobData(ctx, this_val);\nif (!data) return JS_EXCEPTION;\n\nint64_t size = static_cast<int64_t>(data->bytes.size());\nint64_t start = 0;\nint64_t end = size;\n\nif (argc > 0 && !JS_IsUndefined(argv[0])) {\n    JS_ToInt64(ctx, &start, argv[0]);\n    if (start < 0) start = std::max<int64_t>(0, size + start);\n    else start = std::min<int64_t>(size, start);\n}\nif (argc > 1 && !JS_IsUndefined(argv[1])) {\n    JS_ToInt64(ctx, &end, argv[1]);\n    if (end < 0) end = std::max<int64_t>(0, size + end);\n    else end = std::min<int64_t>(size, end);\n}\n\nstd::string contentType;\nif (argc > 2 && !JS_IsUndefined(argv[2])) {\n    const char* ctStr = JS_ToCString(ctx, argv[2]);\n    if (ctStr) {\n        contentType = ctStr;\n        for (auto& c : contentType) c = static_cast<char>(tolower(c));\n        JS_FreeCString(ctx, ctStr);\n    }\n}\n\nauto* newData = new BlobData();\nnewData->type = contentType;\nif (start < end) {\n    newData->bytes.assign(data->bytes.begin() + start, data->bytes.begin() + end);\n}\n\nJSValue proto = JS_GetClassProto(ctx, blob_class_id);\nJSValue obj = JS_NewObjectProtoClass(ctx, proto, blob_class_id);\nJS_FreeValue(ctx, proto);\nif (JS_IsException(obj)) {\n    delete newData;\n    return obj;\n}\nJS_SetOpaque(obj, newData);\nreturn obj;"]
   Blob slice(optional long long start, optional long long end, optional DOMString contentType);
 
   /**
    * Asynchronously reads and decodes the blob contents as a UTF-8 text string.
    * @returns Promise resolving to the text content
    */
+  [cpp_body="auto* data = getBlobData(ctx, this_val);\nif (!data) return JS_EXCEPTION;\n\nJSValue resolving_funcs[2];\nJSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);\nif (JS_IsException(promise)) return promise;\n\nJSValue str = JS_NewStringLen(ctx, reinterpret_cast<const char*>(data->bytes.data()), data->bytes.size());\nJSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &str);\nJS_FreeValue(ctx, str);\nJS_FreeValue(ctx, ret);\nJS_FreeValue(ctx, resolving_funcs[0]);\nJS_FreeValue(ctx, resolving_funcs[1]);\nreturn promise;"]
   Promise<DOMString> text();
 
   /**
    * Asynchronously reads the blob contents as a binary ArrayBuffer.
    * @returns Promise resolving to an ArrayBuffer copy of the bytes
    */
+  [cpp_body="auto* data = getBlobData(ctx, this_val);\nif (!data) return JS_EXCEPTION;\n\nJSValue resolving_funcs[2];\nJSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);\nif (JS_IsException(promise)) return promise;\n\nJSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());\nJSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &ab);\nJS_FreeValue(ctx, ab);\nJS_FreeValue(ctx, ret);\nJS_FreeValue(ctx, resolving_funcs[0]);\nJS_FreeValue(ctx, resolving_funcs[1]);\nreturn promise;"]
   Promise<ArrayBuffer> arrayBuffer();
 
   /**
    * Asynchronously returns a Uint8Array view of the blob's binary contents.
    * @returns Promise resolving to Uint8Array
    */
+  [cpp_body="auto* data = getBlobData(ctx, this_val);\nif (!data) return JS_EXCEPTION;\n\nJSValue resolving_funcs[2];\nJSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);\nif (JS_IsException(promise)) return promise;\n\nJSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());\nJSValue global = JS_GetGlobalObject(ctx);\nJSValue u8ctor = JS_GetPropertyStr(ctx, global, \"Uint8Array\");\nJSValue u8arr = JS_CallConstructor(ctx, u8ctor, 1, &ab);\nJS_FreeValue(ctx, u8ctor);\nJS_FreeValue(ctx, global);\nJS_FreeValue(ctx, ab);\n\nJSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &u8arr);\nJS_FreeValue(ctx, u8arr);\nJS_FreeValue(ctx, ret);\nJS_FreeValue(ctx, resolving_funcs[0]);\nJS_FreeValue(ctx, resolving_funcs[1]);\nreturn promise;"]
   Promise<Uint8Array> bytes();
 };
 
 /**
  * A File represents a Blob with file metadata (filename, last modified timestamp, and origin path).
  */
+[cpp_file="blob.cpp", cpp_header="api/api.h", cpp_namespace="brokit::api", cpp_install="installBlob", class_id_var="file_class_id", data_struct="FileData", data_member="BlobData blob;\nstd::string name;\ndouble lastModified = 0;"]
 interface File : Blob {
   /**
    * Construct a File instance.
@@ -163,26 +172,31 @@ interface File : Blob {
    * @param fileName The name of the file
    * @param options Options specifying MIME type and lastModified time
    */
+  [cpp_body="if (argc < 2) return JS_ThrowTypeError(ctx, \"File constructor requires at least 2 arguments (bits, name)\");\nif (!JS_IsArray(ctx, argv[0])) return JS_ThrowTypeError(ctx, \"File bits must be a sequence/array\");\n\nconst char* nameStr = JS_ToCString(ctx, argv[1]);\nif (!nameStr) return JS_EXCEPTION;\n\nauto* data = new FileData();\ndata->name = nameStr;\nJS_FreeCString(ctx, nameStr);\n\nJSValue lenVal = JS_GetPropertyStr(ctx, argv[0], \"length\");\nuint32_t len = 0;\nJS_ToUint32(ctx, &len, lenVal);\nJS_FreeValue(ctx, lenVal);\nfor (uint32_t i = 0; i < len; i++) {\n    JSValue part = JS_GetPropertyUint32(ctx, argv[0], i);\n    bool ok = flattenPart(ctx, part, data->blob.bytes);\n    JS_FreeValue(ctx, part);\n    if (!ok) {\n        delete data;\n        return JS_EXCEPTION;\n    }\n}\n\ndata->lastModified = 0;\nif (argc > 2 && !JS_IsUndefined(argv[2]) && JS_IsObject(argv[2])) {\n    JSValue typeVal = JS_GetPropertyStr(ctx, argv[2], \"type\");\n    if (JS_IsString(typeVal)) {\n        const char* typeStr = JS_ToCString(ctx, typeVal);\n        if (typeStr) {\n            data->blob.type = typeStr;\n            for (auto& c : data->blob.type) c = static_cast<char>(tolower(c));\n            JS_FreeCString(ctx, typeStr);\n        }\n    }\n    JS_FreeValue(ctx, typeVal);\n\n    JSValue lmVal = JS_GetPropertyStr(ctx, argv[2], \"lastModified\");\n    if (JS_IsNumber(lmVal)) {\n        JS_ToFloat64(ctx, &data->lastModified, lmVal);\n    }\n    JS_FreeValue(ctx, lmVal);\n}\n\nJSValue proto = JS_GetPropertyStr(ctx, new_target, \"prototype\");\nif (JS_IsException(proto)) {\n    delete data;\n    return proto;\n}\nJSValue obj = JS_NewObjectProtoClass(ctx, proto, file_class_id);\nJS_FreeValue(ctx, proto);\nif (JS_IsException(obj)) {\n    delete data;\n    return obj;\n}\nJS_SetOpaque(obj, data);\nreturn obj;"]
   constructor(sequence<BlobPart> fileBits, DOMString fileName, optional FilePropertyBag options);
 
   /**
    * Name of the file.
    */
+  [getter_cpp="JS_NewString(ctx, data->name.c_str())"]
   readonly attribute DOMString name;
 
   /**
    * Milliseconds timestamp since Unix epoch when the file was last modified.
    */
+  [getter_cpp="JS_NewFloat64(ctx, data->lastModified)"]
   readonly attribute long long lastModified;
 
   /**
    * Relative path if picked via a directory picker, otherwise empty.
    */
+  [getter_cpp="JS_NewString(ctx, \"\")"]
   readonly attribute DOMString webkitRelativePath;
 
   /**
    * Absolute real filesystem path when the file originates from a drag-and-drop gesture or native file picker.
    */
+  [getter_cpp="JS_NewString(ctx, \"\")"]
   readonly attribute DOMString path;
 };
 

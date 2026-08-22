@@ -34,15 +34,12 @@ function run(cmd, cwd, options = {}) {
 
 function cleanupScratchWorktree() {
   console.log(`\n🧹 Cleaning up scratch worktree if present...`);
+  run(`git -C "${BRO_DIR}" worktree remove --force "${SCRATCH_DIR}"`, BRO_DIR);
+  run(`git -C "${BRO_DIR}" worktree prune`, BRO_DIR);
   if (fs.existsSync(SCRATCH_DIR)) {
-    run(`git -C "${BRO_DIR}" worktree remove --force "${SCRATCH_DIR}"`, BRO_DIR);
-    if (fs.existsSync(SCRATCH_DIR)) {
-      try {
-        fs.rmSync(SCRATCH_DIR, { recursive: true, force: true });
-      } catch (e) {
-        // Ignore if git worktree remove already handled it
-      }
-    }
+    try {
+      execSync(`cmd.exe /c "rd /s /q \"${SCRATCH_DIR}\""`);
+    } catch (_) {}
   }
 }
 
@@ -146,6 +143,9 @@ async function main() {
   console.log(`\n[Step 6] Building scratch worktree with CMake...`);
   const broBuildDir = path.join(BRO_DIR, 'build');
   const scratchBuildDir = path.join(SCRATCH_DIR, 'build');
+
+  // Terminate any lingering bro-headless processes
+  run(`cmd.exe /c "taskkill /F /IM bro-headless.exe /T 2>nul || exit 0"`, SCRATCH_DIR);
 
   if (fs.existsSync(broBuildDir)) {
     console.log(`  Reusing/staging build artifacts from bro/build...`);

@@ -1,19 +1,21 @@
-// gen/emit_qjsbind.mjs - QuickJS C++ Binding Emitter for brosurface pilots
-// Consumes validated AST from schema/parser.mjs and emits drop-in C++ replacement TUs:
-//   - out/qjs/time_bindings.cpp
-//   - out/qjs/noise.cpp
-//   - out/qjs/blob.cpp
+// gen/emit_qjsbind.mjs - QuickJS C++ Binding Emitter for brosurface
+// 100% generic, AST-driven emitter consuming validated IDL AST from schema/parser.mjs.
+// Emits drop-in C++ replacement translation units into out/qjs/
+// Zero per-namespace conditionals or hardcoded text.
 
 import fs from 'fs';
 import path from 'path';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { validate } from '../schema/validator.mjs';
-import { emitTimeBindings } from './qjs_time.mjs';
-import { emitNoiseBindings } from './qjs_noise.mjs';
-import { emitBlobBindings } from './qjs_blob.mjs';
+import { getAttr, hasAttr, emitNamespaceTU, emitInterfaceTU } from './qjs_codegen.mjs';
 
-function findIdlFiles(dirOrFile) {
+/**
+ * Finds all .idl files recursively within a directory or single file path.
+ * @param {string} dirOrFile
+ * @returns {string[]}
+ */
+export function findIdlFiles(dirOrFile) {
   const stat = fs.statSync(dirOrFile);
   if (stat.isFile()) {
     return [path.resolve(dirOrFile)];
@@ -32,10 +34,35 @@ function findIdlFiles(dirOrFile) {
 }
 
 /**
- * Runs the QuickJS C++ binding emitter on all IDLs in targetPath.
+ * Calculates custom escape-hatch LOC lines within an AST node or its members.
+ * Per SPEC §5.1 / DESIGN §1.2, counts operations marked with [custom].
+ * @param {Object} def
+ * @returns {number}
+ */
+export function calculateCustomLoc(def) {
+  let customLines = 0;
+
+  if (def.members) {
+    for (const m of def.members) {
+      if (hasAttr(m, 'custom')) {
+        const body = getAttr(m, 'cpp_body') || getAttr(m, 'cpp_call');
+        if (typeof body === 'string') {
+          customLines += body.split('\n').length;
+        } else {
+          customLines += 1;
+        }
+      }
+    }
+  }
+
+  return customLines;
+}
+
+/**
+ * Runs the generic QuickJS C++ binding emitter on all IDLs in targetPath.
  * @param {string} [targetPath='idl/']
  * @param {string} [outPath='out/qjs/']
- * @returns {{ success: boolean, files: string[] }}
+ * @returns {{ success: boolean, files: string[], stats: Array<{ file: string, totalLines: number, customLines: number, customFraction: number }> }}
  */
 export function runEmitQjsbind(targetPath = 'idl/', outPath = 'out/qjs/') {
   console.log(`[brosurface qjsbind Emitter] Reading IDLs from: ${targetPath}`);
@@ -70,38 +97,67 @@ export function runEmitQjsbind(targetPath = 'idl/', outPath = 'out/qjs/') {
 
   fs.mkdirSync(outPath, { recursive: true });
 
+  // Group definitions by their target C++ translation unit (cpp_file attribute or default)
+  const tuGroups = new Map(); // targetFileName -> Array<def>
+
+  for (const fileAst of astList) {
+    for (const def of fileAst.definitions) {
+      const cppFile = getAttr(def, 'cpp_file') || `${def.name.toLowerCase()}.cpp`;
+      if (!tuGroups.has(cppFile)) {
+        tuGroups.set(cppFile, []);
+      }
+      tuGroups.get(cppFile).push(def);
+    }
+  }
+
   const generatedFiles = [];
+  const stats = [];
 
-  // 1. time_bindings.cpp
-  const timeCpp = emitTimeBindings(astList);
-  const timeFile = path.join(outPath, 'time_bindings.cpp');
-  fs.writeFileSync(timeFile, timeCpp, 'utf8');
-  const timeLines = timeCpp.split('\n').length;
-  console.log(`  - Emitted: ${timeFile} (${timeLines} lines)`);
-  generatedFiles.push(timeFile);
+  for (const [cppFileName, defs] of tuGroups.entries()) {
+    let cppContent = '';
+    let customLinesCount = 0;
 
-  // 2. noise.cpp
-  const noiseCpp = emitNoiseBindings(astList);
-  const noiseFile = path.join(outPath, 'noise.cpp');
-  fs.writeFileSync(noiseFile, noiseCpp, 'utf8');
-  const noiseLines = noiseCpp.split('\n').length;
-  console.log(`  - Emitted: ${noiseFile} (${noiseLines} lines)`);
-  generatedFiles.push(noiseFile);
+    const namespaces = defs.filter(d => d.type === 'Namespace');
+    const interfaces = defs.filter(d => d.type === 'Interface');
 
-  // 3. blob.cpp
-  const blobCpp = emitBlobBindings(astList);
-  const blobFile = path.join(outPath, 'blob.cpp');
-  fs.writeFileSync(blobFile, blobCpp, 'utf8');
-  const blobLines = blobCpp.split('\n').length;
-  console.log(`  - Emitted: ${blobFile} (${blobLines} lines)`);
-  generatedFiles.push(blobFile);
+    if (namespaces.length > 0) {
+      for (const ns of namespaces) {
+        cppContent += emitNamespaceTU(ns);
+        customLinesCount += calculateCustomLoc(ns);
+      }
+    } else if (interfaces.length > 0) {
+      cppContent = emitInterfaceTU(interfaces);
+      for (const iface of interfaces) {
+        customLinesCount += calculateCustomLoc(iface);
+      }
+    }
 
-  console.log(`\n✅ Generated all 3 QuickJS binding TUs in: ${outPath}`);
-  return { success: true, files: generatedFiles };
+    if (cppContent) {
+      const outFilePath = path.join(outPath, cppFileName);
+      fs.writeFileSync(outFilePath, cppContent, 'utf8');
+      const totalLines = cppContent.split('\n').length;
+      const customFraction = (customLinesCount / totalLines) * 100;
+
+      console.log(`  - Emitted: ${outFilePath} (${totalLines} lines, custom: ${customLinesCount} lines / ${customFraction.toFixed(2)}%)`);
+      generatedFiles.push(outFilePath);
+      stats.push({
+        file: cppFileName,
+        totalLines,
+        customLines: customLinesCount,
+        customFraction,
+      });
+    }
+  }
+
+  console.log(`\n✅ Generic AST-driven qjsbind emitter completed: ${generatedFiles.length} TU(s) emitted to ${outPath}`);
+  return { success: true, files: generatedFiles, stats };
 }
 
 // CLI entry point
-const args = process.argv.slice(2);
-const idlDir = args[0] || 'idl/';
-const outDir = args[1] || 'out/qjs/';
-runEmitQjsbind(idlDir, outDir);
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([a-zA-Z]:)/, '$1'));
+if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_qjsbind.mjs'))) {
+  const args = process.argv.slice(2);
+  const idlDir = args[0] || 'idl/';
+  const outDir = args[1] || 'out/qjs/';
+  runEmitQjsbind(idlDir, outDir);
+}

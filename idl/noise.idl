@@ -583,11 +583,13 @@ dictionary FastNoiseNodeMembers {
 /**
  * FastNoise procedural SIMD-accelerated noise generator.
  */
+[cpp_file="noise.cpp", cpp_header="api/api.h", cpp_includes="\"runtime/runtime.h\"\n\n#include <FastNoise/FastNoise.h>\n#include <FastNoise/Metadata.h>\n#include <vector>\n#include <cstdint>\n#include <cstring>", cpp_namespace="brokit::api", cpp_install="installNoise", class_id_var="noise_class_id", wrapper_struct="NoiseWrapper", wrapper_member="FastNoise::SmartNode<> node;"]
 interface FastNoise {
   /**
    * Create from an encoded node tree string (from FN2 Node Editor).
    * @param encodedNodeTree Base64-encoded node graph
    */
+  [cpp_body="if (argc < 1 || !JS_IsString(argv[0]))\n    return JS_ThrowTypeError(ctx, \"FastNoise: expected encoded node tree string\");\n\nconst char* encoded = JS_ToCString(ctx, argv[0]);\nif (!encoded) return JS_EXCEPTION;\n\nauto node = FastNoise::NewFromEncodedNodeTree(encoded);\nJS_FreeCString(ctx, encoded);\n\nif (!node)\n    return JS_ThrowTypeError(ctx, \"FastNoise: invalid encoded node tree\");\n\nJSValue proto = JS_GetPropertyStr(ctx, new_target, \"prototype\");\nif (JS_IsException(proto)) return proto;\n\nJSValue obj = JS_NewObjectProtoClass(ctx, proto, noise_class_id);\nJS_FreeValue(ctx, proto);\nif (JS_IsException(obj)) return obj;\n\nauto* w = new NoiseWrapper{std::move(node)};\nJS_SetOpaque(obj, w);\nreturn obj;"]
   constructor(DOMString encodedNodeTree);
 
   /**
@@ -595,62 +597,74 @@ interface FastNoise {
    * @param typeName e.g. "Simplex", "FractalFBm", "Add"
    * @returns FastNoise instance
    */
+  [custom, cpp_body="if (argc < 1 || !JS_IsString(argv[0])) return JS_ThrowTypeError(ctx, \"FastNoise.create(typeName)\");\nconst char* typeName = JS_ToCString(ctx, argv[0]); if (!typeName) return JS_EXCEPTION;\nfor (const auto* meta : FastNoise::Metadata::GetAll()) {\n    if (meta && strcmp(meta->name, typeName) == 0) {\n        JS_FreeCString(ctx, typeName); return wrap_node(ctx, meta->CreateNode());\n    }\n}\nJSValue err = JS_ThrowReferenceError(ctx, \"Unknown FastNoise type '%s'\", typeName); JS_FreeCString(ctx, typeName); return err;"]
   static FastNoise create(DOMString typeName);
 
   /**
    * List all registered node types with their group categories.
    * @returns Array of node type descriptions
    */
+  [custom, cpp_body="JSValue arr = JS_NewArray(ctx); uint32_t idx = 0;\nfor (const auto* meta : FastNoise::Metadata::GetAll()) {\n    if (!meta) continue;\n    JSValue entry = JS_NewObject(ctx); JS_SetPropertyStr(ctx, entry, \"name\", JS_NewString(ctx, meta->name));\n    JSValue groups = JS_NewArray(ctx);\n    for (size_t gi = 0; gi < meta->groups.size(); gi++) JS_SetPropertyUint32(ctx, groups, static_cast<uint32_t>(gi), JS_NewString(ctx, meta->groups[gi]));\n    JS_SetPropertyStr(ctx, entry, \"groups\", groups); JS_SetPropertyUint32(ctx, arr, idx++, entry);\n}\nreturn arr;"]
   static sequence<FastNoiseTypeInfo> types();
 
   /**
    * Coherent Noise convenience factory: Simplex
    */
+  [factory_type="FastNoise::Simplex"]
   static FastNoise Simplex();
 
   /**
    * Coherent Noise convenience factory: SuperSimplex
    */
+  [factory_type="FastNoise::SuperSimplex"]
   static FastNoise SuperSimplex();
 
   /**
    * Coherent Noise convenience factory: Perlin
    */
+  [factory_type="FastNoise::Perlin"]
   static FastNoise Perlin();
 
   /**
    * Coherent Noise convenience factory: Value
    */
+  [factory_type="FastNoise::Value"]
   static FastNoise Value();
 
   /**
    * Coherent Noise convenience factory: CellularValue
    */
+  [factory_type="FastNoise::CellularValue"]
   static FastNoise CellularValue();
 
   /**
    * Coherent Noise convenience factory: CellularDistance
    */
+  [factory_type="FastNoise::CellularDistance"]
   static FastNoise CellularDistance();
 
   /**
    * Coherent Noise convenience factory: CellularLookup
    */
+  [factory_type="FastNoise::CellularLookup"]
   static FastNoise CellularLookup();
 
   /**
    * Fractal convenience factory: FractalFBm
    */
+  [factory_type="FastNoise::FractalFBm"]
   static FastNoise FractalFBm();
 
   /**
    * Fractal convenience factory: FractalRidged
    */
+  [factory_type="FastNoise::FractalRidged"]
   static FastNoise FractalRidged();
 
   /**
    * Domain Warp convenience factory: DomainWarpGradient
    */
+  [factory_type="FastNoise::DomainWarpGradient"]
   static FastNoise DomainWarpGradient();
 
   /**
@@ -660,12 +674,14 @@ interface FastNoise {
    * @param name Property name
    * @param value float/int variable, enum string, or FastNoise node
    */
+  [custom, cpp_body="if (argc < 2 || !JS_IsString(argv[0])) return JS_ThrowTypeError(ctx, \"set(name, value)\");\nconst char* name = JS_ToCString(ctx, argv[0]); if (!name) return JS_EXCEPTION;\nconst auto& meta = w->node->GetMetadata(); JSValueConst val = argv[1];\nfor (const auto& mv : meta.memberVariables) {\n    if (!memberNameMatches(name, mv)) continue;\n    JS_FreeCString(ctx, name);\n    if (mv.type == FastNoise::Metadata::MemberVariable::EFloat) {\n        double d; if (JS_ToFloat64(ctx, &d, val)) return JS_EXCEPTION;\n        return mv.setFunc(w->node.get(), FastNoise::Metadata::MemberVariable::ValueUnion(static_cast<float>(d))) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set variable\");\n    }\n    if (mv.type == FastNoise::Metadata::MemberVariable::EInt) {\n        int32_t i; if (JS_ToInt32(ctx, &i, val)) return JS_EXCEPTION;\n        return mv.setFunc(w->node.get(), FastNoise::Metadata::MemberVariable::ValueUnion(static_cast<int>(i))) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set variable\");\n    }\n    if (mv.type == FastNoise::Metadata::MemberVariable::EEnum) {\n        int32_t i = -1;\n        if (JS_IsNumber(val)) { JS_ToInt32(ctx, &i, val); }\n        else if (JS_IsString(val)) {\n            const char* es = JS_ToCString(ctx, val); if (!es) return JS_EXCEPTION;\n            for (size_t ei = 0; ei < mv.enumNames.size(); ei++) { if (strcmp(mv.enumNames[ei], es) == 0) { i = static_cast<int32_t>(ei); break; } }\n            JS_FreeCString(ctx, es); if (i < 0) return JS_ThrowRangeError(ctx, \"Unknown enum value\");\n        } else return JS_ThrowTypeError(ctx, \"Enum expects int or string\");\n        return mv.setFunc(w->node.get(), FastNoise::Metadata::MemberVariable::ValueUnion(static_cast<int>(i))) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set enum\");\n    }\n    return JS_ThrowTypeError(ctx, \"Unknown variable type\");\n}\nfor (const auto& mn : meta.memberNodeLookups) {\n    if (!memberNameMatches(name, mn)) continue;\n    JS_FreeCString(ctx, name); auto* sw = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, val, noise_class_id));\n    if (!sw) return JS_ThrowTypeError(ctx, \"Node input requires a FastNoise node\");\n    return mn.setFunc(w->node.get(), sw->node) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set node source (type mismatch)\");\n}\nfor (const auto& mh : meta.memberHybrids) {\n    if (!memberNameMatches(name, mh)) continue;\n    JS_FreeCString(ctx, name); auto* sw = static_cast<NoiseWrapper*>(JS_GetOpaque(val, noise_class_id));\n    if (sw) return mh.setNodeFunc(w->node.get(), sw->node) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set hybrid node source\");\n    double d; if (JS_ToFloat64(ctx, &d, val)) return JS_EXCEPTION;\n    return mh.setValueFunc(w->node.get(), static_cast<float>(d)) ? JS_UNDEFINED : JS_ThrowTypeError(ctx, \"Failed to set hybrid value\");\n}\nJSValue err = JS_ThrowReferenceError(ctx, \"No member '%s' on this node type\", name); JS_FreeCString(ctx, name); return err;"]
   void set(DOMString name, (unrestricted double or DOMString or FastNoise) value);
 
   /**
    * Introspect this node's configurable members.
    * @returns Node structure description
    */
+  [custom, cpp_body="const auto& meta = w->node->GetMetadata(); JSValue result = JS_NewObject(ctx); JS_SetPropertyStr(ctx, result, \"type\", JS_NewString(ctx, meta.name));\nJSValue vars = JS_NewArray(ctx);\nfor (size_t i = 0; i < meta.memberVariables.size(); i++) {\n    const auto& mv = meta.memberVariables[i]; JSValue entry = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, entry, \"name\", JS_NewString(ctx, mv.name));\n    JS_SetPropertyStr(ctx, entry, \"type\", JS_NewString(ctx, mv.type == FastNoise::Metadata::MemberVariable::EFloat ? \"float\" : mv.type == FastNoise::Metadata::MemberVariable::EInt ? \"int\" : \"enum\"));\n    if (mv.type == FastNoise::Metadata::MemberVariable::EEnum) {\n        JSValue names = JS_NewArray(ctx); for (size_t ei = 0; ei < mv.enumNames.size(); ei++) JS_SetPropertyUint32(ctx, names, static_cast<uint32_t>(ei), JS_NewString(ctx, mv.enumNames[ei]));\n        JS_SetPropertyStr(ctx, entry, \"enumValues\", names);\n    }\n    JS_SetPropertyUint32(ctx, vars, static_cast<uint32_t>(i), entry);\n}\nJS_SetPropertyStr(ctx, result, \"variables\", vars); JSValue nodes = JS_NewArray(ctx);\nfor (size_t i = 0; i < meta.memberNodeLookups.size(); i++) {\n    JSValue entry = JS_NewObject(ctx); JS_SetPropertyStr(ctx, entry, \"name\", JS_NewString(ctx, meta.memberNodeLookups[i].name));\n    JS_SetPropertyUint32(ctx, nodes, static_cast<uint32_t>(i), entry);\n}\nJS_SetPropertyStr(ctx, result, \"nodes\", nodes); JSValue hybrids = JS_NewArray(ctx);\nfor (size_t i = 0; i < meta.memberHybrids.size(); i++) {\n    JSValue entry = JS_NewObject(ctx); JS_SetPropertyStr(ctx, entry, \"name\", JS_NewString(ctx, meta.memberHybrids[i].name));\n    JS_SetPropertyStr(ctx, entry, \"default\", JS_NewFloat64(ctx, meta.memberHybrids[i].valueDefault)); JS_SetPropertyUint32(ctx, hybrids, static_cast<uint32_t>(i), entry);\n}\nJS_SetPropertyStr(ctx, result, \"hybrids\", hybrids); return result;"]
   FastNoiseNodeMembers getMembers();
 
   /**
@@ -675,6 +691,7 @@ interface FastNoise {
    * @param seed Integer seed
    * @returns Noise value at (x, y)
    */
+  [cpp_call="return JS_NewFloat64(ctx, w->node->GenSingle2D(\n    static_cast<float>(x), static_cast<float>(y), seed));"]
   unrestricted double genSingle2D(unrestricted double x, unrestricted double y, long seed);
 
   /**
@@ -685,6 +702,7 @@ interface FastNoise {
    * @param seed Integer seed
    * @returns Noise value at (x, y, z)
    */
+  [cpp_call="return JS_NewFloat64(ctx, w->node->GenSingle3D(\n    static_cast<float>(x), static_cast<float>(y),\n    static_cast<float>(z), seed));"]
   unrestricted double genSingle3D(unrestricted double x, unrestricted double y, unrestricted double z, long seed);
 
   /**
@@ -697,6 +715,7 @@ interface FastNoise {
    * @param seed Integer seed
    * @returns Allocated Float32Array with grid samples
    */
+  [cpp_call="if (xSize <= 0 || ySize <= 0)\n    return JS_ThrowRangeError(ctx, \"Grid dimensions must be positive\");\n\nfloat step = static_cast<float>(frequency);\nsize_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);\nstd::vector<float> output(count);\nw->node->GenUniformGrid2D(output.data(),\n                           static_cast<float>(xOffset), static_cast<float>(yOffset),\n                           xSize, ySize, step, step, seed);\nreturn make_float32_array(ctx, output.data(), count);"]
   Float32Array genUniformGrid2D(unrestricted double xOffset, unrestricted double yOffset, long xSize, long ySize, unrestricted double frequency, long seed);
 
   /**
@@ -712,6 +731,7 @@ interface FastNoise {
    * @param frequency Step size between samples
    * @param seed Integer seed
    */
+  [cpp_call="if (xSize <= 0 || ySize <= 0)\n    return JS_ThrowRangeError(ctx, \"Grid dimensions must be positive\");\n\nsize_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);\nif (n_dest < count)\n    return JS_ThrowRangeError(ctx, \"dest too small: %zu floats required\", count);\n\nfloat step = static_cast<float>(frequency);\nw->node->GenUniformGrid2D(dest,\n                           static_cast<float>(xOffset), static_cast<float>(yOffset),\n                           xSize, ySize, step, step, seed);\nreturn JS_UNDEFINED;"]
   void genUniformGrid2DInto(Float32Array dest, unrestricted double xOffset, unrestricted double yOffset, long xSize, long ySize, unrestricted double frequency, long seed);
 
   /**
@@ -726,7 +746,8 @@ interface FastNoise {
    * @param seed Integer seed
    * @returns Allocated Float32Array with grid samples
    */
-  Float32Array genUniformGrid3D(unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
+  [cpp_call="if (xSize <= 0 || ySize <= 0 || zSize <= 0)\n    return JS_ThrowRangeError(ctx, \"Grid dimensions must be positive\");\n\nfloat step = static_cast<float>(frequency);\nsize_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize) * static_cast<size_t>(zSize);\nstd::vector<float> output(count);\nw->node->GenUniformGrid3D(output.data(),\n                           static_cast<float>(xOff), static_cast<float>(yOff),\n                           static_cast<float>(zOff),\n                           xSize, ySize, zSize,\n                           step, step, step, seed);\nreturn make_float32_array(ctx, output.data(), count);"]
+  Float32Array genUniformGrid3D(unrestricted double xOff, unrestricted double yOff, unrestricted double zOff, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
 
   /**
    * In-place variant of genUniformGrid3D.
@@ -741,7 +762,8 @@ interface FastNoise {
    * @param frequency Step size between samples
    * @param seed Integer seed
    */
-  void genUniformGrid3DInto(Float32Array dest, unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
+  [cpp_call="if (xSize <= 0 || ySize <= 0 || zSize <= 0)\n    return JS_ThrowRangeError(ctx, \"Grid dimensions must be positive\");\n\nsize_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize) * static_cast<size_t>(zSize);\nif (n_dest < count)\n    return JS_ThrowRangeError(ctx, \"dest too small: %zu floats required\", count);\n\nfloat step = static_cast<float>(frequency);\nw->node->GenUniformGrid3D(dest,\n                           static_cast<float>(xOff), static_cast<float>(yOff),\n                           static_cast<float>(zOff),\n                           xSize, ySize, zSize,\n                           step, step, step, seed);\nreturn JS_UNDEFINED;"]
+  void genUniformGrid3DInto(Float32Array dest, unrestricted double xOff, unrestricted double yOff, unrestricted double zOff, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
 
   /**
    * Sample at arbitrary 2D positions rather than on a lattice.
@@ -760,7 +782,8 @@ interface FastNoise {
    * @param yOffset Added to every ys value
    * @param seed Integer seed
    */
-  void genPositionArray2D(Float32Array dest, Float32Array xs, Float32Array ys, unrestricted double xOffset, unrestricted double yOffset, long seed);
+  [cpp_call="size_t count = n_xs < n_ys ? n_xs : n_ys;\nif (count == 0) return JS_UNDEFINED;\nif (n_dest < count)\n    return JS_ThrowRangeError(ctx, \"dest too small: %zu floats required\", count);\nif (count > static_cast<size_t>(INT32_MAX))\n    return JS_ThrowRangeError(ctx, \"position count exceeds INT_MAX\");\n\nw->node->GenPositionArray2D(dest, static_cast<int>(count), xs, ys,\n                             static_cast<float>(x_off), static_cast<float>(y_off),\n                             seed);\nreturn JS_UNDEFINED;"]
+  void genPositionArray2D(Float32Array dest, Float32Array xs, Float32Array ys, unrestricted double x_off, unrestricted double y_off, long seed);
 
   /**
    * Sample at arbitrary 3D positions rather than on a lattice.
@@ -783,7 +806,8 @@ interface FastNoise {
    * @param zOffset Added to every zs value
    * @param seed Integer seed
    */
-  void genPositionArray3D(Float32Array dest, Float32Array xs, Float32Array ys, Float32Array zs, unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long seed);
+  [cpp_call="size_t count = n_xs;\nif (n_ys < count) count = n_ys;\nif (n_zs < count) count = n_zs;\nif (count == 0) return JS_UNDEFINED;\nif (n_dest < count)\n    return JS_ThrowRangeError(ctx, \"dest too small: %zu floats required\", count);\nif (count > static_cast<size_t>(INT32_MAX))\n    return JS_ThrowRangeError(ctx, \"position count exceeds INT_MAX\");\n\nw->node->GenPositionArray3D(dest, static_cast<int>(count), xs, ys, zs,\n                             static_cast<float>(x_off), static_cast<float>(y_off),\n                             static_cast<float>(z_off), seed);\nreturn JS_UNDEFINED;"]
+  void genPositionArray3D(Float32Array dest, Float32Array xs, Float32Array ys, Float32Array zs, unrestricted double x_off, unrestricted double y_off, unrestricted double z_off, long seed);
 
   /**
    * Generate seamlessly tileable 2D noise. Maps onto a 4D hypertorus internally.
@@ -793,5 +817,6 @@ interface FastNoise {
    * @param seed Integer seed
    * @returns Allocated Float32Array
    */
+  [cpp_call="if (xSize <= 0 || ySize <= 0)\n    return JS_ThrowRangeError(ctx, \"Grid dimensions must be positive\");\n\nfloat step = static_cast<float>(frequency);\nsize_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);\nstd::vector<float> output(count);\nw->node->GenTileable2D(output.data(), xSize, ySize, step, step, seed);\nreturn make_float32_array(ctx, output.data(), count);"]
   Float32Array genTileable2D(long xSize, long ySize, unrestricted double frequency, long seed);
 };

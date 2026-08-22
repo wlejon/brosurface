@@ -1069,7 +1069,7 @@ declare class FastNoise {
    * @param seed Integer seed
    * @returns Allocated Float32Array with grid samples
    */
-  genUniformGrid3D(xOffset: number, yOffset: number, zOffset: number, xSize: number, ySize: number, zSize: number, frequency: number, seed: number): Float32Array;
+  genUniformGrid3D(xOff: number, yOff: number, zOff: number, xSize: number, ySize: number, zSize: number, frequency: number, seed: number): Float32Array;
   /**
    * In-place variant of genUniformGrid3D.
    *
@@ -1083,7 +1083,7 @@ declare class FastNoise {
    * @param frequency Step size between samples
    * @param seed Integer seed
    */
-  genUniformGrid3DInto(dest: Float32Array, xOffset: number, yOffset: number, zOffset: number, xSize: number, ySize: number, zSize: number, frequency: number, seed: number): void;
+  genUniformGrid3DInto(dest: Float32Array, xOff: number, yOff: number, zOff: number, xSize: number, ySize: number, zSize: number, frequency: number, seed: number): void;
   /**
    * Sample at arbitrary 2D positions rather than on a lattice.
    *
@@ -1101,7 +1101,7 @@ declare class FastNoise {
    * @param yOffset Added to every ys value
    * @param seed Integer seed
    */
-  genPositionArray2D(dest: Float32Array, xs: Float32Array, ys: Float32Array, xOffset: number, yOffset: number, seed: number): void;
+  genPositionArray2D(dest: Float32Array, xs: Float32Array, ys: Float32Array, x_off: number, y_off: number, seed: number): void;
   /**
    * Sample at arbitrary 3D positions rather than on a lattice.
    *
@@ -1123,7 +1123,7 @@ declare class FastNoise {
    * @param zOffset Added to every zs value
    * @param seed Integer seed
    */
-  genPositionArray3D(dest: Float32Array, xs: Float32Array, ys: Float32Array, zs: Float32Array, xOffset: number, yOffset: number, zOffset: number, seed: number): void;
+  genPositionArray3D(dest: Float32Array, xs: Float32Array, ys: Float32Array, zs: Float32Array, x_off: number, y_off: number, z_off: number, seed: number): void;
   /**
    * Generate seamlessly tileable 2D noise. Maps onto a 4D hypertorus internally.
    * @param xSize Tile width in samples

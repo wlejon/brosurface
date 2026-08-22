@@ -732,9 +732,9 @@ class FastNoise {
   /**
    * Generate a 3D grid of noise values. Output: out[(z * ySize + y) * xSize + x]
    *
-   * @param {number} xOffset - Starting X position
-   * @param {number} yOffset - Starting Y position
-   * @param {number} zOffset - Starting Z position
+   * @param {number} xOff
+   * @param {number} yOff
+   * @param {number} zOff
    * @param {number} xSize - Number of samples along X
    * @param {number} ySize - Number of samples along Y
    * @param {number} zSize - Number of samples along Z
@@ -742,22 +742,22 @@ class FastNoise {
    * @param {number} seed - Integer seed
    * @returns {Float32Array} Allocated Float32Array with grid samples
    */
-  genUniformGrid3D(xOffset, yOffset, zOffset, xSize, ySize, zSize, frequency, seed) {}
+  genUniformGrid3D(xOff, yOff, zOff, xSize, ySize, zSize, frequency, seed) {}
 
   /**
    * In-place variant of genUniformGrid3D.
    *
    * @param {Float32Array} dest - Reusable buffer, length >= xSize*ySize*zSize
-   * @param {number} xOffset - Starting X position
-   * @param {number} yOffset - Starting Y position
-   * @param {number} zOffset - Starting Z position
+   * @param {number} xOff
+   * @param {number} yOff
+   * @param {number} zOff
    * @param {number} xSize - Number of samples along X
    * @param {number} ySize - Number of samples along Y
    * @param {number} zSize - Number of samples along Z
    * @param {number} frequency - Step size between samples
    * @param {number} seed - Integer seed
    */
-  genUniformGrid3DInto(dest, xOffset, yOffset, zOffset, xSize, ySize, zSize, frequency, seed) {}
+  genUniformGrid3DInto(dest, xOff, yOff, zOff, xSize, ySize, zSize, frequency, seed) {}
 
   /**
    * Sample at arbitrary 2D positions rather than on a lattice.
@@ -772,11 +772,11 @@ class FastNoise {
    * @param {Float32Array} dest - Reusable output, length >= min(xs.length, ys.length)
    * @param {Float32Array} xs - X coordinate array
    * @param {Float32Array} ys - Y coordinate array
-   * @param {number} xOffset - Added to every xs value
-   * @param {number} yOffset - Added to every ys value
+   * @param {number} x_off
+   * @param {number} y_off
    * @param {number} seed - Integer seed
    */
-  genPositionArray2D(dest, xs, ys, xOffset, yOffset, seed) {}
+  genPositionArray2D(dest, xs, ys, x_off, y_off, seed) {}
 
   /**
    * Sample at arbitrary 3D positions rather than on a lattice.
@@ -794,12 +794,12 @@ class FastNoise {
    * @param {Float32Array} xs - X coordinate array
    * @param {Float32Array} ys - Y coordinate array
    * @param {Float32Array} zs - Z coordinate array
-   * @param {number} xOffset - Added to every xs value
-   * @param {number} yOffset - Added to every ys value
-   * @param {number} zOffset - Added to every zs value
+   * @param {number} x_off
+   * @param {number} y_off
+   * @param {number} z_off
    * @param {number} seed - Integer seed
    */
-  genPositionArray3D(dest, xs, ys, zs, xOffset, yOffset, zOffset, seed) {}
+  genPositionArray3D(dest, xs, ys, zs, x_off, y_off, z_off, seed) {}
 
   /**
    * Generate seamlessly tileable 2D noise. Maps onto a 4D hypertorus internally.
