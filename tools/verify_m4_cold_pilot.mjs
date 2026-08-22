@@ -432,6 +432,15 @@ async function main() {
     if (fs.existsSync(broBuildDir)) {
       console.log(`  Staging pre-built objects from bro/build...`);
       runCmd(`cmd.exe /c "robocopy \"${broBuildDir}\" \"${scratchBuildDir}\" /E /NFL /NDL /NJH /NJS"`, SCRATCH_DIR);
+
+      // Fix CMakeCache.txt path references from bro to bro-scratch-m4
+      const cachePath = path.join(scratchBuildDir, 'CMakeCache.txt');
+      if (fs.existsSync(cachePath)) {
+        let cache = fs.readFileSync(cachePath, 'utf8');
+        cache = cache.replace(/D:\/projects\/bro\b/gi, 'D:/projects/bro-scratch-m4');
+        cache = cache.replace(/D:\\\\projects\\\\bro\b/gi, 'D:\\\\projects\\\\bro-scratch-m4');
+        fs.writeFileSync(cachePath, cache, 'utf8');
+      }
     }
 
     console.log(`  Compiling bro-headless in scratch worktree...`);
