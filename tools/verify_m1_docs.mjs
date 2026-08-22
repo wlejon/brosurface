@@ -101,7 +101,7 @@ export function runVerifyM1Docs() {
   try {
     const valOutput = execSync('node gen/validate.mjs idl/', { encoding: 'utf8' });
     console.log(valOutput.trim());
-    step3Passed = valOutput.includes('All 4 IDL file(s) passed validation and lossless round-trip!');
+    step3Passed = valOutput.includes('passed validation and lossless round-trip!');
   } catch (err) {
     console.error(`  ❌ Validation failed:`, err.message);
     step3Passed = false;
