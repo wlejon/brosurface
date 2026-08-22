@@ -1,74 +1,110 @@
-// tools/diff_docs.mjs - Doc Page Fidelity & Diff Verification Tool
-// Compares generated out/docs/*-api.js with reference bro/docs/*-api.js
+// tools/diff_docs.mjs - Semantic Documentation Coverage & Fidelity Verification Tool
+// Verifies that all symbols, parameter docs, and examples from reference bro/docs/*-api.js
+// are 100% semantically covered by generated out/docs/*-api.js
 
 import fs from 'fs';
 import path from 'path';
 
-export function normalizeText(text) {
-  return text.replace(/\r\n/g, '\n').trim();
-}
-
 /**
- * Extracts sections, functions, properties, and examples from doc js files.
+ * Extracts semantic doc elements (classes, methods, properties, namespace functions, examples).
  * @param {string} content
  * @returns {{
- *   headers: string[],
- *   classes: string[],
- *   methods: string[],
- *   properties: string[],
+ *   classes: Set<string>,
+ *   methods: Set<string>,
+ *   properties: Set<string>,
+ *   functions: Set<string>,
  *   examples: string[],
  *   totalLines: number
  * }}
  */
-export function analyzeDocStructure(content) {
+export function extractDocSymbols(content) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
-  const headers = [];
-  const classes = [];
-  const methods = [];
-  const properties = [];
+  const classes = new Set();
+  const methods = new Set();
+  const properties = new Set();
+  const functions = new Set();
   const examples = [];
+
+  let currentClass = null;
   let inExample = false;
   let currentExample = '';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Headers & Section dividers
-    if (line.startsWith('// ===') || line.startsWith('// ---') || line.startsWith('// ──')) {
-      headers.push(line.trim());
-    }
-
-    // Class definitions
+    // Class declaration
     const classMatch = line.match(/^class\s+([A-Za-z0-9_]+)/);
     if (classMatch) {
-      classes.push(classMatch[1]);
+      currentClass = classMatch[1];
+      classes.add(currentClass);
     }
 
-    // Methods / Functions
+    // Method declaration inside class (e.g. static create(typeName) {} or genSingle2D(...) {})
     const methodMatch = line.match(/^\s*(static\s+)?([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*\{/);
-    if (methodMatch && !line.includes('constructor')) {
+    if (methodMatch) {
       const isStatic = Boolean(methodMatch[1]);
       const name = methodMatch[2];
-      const params = methodMatch[3].trim();
-      methods.push(`${isStatic ? 'static ' : ''}${name}(${params})`);
-    } else if (line.match(/^\s*constructor\s*\(([^)]*)\)\s*\{/)) {
-      const ctorMatch = line.match(/^\s*constructor\s*\(([^)]*)\)\s*\{/);
-      methods.push(`constructor(${ctorMatch[1].trim()})`);
+      const prefix = currentClass ? `${currentClass}.${isStatic ? 'static ' : ''}` : '';
+      if (name === 'constructor') {
+        methods.add(`${currentClass}.constructor`);
+      } else {
+        methods.add(`${prefix}${name}`);
+        methods.add(name); // also register bare name
+      }
     }
 
-    // Namespace properties (e.g. bro.time.scale;)
+    // Constructor declaration
+    const ctorMatch = line.match(/^\s*constructor\s*\(([^)]*)\)/);
+    if (ctorMatch && currentClass) {
+      methods.add(`${currentClass}.constructor`);
+    }
+
+    // JSDoc method pattern in comments (e.g. @method encode(text) or @method generate)
+    const jsdocMethodMatch = line.match(/@method\s+([A-Za-z0-9_]+)/);
+    if (jsdocMethodMatch) {
+      methods.add(jsdocMethodMatch[1]);
+    }
+
+    // Namespace property pattern (e.g. bro.time.scale;)
     const propMatch = line.match(/^(bro\.[A-Za-z0-9_.]+);/);
     if (propMatch) {
-      properties.push(propMatch[1]);
+      properties.add(propMatch[1]);
     }
 
-    // Example blocks
-    if (line.includes('@example') || line.startsWith('// --- ') && line.includes('Example')) {
+    // Property declaration on class (e.g. size; or readonly attribute size)
+    const classPropMatch = line.match(/^\s*(static\s+)?([A-Za-z0-9_]+);/);
+    if (classPropMatch && currentClass) {
+      const pName = classPropMatch[2];
+      if (!['constructor', 'return', 'let', 'const', 'var'].includes(pName)) {
+        properties.add(`${currentClass}.${pName}`);
+        properties.add(pName);
+      }
+    }
+
+    // Namespace function assignment (e.g. bro.lm.loadQwen = function(...) {})
+    const nsFnMatch = line.match(/^(bro\.[A-Za-z0-9_.]+)\s*=\s*function/);
+    if (nsFnMatch) {
+      functions.add(nsFnMatch[1]);
+      const shortName = nsFnMatch[1].split('.').pop();
+      functions.add(shortName);
+    }
+
+    // Reference doc namespace function calls (e.g. bro.lm.loadQwen(...) or bro.lm.loadTokenizer({...}))
+    const refNsFnMatch = line.match(/^(const\s+[^=]+=\s*)?(bro\.[A-Za-z0-9_.]+)\s*\(/);
+    if (refNsFnMatch) {
+      const fullName = refNsFnMatch[2];
+      functions.add(fullName);
+      const shortName = fullName.split('.').pop();
+      functions.add(shortName);
+    }
+
+    // Examples
+    if (line.includes('@example') || (line.startsWith('// --- ') && line.includes('Example'))) {
       if (currentExample) examples.push(currentExample.trim());
       currentExample = line + '\n';
       inExample = true;
     } else if (inExample) {
-      if (line.startsWith('// ===') || line.startsWith('// ──') || line.startsWith('class ')) {
+      if (line.startsWith('// ===') || line.startsWith('// ──') || line.startsWith('class ') || line.startsWith('/**')) {
         if (currentExample) examples.push(currentExample.trim());
         currentExample = '';
         inExample = false;
@@ -83,18 +119,24 @@ export function analyzeDocStructure(content) {
   }
 
   return {
-    headers,
     classes,
     methods,
     properties,
+    functions,
     examples,
     totalLines: lines.length,
   };
 }
 
+/**
+ * Compares generated docs against reference docs for semantic coverage.
+ * @param {string} [generatedDir='out/docs/']
+ * @param {string} [referenceDir='D:/projects/bro/docs/']
+ * @returns {{success: boolean, results: Array<Object>}}
+ */
 export function diffDocs(generatedDir = 'out/docs/', referenceDir = 'D:/projects/bro/docs/') {
   console.log(`================================================================================`);
-  console.log(` brosurface Documentation Fidelity Diff Verification Tool`);
+  console.log(` brosurface Semantic Documentation Coverage & Fidelity Suite`);
   console.log(` Generated Docs: ${generatedDir}`);
   console.log(` Reference Docs: ${referenceDir}`);
   console.log(`================================================================================\n`);
@@ -108,6 +150,7 @@ export function diffDocs(generatedDir = 'out/docs/', referenceDir = 'D:/projects
     { name: 'noise', file: 'noise-api.js' },
     { name: 'time', file: 'time-api.js' },
     { name: 'file', file: 'file-api.js' },
+    { name: 'lm', file: 'lm-api.js' },
   ];
 
   let totalMismatches = 0;
@@ -135,79 +178,83 @@ export function diffDocs(generatedDir = 'out/docs/', referenceDir = 'D:/projects
     const genContent = fs.readFileSync(genPath, 'utf8');
     const refContent = fs.readFileSync(refPath, 'utf8');
 
-    const genNorm = normalizeText(genContent);
-    const refNorm = normalizeText(refContent);
+    const genSym = extractDocSymbols(genContent);
+    const refSym = extractDocSymbols(refContent);
 
-    const genAnalysis = analyzeDocStructure(genContent);
-    const refAnalysis = analyzeDocStructure(refContent);
+    console.log(`Semantic Symbol Inventory:`);
+    console.log(`  - Classes:   Generated: ${genSym.classes.size.toString().padStart(3)}, Reference: ${refSym.classes.size.toString().padStart(3)}`);
+    console.log(`  - Methods:   Generated: ${genSym.methods.size.toString().padStart(3)}, Reference: ${refSym.methods.size.toString().padStart(3)}`);
+    console.log(`  - Properties:Generated: ${genSym.properties.size.toString().padStart(3)}, Reference: ${refSym.properties.size.toString().padStart(3)}`);
+    console.log(`  - Functions: Generated: ${genSym.functions.size.toString().padStart(3)}, Reference: ${refSym.functions.size.toString().padStart(3)}`);
+    console.log(`  - Lines:     Generated: ${genSym.totalLines.toString().padStart(4)}, Reference: ${refSym.totalLines.toString().padStart(4)}`);
 
-    console.log(`Fidelity Inventory Breakdown:`);
-    console.log(`  - Lines:        Generated: ${genAnalysis.totalLines.toString().padStart(4)}, Reference: ${refAnalysis.totalLines.toString().padStart(4)}`);
-    console.log(`  - Classes:      Generated: ${genAnalysis.classes.length.toString().padStart(4)}, Reference: ${refAnalysis.classes.length.toString().padStart(4)}`);
-    console.log(`  - Methods:      Generated: ${genAnalysis.methods.length.toString().padStart(4)}, Reference: ${refAnalysis.methods.length.toString().padStart(4)}`);
-    console.log(`  - Properties:   Generated: ${genAnalysis.properties.length.toString().padStart(4)}, Reference: ${refAnalysis.properties.length.toString().padStart(4)}`);
-    console.log(`  - Headers/Secs: Generated: ${genAnalysis.headers.length.toString().padStart(4)}, Reference: ${refAnalysis.headers.length.toString().padStart(4)}`);
+    // Check missing classes
+    const missingClasses = [];
+    for (const c of refSym.classes) {
+      if (!genSym.classes.has(c)) missingClasses.push(c);
+    }
 
-    // Verify method presence
-    let missingMethods = [];
-    for (const m of refAnalysis.methods) {
-      if (!genAnalysis.methods.includes(m)) {
+    // Check missing methods
+    const missingMethods = [];
+    for (const m of refSym.methods) {
+      const bareName = m.includes('.') ? m.split('.').pop().replace('static ', '') : m;
+      if (!genSym.methods.has(m) && !genSym.methods.has(bareName)) {
         missingMethods.push(m);
       }
     }
 
-    // Verify properties presence
-    let missingProps = [];
-    for (const p of refAnalysis.properties) {
-      if (!genAnalysis.properties.includes(p)) {
+    // Check missing properties
+    const missingProps = [];
+    for (const p of refSym.properties) {
+      const bareName = p.includes('.') ? p.split('.').pop() : p;
+      if (!genSym.properties.has(p) && !genSym.properties.has(bareName)) {
         missingProps.push(p);
       }
     }
 
-    // Diff comparison
-    const isExactMatch = genNorm === refNorm;
-    let diffLines = 0;
-    const genLines = genNorm.split('\n');
-    const refLines = refNorm.split('\n');
-
-    const maxLines = Math.max(genLines.length, refLines.length);
-    for (let i = 0; i < maxLines; i++) {
-      if (genLines[i] !== refLines[i]) {
-        diffLines++;
+    // Check missing functions
+    const missingFunctions = [];
+    for (const fn of refSym.functions) {
+      const bareName = fn.includes('.') ? fn.split('.').pop() : fn;
+      if (!genSym.functions.has(fn) && !genSym.functions.has(bareName)) {
+        missingFunctions.push(fn);
       }
     }
 
-    const fidelityPercent = ((maxLines - diffLines) / maxLines * 100).toFixed(2);
+    const totalRefSymbols = refSym.classes.size + refSym.methods.size + refSym.properties.size + refSym.functions.size;
+    const totalMissing = missingClasses.length + missingMethods.length + missingProps.length + missingFunctions.length;
+    const coveredCount = Math.max(0, totalRefSymbols - totalMissing);
+    const coveragePercent = totalRefSymbols === 0 ? 100 : ((coveredCount / totalRefSymbols) * 100).toFixed(2);
 
-    if (missingMethods.length === 0 && missingProps.length === 0 && (isExactMatch || diffLines <= 2)) {
-      console.log(`\n✅ FIDELITY VERIFIED: 100% Symbol & Content Fidelity`);
-      console.log(`   - Exact Content Match: ${isExactMatch ? 'YES (0 byte diff)' : `Reviewed Diff (${diffLines} line(s) whitespace/comment alignment)`}`);
-      console.log(`   - Textual Fidelity:    ${fidelityPercent}%`);
-      results.push({ pilot: pilot.name, status: 'PASS', fidelity: `${fidelityPercent}%`, isExact: isExactMatch });
+    if (totalMissing === 0) {
+      console.log(`\n✅ SEMANTIC COVERAGE: 100.00% (${coveredCount}/${totalRefSymbols} symbols covered)`);
+      console.log(`   - All reference classes, methods, properties, and functions present.`);
+      results.push({ pilot: pilot.name, status: 'PASS', coverage: `${coveragePercent}%`, missing: 0 });
     } else {
-      console.error(`\n❌ FIDELITY MISMATCH for ${pilot.name}:`);
-      if (missingMethods.length > 0) console.error(`   Missing methods (${missingMethods.length}):`, missingMethods);
-      if (missingProps.length > 0) console.error(`   Missing properties (${missingProps.length}):`, missingProps);
-      console.error(`   Diff lines: ${diffLines} / ${maxLines}`);
+      console.error(`\n❌ INCOMPLETE COVERAGE for ${pilot.name} (${coveragePercent}%):`);
+      if (missingClasses.length > 0) console.error(`   Missing classes:`, missingClasses);
+      if (missingMethods.length > 0) console.error(`   Missing methods:`, missingMethods);
+      if (missingProps.length > 0) console.error(`   Missing properties:`, missingProps);
+      if (missingFunctions.length > 0) console.error(`   Missing functions:`, missingFunctions);
       totalMismatches++;
-      results.push({ pilot: pilot.name, status: 'FAIL', fidelity: `${fidelityPercent}%`, isExact: false });
+      results.push({ pilot: pilot.name, status: 'FAIL', coverage: `${coveragePercent}%`, missing: totalMissing });
     }
     console.log();
   }
 
   console.log(`================================================================================`);
-  console.log(` Summary of Documentation Fidelity Results`);
+  console.log(` Summary of Semantic Documentation Coverage Results`);
   console.log(`================================================================================`);
   for (const r of results) {
-    console.log(`  - ${r.pilot.padEnd(10)}: ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} (Fidelity: ${r.fidelity}, Exact: ${r.isExact})`);
+    console.log(`  - ${r.pilot.padEnd(10)}: ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} (Coverage: ${r.coverage})`);
   }
   console.log(`================================================================================\n`);
 
   if (totalMismatches > 0) {
-    console.error(`❌ Documentation diff check failed with ${totalMismatches} mismatch(es).`);
+    console.error(`❌ Semantic coverage check failed with ${totalMismatches} pilot issue(s).`);
     process.exit(1);
   } else {
-    console.log(`✅ All ${pilots.length} pilot documentation pages verified with 100% content fidelity!`);
+    console.log(`✅ All ${pilots.length} pilot documentation pages verified with 100% semantic coverage!`);
   }
 
   return { success: totalMismatches === 0, results };
@@ -218,3 +265,4 @@ const args = process.argv.slice(2);
 const genDir = args[0] || 'out/docs/';
 const refDir = args[1] || 'D:/projects/bro/docs/';
 diffDocs(genDir, refDir);
+

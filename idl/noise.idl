@@ -22,6 +22,435 @@
  *
  * =============================================================================
  *
+ * =============================================================================
+ * NODE TYPE REFERENCE
+ * =============================================================================
+ *
+ * Every node type and its configurable properties. Properties are set via
+ * node.set("Name", value). Types are:
+ *
+ *   VAR (float/int), set with a number
+ *   VAR (enum), set with a string name or int index
+ *   NODE, set with another FastNoise instance
+ *   HYBRID, set with a number (constant) or FastNoise (node-driven)
+ *
+ * Per-dimension properties (marked with [per-dim]) appear multiple times in
+ * getMembers(), one per dimension (X, Y, Z, W). They share the same base
+ * name; the dimension index distinguishes them internally.
+ *
+ * =============================================================================
+ * BASIC GENERATORS
+ * =============================================================================
+ *
+ * --- Constant ---------------------------------------------------------------
+ * Outputs a fixed value everywhere. Useful as input to blend/operator nodes.
+ *
+ *   VAR  "Value"          (float)   default: 1.0
+ *
+ *   const c = FastNoise.create("Constant");
+ *   c.set("Value", 0.5);
+ *
+ * --- White ------------------------------------------------------------------
+ * Pure white noise (random value per cell).
+ *
+ *   VAR  "Seed Offset"    (int)
+ *   VAR  "Output Min"     (float)
+ *   VAR  "Output Max"     (float)
+ *
+ * --- Checkerboard -----------------------------------------------------------
+ * Alternating +1/-1 checkerboard pattern.
+ *
+ *   VAR  "Feature Scale"  (float)
+ *   VAR  "Output Min"     (float)
+ *   VAR  "Output Max"     (float)
+ *
+ * --- SineWave ---------------------------------------------------------------
+ * Smooth sine wave pattern.
+ *
+ *   VAR  "Feature Scale"  (float)
+ *   VAR  "Output Min"     (float)
+ *   VAR  "Output Max"     (float)
+ *
+ * --- Gradient ---------------------------------------------------------------
+ * Linear gradient along axes.
+ *
+ *   VAR     "Multiplier"  (float)   [per-dim]
+ *   HYBRID  "Offset"      (float)   [per-dim]  default: 0
+ *
+ * --- DistanceToPoint --------------------------------------------------------
+ * Distance from each point to a configurable target.
+ *
+ *   VAR     "Distance Function" (enum) {Euclidean, Euclidean Squared, Manhattan,
+ *                                        Hybrid, Max Axis, Minkowski}
+ *   HYBRID  "Point"       (float)   [per-dim]  default: 0
+ *   HYBRID  "Minkowski P" (float)   default: 1.5
+ *
+ * =============================================================================
+ * COHERENT NOISE
+ * =============================================================================
+ *
+ * --- Simplex ----------------------------------------------------------------
+ *   VAR  "Feature Scale"  (float)
+ *   VAR  "Seed Offset"    (int)
+ *   VAR  "Output Min"     (float)
+ *   VAR  "Output Max"     (float)
+ *
+ *   const n = FastNoise.create("Simplex");
+ *   n.set("Feature Scale", 0.02);
+ *
+ * --- SuperSimplex -----------------------------------------------------------
+ *   (same properties as Simplex)
+ *
+ * --- Perlin -----------------------------------------------------------------
+ *   (same properties as Simplex)
+ *
+ * --- Value ------------------------------------------------------------------
+ *   (same properties as Simplex)
+ *
+ * =============================================================================
+ * CELLULAR NOISE
+ * =============================================================================
+ *
+ * --- CellularValue ----------------------------------------------------------
+ * Returns the noise value of the closest cell.
+ *
+ *   VAR     "Feature Scale"      (float)
+ *   VAR     "Seed Offset"        (int)
+ *   VAR     "Output Min"         (float)
+ *   VAR     "Output Max"         (float)
+ *   VAR     "Distance Function"  (enum)  {Euclidean, Euclidean Squared, Manhattan,
+ *                                          Hybrid, Max Axis, Minkowski}
+ *   VAR     "Value Index"        (int)   0-3, which closest cell to use
+ *   HYBRID  "Minkowski P"        (float) default: 1.5
+ *   HYBRID  "Grid Jitter"        (float) default: 1.0
+ *   HYBRID  "Size Jitter"        (float) default: 0.0
+ *
+ *   const cv = FastNoise.create("CellularValue");
+ *   cv.set("Distance Function", "Manhattan");
+ *   cv.set("Grid Jitter", 0.8);
+ *
+ * --- CellularDistance -------------------------------------------------------
+ * Returns the distance to cell boundaries.
+ *
+ *   VAR     "Feature Scale"      (float)
+ *   VAR     "Seed Offset"        (int)
+ *   VAR     "Output Min"         (float)
+ *   VAR     "Output Max"         (float)
+ *   VAR     "Distance Function"  (enum)  {Euclidean, Euclidean Squared, Manhattan,
+ *                                          Hybrid, Max Axis, Minkowski}
+ *   VAR     "Distance Index 0"   (int)   0-3
+ *   VAR     "Distance Index 1"   (int)   0-3
+ *   VAR     "Return Type"        (enum)  {Index0, Index0Add1, Index0Sub1,
+ *                                          Index0Mul1, Index0Div1}
+ *   HYBRID  "Minkowski P"        (float) default: 1.5
+ *   HYBRID  "Grid Jitter"        (float) default: 1.0
+ *   HYBRID  "Size Jitter"        (float) default: 0.0
+ *
+ *   const cd = FastNoise.create("CellularDistance");
+ *   cd.set("Return Type", "Index0Sub1");
+ *   cd.set("Distance Function", "Euclidean");
+ *
+ * --- CellularLookup ---------------------------------------------------------
+ * Evaluates a lookup generator at the position of the closest cell.
+ *
+ *   VAR     "Feature Scale"      (float)
+ *   VAR     "Seed Offset"        (int)
+ *   VAR     "Distance Function"  (enum)  {Euclidean, Euclidean Squared, Manhattan,
+ *                                          Hybrid, Max Axis, Minkowski}
+ *   NODE    "Lookup", generator evaluated at cell positions
+ *   HYBRID  "Minkowski P"        (float) default: 1.5
+ *   HYBRID  "Grid Jitter"        (float) default: 1.0
+ *   HYBRID  "Size Jitter"        (float) default: 0.0
+ *
+ *   const cl = FastNoise.create("CellularLookup");
+ *   cl.set("Lookup", FastNoise.create("Simplex"));
+ *
+ * =============================================================================
+ * FRACTAL
+ * =============================================================================
+ *
+ * --- FractalFBm -------------------------------------------------------------
+ * Fractal Brownian Motion, stacks octaves of a source generator.
+ *
+ *   NODE    "Source", the base generator to fractalise
+ *   VAR     "Octaves"            (int)    default: 3
+ *   VAR     "Lacunarity"         (float)  default: 2.0
+ *   HYBRID  "Gain"               (float)  default: 0.5
+ *   HYBRID  "Weighted Strength"  (float)  default: 0.0
+ *
+ *   const fbm = FastNoise.create("FractalFBm");
+ *   fbm.set("Source", FastNoise.create("Simplex"));
+ *   fbm.set("Octaves", 5);
+ *   fbm.set("Gain", 0.5);
+ *   fbm.set("Lacunarity", 2.0);
+ *
+ * --- FractalRidged ----------------------------------------------------------
+ * Ridged multifractal, absolute-value inversion creates ridges.
+ *
+ *   NODE    "Source", the base generator
+ *   VAR     "Octaves"            (int)    default: 3
+ *   VAR     "Lacunarity"         (float)  default: 2.0
+ *   HYBRID  "Gain"               (float)  default: 0.5
+ *   HYBRID  "Weighted Strength"  (float)  default: 0.0
+ *
+ *   const ridged = FastNoise.create("FractalRidged");
+ *   ridged.set("Source", FastNoise.create("Perlin"));
+ *   ridged.set("Octaves", 4);
+ *
+ * =============================================================================
+ * DOMAIN WARP
+ * =============================================================================
+ *
+ * --- DomainWarpGradient -----------------------------------------------------
+ * Warps input coordinates using gradient-based displacement.
+ *
+ *   NODE    "Source", generator whose domain is warped
+ *   VAR     "Feature Scale"      (float)
+ *   VAR     "Seed Offset"        (int)
+ *   HYBRID  "Warp Amplitude"     (float)  default: 1.0
+ *
+ *   const warp = FastNoise.create("DomainWarpGradient");
+ *   warp.set("Source", FastNoise.create("Simplex"));
+ *   warp.set("Warp Amplitude", 50.0);
+ *
+ * --- DomainWarpSimplex ------------------------------------------------------
+ * Domain warp using simplex-style vectors.
+ *
+ *   NODE    "Source"
+ *   VAR     "Feature Scale"      (float)
+ *   VAR     "Seed Offset"        (int)
+ *   HYBRID  "Warp Amplitude"     (float)  default: 1.0
+ *
+ * --- DomainWarpSuperSimplex -------------------------------------------------
+ * Domain warp using super-simplex vectors.
+ *
+ *   (same properties as DomainWarpSimplex)
+ *
+ * =============================================================================
+ * DOMAIN WARP FRACTAL
+ * =============================================================================
+ *
+ * --- DomainWarpFractalProgressive -------------------------------------------
+ * Applies fractal octaves to a domain warp, warping progressively.
+ *
+ *   NODE    "Domain Warp Source", must be a DomainWarp node
+ *   VAR     "Octaves"            (int)    default: 3
+ *   VAR     "Lacunarity"         (float)  default: 2.0
+ *   HYBRID  "Gain"               (float)  default: 0.5
+ *   HYBRID  "Weighted Strength"  (float)  default: 0.0
+ *
+ *   const dwGrad = FastNoise.create("DomainWarpGradient");
+ *   dwGrad.set("Source", FastNoise.create("Simplex"));
+ *   const dwFrac = FastNoise.create("DomainWarpFractalProgressive");
+ *   dwFrac.set("Domain Warp Source", dwGrad);
+ *   dwFrac.set("Octaves", 4);
+ *
+ * --- DomainWarpFractalIndependent -------------------------------------------
+ * Applies fractal octaves to a domain warp, each octave independent.
+ *
+ *   (same properties as DomainWarpFractalProgressive)
+ *
+ * =============================================================================
+ * OPERATORS / BLENDS
+ * =============================================================================
+ *
+ * Operators combine two noise sources. LHS is always a node connection.
+ * RHS is a hybrid (accepts a constant float or another noise node).
+ * Some operators (Subtract, Divide, Modulus) have hybrid LHS too.
+ *
+ * --- Add --------------------------------------------------------------------
+ *   NODE    "LHS", left-hand source
+ *   HYBRID  "RHS"    (float) default: 0.0
+ *
+ *   const add = FastNoise.create("Add");
+ *   add.set("LHS", terrainBase);
+ *   add.set("RHS", 0.1);             // constant offset
+ *   add.set("RHS", anotherNoise);    // or add two noise sources
+ *
+ * --- Subtract ---------------------------------------------------------------
+ *   HYBRID  "LHS"    (float) default: 0.0, also accepts constant
+ *   HYBRID  "RHS"    (float) default: 0.0
+ *
+ * --- Multiply ---------------------------------------------------------------
+ *   NODE    "LHS"
+ *   HYBRID  "RHS"    (float) default: 1.0
+ *
+ *   const scaled = FastNoise.create("Multiply");
+ *   scaled.set("LHS", heightNoise);
+ *   scaled.set("RHS", 2.0);    // double the amplitude
+ *
+ * --- Divide -----------------------------------------------------------------
+ *   HYBRID  "LHS"    (float) default: 0.0
+ *   HYBRID  "RHS"    (float) default: 1.0
+ *
+ * --- Modulus ----------------------------------------------------------------
+ *   HYBRID  "LHS"    (float) default: 0.0
+ *   HYBRID  "RHS"    (float) default: 1.0
+ *
+ * --- Min --------------------------------------------------------------------
+ *   NODE    "LHS"
+ *   HYBRID  "RHS"    (float) default: 0.0
+ *
+ *   const clamped = FastNoise.create("Min");
+ *   clamped.set("LHS", heightNoise);
+ *   clamped.set("RHS", 0.8);   // cap at 0.8
+ *
+ * --- Max --------------------------------------------------------------------
+ *   NODE    "LHS"
+ *   HYBRID  "RHS"    (float) default: 0.0
+ *
+ * --- MinSmooth --------------------------------------------------------------
+ * Smooth minimum, blends near the boundary instead of a hard cutoff.
+ *
+ *   NODE    "LHS"
+ *   HYBRID  "RHS"        (float) default: 0.0
+ *   HYBRID  "Smoothness" (float) default: 0.1
+ *
+ * --- MaxSmooth --------------------------------------------------------------
+ *   NODE    "LHS"
+ *   HYBRID  "RHS"        (float) default: 0.0
+ *   HYBRID  "Smoothness" (float) default: 0.1
+ *
+ * --- Fade -------------------------------------------------------------------
+ * Interpolates between two sources based on a fade value.
+ *
+ *   NODE    "A", source when fade = min
+ *   NODE    "B", source when fade = max
+ *   HYBRID  "Fade"        (float) default: 0.5
+ *   HYBRID  "Fade Min"    (float) default: -1.0
+ *   HYBRID  "Fade Max"    (float) default: 1.0
+ *   VAR     "Interpolation" (enum) {Linear, Hermite, Quintic}
+ *
+ *   const blend = FastNoise.create("Fade");
+ *   blend.set("A", flatlands);
+ *   blend.set("B", mountains);
+ *   blend.set("Fade", moistureNoise);   // node-driven blending
+ *   blend.set("Interpolation", "Hermite");
+ *
+ * --- PowFloat ---------------------------------------------------------------
+ *   HYBRID  "Value"  (float) default: 2.0
+ *   HYBRID  "Pow"    (float) default: 2.0
+ *
+ * --- PowInt -----------------------------------------------------------------
+ *   NODE    "Value"
+ *   VAR     "Pow"    (int)   default: 2
+ *
+ * =============================================================================
+ * MODIFIERS
+ * =============================================================================
+ *
+ * --- Remap ------------------------------------------------------------------
+ * Remaps the output range of a source generator.
+ *
+ *   NODE    "Source"
+ *   HYBRID  "From Min"    (float) default: -1.0
+ *   HYBRID  "From Max"    (float) default: 1.0
+ *   HYBRID  "To Min"      (float) default: 0.0
+ *   HYBRID  "To Max"      (float) default: 1.0
+ *
+ *   const remap = FastNoise.create("Remap");
+ *   remap.set("Source", noise);
+ *   remap.set("From Min", -1.0);
+ *   remap.set("From Max", 1.0);
+ *   remap.set("To Min", 0.0);
+ *   remap.set("To Max", 1.0);
+ *
+ * --- Terrace ----------------------------------------------------------------
+ * Creates terrace/step-like output from continuous noise.
+ *
+ *   NODE    "Source"
+ *   VAR     "Step Count"   (float)
+ *   HYBRID  "Smoothness"   (float) default: 0.0
+ *
+ *   const terrace = FastNoise.create("Terrace");
+ *   terrace.set("Source", terrainNoise);
+ *   terrace.set("Step Count", 8.0);
+ *   terrace.set("Smoothness", 0.3);
+ *
+ * --- PingPong ---------------------------------------------------------------
+ * Folds the output into a ping-pong pattern.
+ *
+ *   NODE    "Source"
+ *   HYBRID  "Ping Pong Strength" (float) default: 2.0
+ *
+ * --- SeedOffset -------------------------------------------------------------
+ * Offsets the seed before passing to the source. Useful for creating
+ * independent variations from the same source graph.
+ *
+ *   NODE    "Source"
+ *   VAR     "Seed Offset"  (int)   default: 1
+ *
+ * --- GeneratorCache ---------------------------------------------------------
+ * Caches the source output. Useful when the same generator is used as input
+ * to multiple nodes to avoid redundant computation.
+ *
+ *   NODE    "Source"
+ *
+ * --- Abs --------------------------------------------------------------------
+ * Takes the absolute value of the source output.
+ *
+ *   NODE    "Source"
+ *
+ * --- SignedSquareRoot -------------------------------------------------------
+ * Applies sign-preserving square root.
+ *
+ *   NODE    "Source"
+ *
+ * --- ConvertRGBA8 -----------------------------------------------------------
+ * Converts noise to RGBA8 packed format.
+ *
+ *   NODE    "Source"
+ *   VAR     "Min"     (float)
+ *   VAR     "Max"     (float)
+ *
+ * =============================================================================
+ * DOMAIN MODIFIERS
+ * =============================================================================
+ *
+ * --- DomainScale ------------------------------------------------------------
+ * Scales the input coordinates uniformly.
+ *
+ *   NODE    "Source"
+ *   VAR     "Scaling"  (float) default: 1.0
+ *
+ *   const ds = FastNoise.create("DomainScale");
+ *   ds.set("Source", noise);
+ *   ds.set("Scaling", 0.5);   // halves feature frequency
+ *
+ * --- DomainOffset -----------------------------------------------------------
+ * Offsets input coordinates per-dimension.
+ *
+ *   NODE    "Source"
+ *   HYBRID  "Offset"  (float)  [per-dim] default: 0.0
+ *
+ * --- DomainRotate -----------------------------------------------------------
+ * Rotates input coordinates in 3D.
+ *
+ *   NODE    "Source"
+ *   VAR     "Yaw"    (float)   in degrees
+ *   VAR     "Pitch"  (float)   in degrees
+ *   VAR     "Roll"   (float)   in degrees
+ *
+ * --- DomainAxisScale --------------------------------------------------------
+ * Scales input coordinates per-axis independently.
+ *
+ *   NODE    "Source"
+ *   VAR     "Scaling"  (float)  [per-dim] default: 1.0
+ *
+ * --- AddDimension -----------------------------------------------------------
+ * Adds an extra dimension with a fixed or noise-driven position.
+ *
+ *   NODE    "Source"
+ *   HYBRID  "New Dimension Position"  (float)  default: 0.0
+ *
+ * --- RemoveDimension --------------------------------------------------------
+ * Removes a dimension from the input.
+ *
+ *   NODE    "Source"
+ *   VAR     "Remove Dimension"  (enum)  {X, Y, Z, W}
+ *
+ * =============================================================================
+ *
  * EXAMPLES:
  *
  * @example
