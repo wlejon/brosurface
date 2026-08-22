@@ -37,6 +37,14 @@ static void file_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef file_class_def = { "File", file_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static BlobData* getBlobData(JSContext* ctx, JSValueConst val)
 {
     auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
@@ -96,14 +104,6 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
                reinterpret_cast<const uint8_t*>(str) + len);
     JS_FreeCString(ctx, str);
     return true;
-}
-
-static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
-                          const char* name)
-{
-    JSCFunctionType ft;
-    ft.getter = fn;
-    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
 }
 
 static JSValue blob_slice(JSContext* ctx, JSValueConst this_val,

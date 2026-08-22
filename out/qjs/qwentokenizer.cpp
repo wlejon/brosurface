@@ -12,6 +12,14 @@ static void qwen_tokenizer_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef qwen_tokenizer_class_def = { "QwenTokenizer", qwen_tokenizer_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue qwen_tokenizer_encode(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
@@ -38,7 +46,7 @@ static JSValue qwen_tokenizer_decode(JSContext* ctx, JSValueConst this_val,
 
     JSValueConst ids = argv[0];
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue qwen_tokenizer_apply_chat_template(JSContext* ctx, JSValueConst this_val,
@@ -55,7 +63,7 @@ static JSValue qwen_tokenizer_apply_chat_template(JSContext* ctx, JSValueConst t
         addGenerationPrompt = JS_ToBool(ctx, argv[1]) > 0;
     }
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue js_qwen_tokenizer_imEndId(JSContext* ctx, JSValueConst this_val)

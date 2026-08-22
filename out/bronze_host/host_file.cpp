@@ -1,4 +1,4 @@
-// Blob, File, FileReader, URL — bytes an app holds, and the names it gives them.
+// Blob, File, FileReader, URL — bronze_host translation unit.
 
 #include "bronze_host/bronze_host.h"
 #include "bronze_host/gl_internal.h"

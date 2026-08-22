@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { validate } from '../schema/validator.mjs';
@@ -35,22 +36,36 @@ export function findIdlFiles(dirOrFile) {
 
 /**
  * Calculates custom escape-hatch LOC lines within an AST node or its members.
- * Per SPEC §5.1 / DESIGN §1.2, counts operations marked with [custom].
+ * Honest accounting: counts ALL hand-written lines in IDLs (prologues, epilogues, custom bodies, getters, setters, members).
  * @param {Object} def
  * @returns {number}
  */
 export function calculateCustomLoc(def) {
   let customLines = 0;
 
+  // 1. Definition-level custom code attributes
+  const defAttrs = ['cpp_prologue', 'cpp_epilogue', 'wrapper_member', 'data_member', 'getter_body', 'getter_cpp', 'setter_body', 'setter_cpp', 'cpp_body', 'cpp_call', 'stub_body'];
+  for (const attrName of defAttrs) {
+    const val = getAttr(def, attrName);
+    if (typeof val === 'string' && val.trim().length > 0) {
+      customLines += val.split('\n').length;
+    }
+  }
+
+  // 2. Member-level custom code attributes
   if (def.members) {
     for (const m of def.members) {
-      if (hasAttr(m, 'custom')) {
-        const body = getAttr(m, 'cpp_body') || getAttr(m, 'cpp_call');
-        if (typeof body === 'string') {
-          customLines += body.split('\n').length;
-        } else {
-          customLines += 1;
+      const memberAttrs = ['cpp_body', 'cpp_call', 'getter_body', 'getter_cpp', 'setter_body', 'setter_cpp'];
+      let memberHandled = false;
+      for (const attrName of memberAttrs) {
+        const val = getAttr(m, attrName);
+        if (typeof val === 'string' && val.trim().length > 0) {
+          customLines += val.split('\n').length;
+          memberHandled = true;
         }
+      }
+      if (!memberHandled && hasAttr(m, 'custom')) {
+        customLines += 1;
       }
     }
   }
@@ -154,7 +169,7 @@ export function runEmitQjsbind(targetPath = 'idl/', outPath = 'out/qjs/') {
 }
 
 // CLI entry point
-const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([a-zA-Z]:)/, '$1'));
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_qjsbind.mjs'))) {
   const args = process.argv.slice(2);
   const idlDir = args[0] || 'idl/';

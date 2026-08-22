@@ -12,6 +12,14 @@ static void gemma_tokenizer_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef gemma_tokenizer_class_def = { "GemmaTokenizer", gemma_tokenizer_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue gemma_tokenizer_encode(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
@@ -42,7 +50,7 @@ static JSValue gemma_tokenizer_decode(JSContext* ctx, JSValueConst this_val,
 
     JSValueConst ids = argv[0];
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue js_gemma_tokenizer_eosId(JSContext* ctx, JSValueConst this_val)

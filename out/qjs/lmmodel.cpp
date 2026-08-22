@@ -12,6 +12,14 @@ static void lm_model_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef lm_model_class_def = { "LMModel", lm_model_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue lm_model_allocate_cache(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {

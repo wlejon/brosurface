@@ -12,6 +12,14 @@ static void mistral_tokenizer_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef mistral_tokenizer_class_def = { "MistralTokenizer", mistral_tokenizer_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue mistral_tokenizer_encode(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
@@ -42,7 +50,7 @@ static JSValue mistral_tokenizer_decode(JSContext* ctx, JSValueConst this_val,
 
     JSValueConst ids = argv[0];
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue mistral_tokenizer_apply_chat_template(JSContext* ctx, JSValueConst this_val,
@@ -59,7 +67,7 @@ static JSValue mistral_tokenizer_apply_chat_template(JSContext* ctx, JSValueCons
         addGenerationPrompt = JS_ToBool(ctx, argv[1]) > 0;
     }
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue js_mistral_tokenizer_eosId(JSContext* ctx, JSValueConst this_val)

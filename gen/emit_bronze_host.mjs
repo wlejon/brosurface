@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { validate } from '../schema/validator.mjs';
@@ -36,22 +37,36 @@ export function findIdlFiles(dirOrFile) {
 
 /**
  * Calculates custom escape-hatch LOC lines within an AST node or its members.
- * Per SPEC §5.1 / DESIGN §1.2, counts operations/members marked with [custom] or custom bodies.
+ * Honest accounting: counts ALL hand-written lines in IDLs (prologue, epilogue, custom bodies, getters, setters).
  * @param {Object} def
  * @returns {number}
  */
 export function calculateCustomLoc(def) {
   let customLines = 0;
 
+  // 1. Definition-level custom code attributes for bronze_host
+  const defAttrs = ['bh_prologue', 'bh_epilogue', 'bh_state_body'];
+  for (const attrName of defAttrs) {
+    const val = getAttr(def, attrName);
+    if (typeof val === 'string' && val.trim().length > 0) {
+      customLines += val.split('\n').length;
+    }
+  }
+
+  // 2. Member-level custom code attributes for bronze_host
   if (def.members) {
     for (const m of def.members) {
-      if (hasAttr(m, 'custom') || hasAttr(m, 'bh_custom') || hasAttr(m, 'bh_body') || hasAttr(m, 'bh_call') || hasAttr(m, 'bh_getter') || hasAttr(m, 'bh_setter') || hasAttr(m, 'bh_static_body')) {
-        const body = getAttr(m, 'bh_body') || getAttr(m, 'bh_call') || getAttr(m, 'bh_getter') || getAttr(m, 'bh_setter') || getAttr(m, 'bh_static_body') || getAttr(m, 'cpp_body') || getAttr(m, 'cpp_call');
-        if (typeof body === 'string') {
-          customLines += body.split('\n').length;
-        } else {
-          customLines += 1;
+      const memberAttrs = ['bh_body', 'bh_call', 'bh_getter', 'bh_setter', 'bh_static_body', 'bh_static_call', 'bh_ctor'];
+      let memberHandled = false;
+      for (const attrName of memberAttrs) {
+        const val = getAttr(m, attrName);
+        if (typeof val === 'string' && val.trim().length > 0) {
+          customLines += val.split('\n').length;
+          memberHandled = true;
         }
+      }
+      if (!memberHandled && (hasAttr(m, 'custom') || hasAttr(m, 'bh_custom'))) {
+        customLines += 1;
       }
     }
   }
@@ -174,7 +189,7 @@ export function runEmitBronzeHost(targetPath = 'idl/', outPath = 'out/bronze_hos
 }
 
 // CLI entry point
-const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([a-zA-Z]:)/, '$1'));
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_bronze_host.mjs'))) {
   const args = process.argv.slice(2);
   const idlDir = args[0] || 'idl/';

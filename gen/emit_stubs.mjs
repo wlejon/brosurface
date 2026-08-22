@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { validate } from '../schema/validator.mjs';
@@ -32,7 +33,7 @@ function findIdlFiles(dirOrFile) {
 }
 
 /**
- * Capitalizes the first character of a string (e.g. 'lm' -> 'Lm', 'tensor' -> 'Tensor').
+ * Capitalizes the first character of a string (e.g. 'foo' -> 'Foo', 'tensor' -> 'Tensor').
  * @param {string} str
  * @returns {string}
  */
@@ -208,7 +209,7 @@ export function runEmitStubs(targetPath = 'idl/', outFile = 'out/stubs/feature_s
 }
 
 // CLI entry point
-const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([a-zA-Z]:)/, '$1'));
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_stubs.mjs'))) {
   const args = process.argv.slice(2);
   const target = args[0] || 'idl/';

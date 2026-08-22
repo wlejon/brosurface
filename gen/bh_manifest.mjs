@@ -61,17 +61,23 @@ export function emitManifestEntries(globalsList) {
 export function emitDomGlobalsInstallSnippet(globalsList, astList = []) {
   const installFns = new Set();
 
+function toPascalCase(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
   for (const fileAst of astList) {
     for (const def of fileAst.definitions) {
       if (globalsList.includes(def.name)) {
-        const installFn = getAttr(def, 'bh_install') || 'installFileGlobals';
+        const installFn = getAttr(def, 'bh_install') || `install${toPascalCase(def.name)}Globals`;
         installFns.add(installFn);
       }
     }
   }
 
   if (installFns.size === 0 && globalsList.length > 0) {
-    installFns.add('installFileGlobals');
+    for (const g of globalsList) {
+      installFns.add(`install${toPascalCase(g)}Globals`);
+    }
   }
 
   const calls = Array.from(installFns).map(fn => `    ${fn}();`);

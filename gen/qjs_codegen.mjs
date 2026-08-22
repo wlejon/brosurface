@@ -62,7 +62,7 @@ export function toSnakeCase(str) {
 }
 
 /**
- * Emits a complete C++ translation unit for a Namespace AST node (e.g. bro.time).
+ * Emits a complete C++ translation unit for a Namespace AST node.
  * @param {Object} nsDef - Namespace AST node
  * @returns {string}
  */
@@ -296,7 +296,7 @@ export function emitNamespaceTU(nsDef) {
 }
 
 /**
- * Emits a complete C++ translation unit for a set of Interface AST nodes (e.g. FastNoise or Blob/File).
+ * Emits a complete C++ translation unit for a set of Interface AST nodes.
  * @param {Array<Object>} interfaceDefs - Interface AST nodes sharing this TU
  * @returns {string}
  */
@@ -419,127 +419,26 @@ export function emitInterfaceTU(interfaceDefs) {
     lines.push('');
   }
 
-  // Interface-specific unwrappers & helpers
+  // 3.5 Helper newGetter if attributes exist
+  const hasAttributes = interfaceDefs.some(i => i.members.some(m => m.type === 'AttributeMember' && !m.isStatic));
+  if (hasAttributes) {
+    lines.push(`static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),`);
+    lines.push(`                          const char* name)`);
+    lines.push(`{`);
+    lines.push(`    JSCFunctionType ft;`);
+    lines.push(`    ft.getter = fn;`);
+    lines.push(`    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);`);
+    lines.push(`}`);
+    lines.push('');
+  }
+
+  // Interface prologues (custom helpers, structs, and factory functions)
   for (const iface of interfaceDefs) {
-    const name = iface.name;
-    const classIdVar = getAttr(iface, 'class_id_var') || `${toSnakeCase(name)}_class_id`;
-
-    if (iface.name === 'FastNoise') {
-      lines.push(`static NoiseWrapper* get_noise(JSContext* ctx, JSValueConst this_val)`);
-      lines.push(`{`);
-      lines.push(`    return static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, ${classIdVar}));`);
-      lines.push(`}`);
-      lines.push('');
-      lines.push(`static JSValue wrap_node(JSContext* ctx, FastNoise::SmartNode<> node)`);
-      lines.push(`{`);
-      lines.push(`    if (!node)`);
-      lines.push(`        return JS_ThrowTypeError(ctx, "Failed to create FastNoise node");`);
-      lines.push('');
-      lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
-      lines.push(`    JSValue fn_ctor = JS_GetPropertyStr(ctx, global, "FastNoise");`);
-      lines.push(`    JSValue proto = JS_GetPropertyStr(ctx, fn_ctor, "prototype");`);
-      lines.push(`    JS_FreeValue(ctx, fn_ctor);`);
-      lines.push(`    JS_FreeValue(ctx, global);`);
-      lines.push('');
-      lines.push(`    JSValue obj = JS_NewObjectProtoClass(ctx, proto, ${classIdVar});`);
-      lines.push(`    JS_FreeValue(ctx, proto);`);
-      lines.push(`    if (JS_IsException(obj)) return obj;`);
-      lines.push('');
-      lines.push(`    auto* w = new NoiseWrapper{std::move(node)};`);
-      lines.push(`    JS_SetOpaque(obj, w);`);
-      lines.push(`    return obj;`);
-      lines.push(`}`);
-      lines.push('');
-
-      lines.push(`static bool memberNameMatches(const char* query, const FastNoise::Metadata::Member& m)`);
-      lines.push(`{`);
-      lines.push(`    if (m.dimensionIdx < 0) {`);
-      lines.push(`        return strcmp(query, m.name) == 0;`);
-      lines.push(`    }`);
-      lines.push(`    size_t baseLen = strlen(m.name);`);
-      lines.push(`    if (strncmp(query, m.name, baseLen) != 0) return false;`);
-      lines.push(`    if (query[baseLen] != ' ') return false;`);
-      lines.push(`    char dim = query[baseLen + 1];`);
-      lines.push(`    if (query[baseLen + 2] != '\\0') return false;`);
-      lines.push(`    int queryIdx = (dim == 'X') ? 0`);
-      lines.push(`                 : (dim == 'Y') ? 1`);
-      lines.push(`                 : (dim == 'Z') ? 2`);
-      lines.push(`                 : (dim == 'W') ? 3`);
-      lines.push(`                 : -1;`);
-      lines.push(`    return queryIdx == m.dimensionIdx;`);
-      lines.push(`}`);
-      lines.push('');
-    } else if (iface.name === 'Blob') {
-      lines.push(`static BlobData* getBlobData(JSContext* ctx, JSValueConst val)`);
-      lines.push(`{`);
-      lines.push(`    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));`);
-      lines.push(`    if (bdata) return bdata;`);
-      lines.push(`    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));`);
-      lines.push(`    if (fdata) return &fdata->blob;`);
-      lines.push(`    JS_ThrowTypeError(ctx, "not a Blob");`);
-      lines.push(`    return nullptr;`);
-      lines.push(`}`);
-      lines.push('');
-
-      lines.push(`static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>& out)`);
-      lines.push(`{`);
-      lines.push(`    if (JS_IsString(part)) {`);
-      lines.push(`        const char* str = JS_ToCString(ctx, part);`);
-      lines.push(`        if (!str) return false;`);
-      lines.push(`        size_t len = strlen(str);`);
-      lines.push(`        out.insert(out.end(), reinterpret_cast<const uint8_t*>(str),`);
-      lines.push(`                   reinterpret_cast<const uint8_t*>(str) + len);`);
-      lines.push(`        JS_FreeCString(ctx, str);`);
-      lines.push(`        return true;`);
-      lines.push(`    }`);
-      lines.push('');
-      lines.push(`    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(part, blob_class_id));`);
-      lines.push(`    if (!bdata) {`);
-      lines.push(`        auto* fdata = static_cast<FileData*>(JS_GetOpaque(part, file_class_id));`);
-      lines.push(`        if (fdata) bdata = &fdata->blob;`);
-      lines.push(`    }`);
-      lines.push(`    if (bdata) {`);
-      lines.push(`        out.insert(out.end(), bdata->bytes.begin(), bdata->bytes.end());`);
-      lines.push(`        return true;`);
-      lines.push(`    }`);
-      lines.push('');
-      lines.push(`    size_t byte_offset = 0, byte_len = 0, bpe = 0;`);
-      lines.push(`    JSValue buf = JS_GetTypedArrayBuffer(ctx, part, &byte_offset, &byte_len, &bpe);`);
-      lines.push(`    if (!JS_IsException(buf)) {`);
-      lines.push(`        size_t abLen = 0;`);
-      lines.push(`        uint8_t* ptr = JS_GetArrayBuffer(ctx, &abLen, buf);`);
-      lines.push(`        if (ptr) {`);
-      lines.push(`            out.insert(out.end(), ptr + byte_offset, ptr + byte_offset + byte_len);`);
-      lines.push(`        }`);
-      lines.push(`        JS_FreeValue(ctx, buf);`);
-      lines.push(`        return true;`);
-      lines.push(`    }`);
-      lines.push(`    JS_FreeValue(ctx, JS_GetException(ctx));`);
-      lines.push('');
-      lines.push(`    size_t abLen = 0;`);
-      lines.push(`    uint8_t* ptr = JS_GetArrayBuffer(ctx, &abLen, part);`);
-      lines.push(`    if (ptr) {`);
-      lines.push(`        out.insert(out.end(), ptr, ptr + abLen);`);
-      lines.push(`        return true;`);
-      lines.push(`    }`);
-      lines.push('');
-      lines.push(`    const char* str = JS_ToCString(ctx, part);`);
-      lines.push(`    if (!str) return false;`);
-      lines.push(`    size_t len = strlen(str);`);
-      lines.push(`    out.insert(out.end(), reinterpret_cast<const uint8_t*>(str),`);
-      lines.push(`               reinterpret_cast<const uint8_t*>(str) + len);`);
-      lines.push(`    JS_FreeCString(ctx, str);`);
-      lines.push(`    return true;`);
-      lines.push(`}`);
-      lines.push('');
-
-      lines.push(`static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),`);
-      lines.push(`                          const char* name)`);
-      lines.push(`{`);
-      lines.push(`    JSCFunctionType ft;`);
-      lines.push(`    ft.getter = fn;`);
-      lines.push(`    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);`);
-      lines.push(`}`);
+    const prologue = getAttr(iface, 'cpp_prologue');
+    if (prologue) {
+      for (const pl of prologue.split('\n')) {
+        lines.push(pl);
+      }
       lines.push('');
     }
   }
@@ -548,6 +447,7 @@ export function emitInterfaceTU(interfaceDefs) {
   for (const iface of interfaceDefs) {
     const ifaceName = iface.name;
     const classIdVar = getAttr(iface, 'class_id_var') || `${toSnakeCase(ifaceName)}_class_id`;
+    const dataStruct = getAttr(iface, 'data_struct');
     const ops = iface.members.filter(m => m.type === 'OperationMember' && !hasAttr(m, 'factory_type'));
 
     for (const op of ops) {
@@ -565,7 +465,9 @@ export function emitInterfaceTU(interfaceDefs) {
         }
       } else if (customCall) {
         if (!op.isStatic) {
-          lines.push(`    auto* w = get_noise(ctx, this_val);`);
+          const wrapperStruct = getAttr(iface, 'wrapper_struct') || `${ifaceName}Wrapper`;
+          const unwrapExpr = getAttr(iface, 'unwrap_call') || `static_cast<${wrapperStruct}*>(JS_GetOpaque2(ctx, this_val, ${classIdVar}))`;
+          lines.push(`    auto* w = ${unwrapExpr};`);
           lines.push(`    if (!w) return JS_EXCEPTION;`);
         }
         const minArgs = op.parameters.filter(p => !p.optional && p.defaultValue === null).length;
@@ -600,7 +502,7 @@ export function emitInterfaceTU(interfaceDefs) {
         }
         lines.push('');
         if (op.returnType.name === 'DOMString' || op.returnType.name === 'string') {
-          lines.push(`    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");`);
+          lines.push(`    return JS_NewString(ctx, "1.0.0");`);
         } else {
           lines.push(emitReturnConversion(op.returnType, '0', '    '));
         }
@@ -618,9 +520,9 @@ export function emitInterfaceTU(interfaceDefs) {
 
       lines.push(`static JSValue ${getterName}(JSContext* ctx, JSValueConst this_val)`);
       lines.push(`{`);
-      if (ifaceName === 'Blob' || ifaceName === 'File') {
-        const unwrapCall = ifaceName === 'Blob' ? 'getBlobData(ctx, this_val)' : `static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, ${classIdVar}))`;
-        lines.push(`    auto* data = ${unwrapCall};`);
+      const getterUnwrap = getAttr(iface, 'getter_unwrap') || (dataStruct ? `static_cast<${dataStruct}*>(JS_GetOpaque2(ctx, this_val, ${classIdVar}))` : null);
+      if (getterUnwrap) {
+        lines.push(`    auto* data = ${getterUnwrap};`);
         lines.push(`    if (!data) return JS_ThrowTypeError(ctx, "not a ${ifaceName}");`);
         if (getterCpp) {
           lines.push(`    return ${getterCpp};`);
@@ -663,19 +565,7 @@ export function emitInterfaceTU(interfaceDefs) {
     }
   }
 
-  // 5. Convenience Named Factory Template
-  const hasFactory = interfaceDefs.some(i => i.members.some(m => hasAttr(m, 'factory_type')));
-  if (hasFactory) {
-    lines.push(`template<typename T>`);
-    lines.push(`static JSValue noise_factory(JSContext* ctx, JSValueConst, int, JSValueConst*)`);
-    lines.push(`{`);
-    lines.push(`    auto node = FastNoise::New<T>();`);
-    lines.push(`    return wrap_node(ctx, std::move(node));`);
-    lines.push(`}`);
-    lines.push('');
-  }
-
-  // 6. Epilogue C++ functions if present
+  // 5. Epilogue C++ functions if present
   if (cppEpilogue) {
     for (const el of cppEpilogue.split('\n')) {
       lines.push(el);
@@ -683,7 +573,7 @@ export function emitInterfaceTU(interfaceDefs) {
     lines.push('');
   }
 
-  // 7. Install Function
+  // 6. Install Function
   lines.push(`void ${cppInstall}(JSContext* ctx)`);
   lines.push(`{`);
   lines.push(`    JSRuntime* rt = JS_GetRuntime(ctx);`);
@@ -758,8 +648,9 @@ export function emitInterfaceTU(interfaceDefs) {
     for (const op of staticOps) {
       const factType = getAttr(op, 'factory_type');
       if (factType) {
+        const factoryHelper = getAttr(iface, 'factory_helper') || 'make_factory_node';
         lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);
-        lines.push(`        JS_NewCFunction(ctx, noise_factory<${factType}>, "${op.name}", 0));`);
+        lines.push(`        JS_NewCFunction(ctx, ${factoryHelper}<${factType}>, "${op.name}", 0));`);
       } else {
         const fnName = `${snake}_${toSnakeCase(op.name)}`;
         lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);

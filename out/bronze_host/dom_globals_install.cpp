@@ -10,6 +10,8 @@ namespace bro::bronze_host {
 
 inline void installDeclaredWebHostGlobals() {
     installFileGlobals();
+    installFileReaderGlobals();
+    installURLGlobals();
 }
 
 }  // namespace bro::bronze_host

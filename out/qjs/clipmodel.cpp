@@ -54,6 +54,14 @@ static bool resolve_f32(JSContext* ctx, JSValueConst v, const char* name,
     return true;
 }
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue clip_model_encode_text(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {

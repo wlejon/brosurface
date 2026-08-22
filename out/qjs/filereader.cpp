@@ -12,6 +12,14 @@ static void file_reader_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef file_reader_class_def = { "FileReader", file_reader_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue file_reader_read_as_array_buffer(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {

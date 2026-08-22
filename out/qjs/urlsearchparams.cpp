@@ -61,7 +61,7 @@ static JSValue url_search_params_get(JSContext* ctx, JSValueConst this_val,
     std::string name = name_cstr;
     JS_FreeCString(ctx, name_cstr);
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue url_search_params_get_all(JSContext* ctx, JSValueConst this_val,
@@ -122,7 +122,7 @@ static JSValue url_search_params_to_string(JSContext* ctx, JSValueConst this_val
     auto* w = static_cast<URLSearchParamsWrapper*>(JS_GetOpaque2(ctx, this_val, url_search_params_class_id));
     if (!w) return JS_EXCEPTION;
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue js_url_search_params_constructor(JSContext* ctx, JSValueConst new_target,

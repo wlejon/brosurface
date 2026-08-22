@@ -105,9 +105,9 @@ export function emitBronzeHostTU(defs, options = {}) {
 
   const lines = [];
 
-  // 1. File Header & Comments
+  // 1. Header & Includes
   const desc = activeDefs.map(d => d.name).join(', ');
-  lines.push(`// ${desc} — bytes an app holds, and the names it gives them.`);
+  lines.push(`// ${desc} — bronze_host translation unit.`);
   lines.push('');
   lines.push(`#include "${bhHeader}"`);
   lines.push('#include "bronze_host/gl_internal.h"');
@@ -238,7 +238,7 @@ export function emitBronzeHostTU(defs, options = {}) {
   lines.push('}  // namespace');
   lines.push('');
 
-  // 5. Epilogue Blocks (public C++ functions, makeBlobValue, makeFileFromPath, hostBlobOf, etc.)
+  // 5. Epilogue Blocks
   for (const def of activeDefs) {
     const epilogue = getAttr(def, 'bh_epilogue');
     if (epilogue) {

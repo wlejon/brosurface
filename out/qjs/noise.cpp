@@ -107,6 +107,13 @@ static bool memberNameMatches(const char* query, const FastNoise::Metadata::Memb
     return queryIdx == m.dimensionIdx;
 }
 
+template<typename T>
+static JSValue make_factory_node(JSContext* ctx, JSValueConst, int, JSValueConst*)
+{
+    auto node = FastNoise::New<T>();
+    return wrap_node(ctx, std::move(node));
+}
+
 static JSValue fast_noise_create(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
@@ -210,7 +217,7 @@ static JSValue fast_noise_get_members(JSContext* ctx, JSValueConst this_val,
 static JSValue fast_noise_gen_single2_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 3)
         return JS_ThrowTypeError(ctx, "genSingle2D(x, y, seed)");
@@ -229,7 +236,7 @@ static JSValue fast_noise_gen_single2_d(JSContext* ctx, JSValueConst this_val,
 static JSValue fast_noise_gen_single3_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 4)
         return JS_ThrowTypeError(ctx, "genSingle3D(x, y, z, seed)");
@@ -251,7 +258,7 @@ static JSValue fast_noise_gen_single3_d(JSContext* ctx, JSValueConst this_val,
 static JSValue fast_noise_gen_uniform_grid2_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 6)
         return JS_ThrowTypeError(ctx, "genUniformGrid2D(xOffset, yOffset, xSize, ySize, frequency, seed)");
@@ -284,7 +291,7 @@ static JSValue fast_noise_gen_uniform_grid2_d(JSContext* ctx, JSValueConst this_
 static JSValue fast_noise_gen_uniform_grid2_d_into(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 7)
         return JS_ThrowTypeError(ctx, "genUniformGrid2DInto(dest, xOffset, yOffset, xSize, ySize, frequency, seed)");
@@ -322,7 +329,7 @@ static JSValue fast_noise_gen_uniform_grid2_d_into(JSContext* ctx, JSValueConst 
 static JSValue fast_noise_gen_uniform_grid3_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 8)
         return JS_ThrowTypeError(ctx, "genUniformGrid3D(xOff, yOff, zOff, xSize, ySize, zSize, frequency, seed)");
@@ -361,7 +368,7 @@ static JSValue fast_noise_gen_uniform_grid3_d(JSContext* ctx, JSValueConst this_
 static JSValue fast_noise_gen_uniform_grid3_d_into(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 9)
         return JS_ThrowTypeError(ctx, "genUniformGrid3DInto(dest, xOff, yOff, zOff, xSize, ySize, zSize, frequency, seed)");
@@ -405,7 +412,7 @@ static JSValue fast_noise_gen_uniform_grid3_d_into(JSContext* ctx, JSValueConst 
 static JSValue fast_noise_gen_position_array2_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 6)
         return JS_ThrowTypeError(ctx, "genPositionArray2D(dest, xs, ys, x_off, y_off, seed)");
@@ -442,7 +449,7 @@ static JSValue fast_noise_gen_position_array2_d(JSContext* ctx, JSValueConst thi
 static JSValue fast_noise_gen_position_array3_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 8)
         return JS_ThrowTypeError(ctx, "genPositionArray3D(dest, xs, ys, zs, x_off, y_off, z_off, seed)");
@@ -486,7 +493,7 @@ static JSValue fast_noise_gen_position_array3_d(JSContext* ctx, JSValueConst thi
 static JSValue fast_noise_gen_tileable2_d(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
-    auto* w = get_noise(ctx, this_val);
+    auto* w = static_cast<NoiseWrapper*>(JS_GetOpaque2(ctx, this_val, noise_class_id));
     if (!w) return JS_EXCEPTION;
     if (argc < 4)
         return JS_ThrowTypeError(ctx, "genTileable2D(xSize, ySize, frequency, seed)");
@@ -537,13 +544,6 @@ static JSValue js_fast_noise_constructor(JSContext* ctx, JSValueConst new_target
     return obj;
 }
 
-template<typename T>
-static JSValue noise_factory(JSContext* ctx, JSValueConst, int, JSValueConst*)
-{
-    auto node = FastNoise::New<T>();
-    return wrap_node(ctx, std::move(node));
-}
-
 void installNoise(JSContext* ctx)
 {
     JSRuntime* rt = JS_GetRuntime(ctx);
@@ -592,25 +592,25 @@ void installNoise(JSContext* ctx)
     JS_SetPropertyStr(ctx, fast_noiseCtor, "types",
         JS_NewCFunction(ctx, fast_noise_types, "types", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "Simplex",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::Simplex>, "Simplex", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::Simplex>, "Simplex", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "SuperSimplex",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::SuperSimplex>, "SuperSimplex", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::SuperSimplex>, "SuperSimplex", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "Perlin",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::Perlin>, "Perlin", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::Perlin>, "Perlin", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "Value",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::Value>, "Value", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::Value>, "Value", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "CellularValue",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::CellularValue>, "CellularValue", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::CellularValue>, "CellularValue", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "CellularDistance",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::CellularDistance>, "CellularDistance", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::CellularDistance>, "CellularDistance", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "CellularLookup",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::CellularLookup>, "CellularLookup", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::CellularLookup>, "CellularLookup", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "FractalFBm",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::FractalFBm>, "FractalFBm", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::FractalFBm>, "FractalFBm", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "FractalRidged",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::FractalRidged>, "FractalRidged", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::FractalRidged>, "FractalRidged", 0));
     JS_SetPropertyStr(ctx, fast_noiseCtor, "DomainWarpGradient",
-        JS_NewCFunction(ctx, noise_factory<FastNoise::DomainWarpGradient>, "DomainWarpGradient", 0));
+        JS_NewCFunction(ctx, make_factory_node<FastNoise::DomainWarpGradient>, "DomainWarpGradient", 0));
 
     JS_SetPropertyStr(ctx, global, "FastNoise", fast_noiseCtor);
 

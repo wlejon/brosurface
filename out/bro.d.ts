@@ -1366,7 +1366,7 @@ declare namespace bro {
   }
 
   /**
-   * FastNoise2 procedural noise generator namespace alias.
+   * FastNoise procedural SIMD-accelerated noise generator.
    */
   const noise: typeof FastNoise;
 }

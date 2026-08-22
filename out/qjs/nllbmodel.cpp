@@ -12,6 +12,14 @@ static void nllb_model_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef nllb_model_class_def = { "NllbModel", nllb_model_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue nllb_model_has_language(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {

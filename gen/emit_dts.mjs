@@ -356,11 +356,17 @@ interface Capsule { a: vec3; b: vec3; radius: number; }
     }
   }
 
+function getAttr(node, name) {
+  if (!node || !node.attributes) return null;
+  const a = node.attributes.find(x => x.name === name);
+  return a ? a.value : null;
+}
+
   // 5. Global 'bro' Namespace
   chunks.push(`// ── Global 'bro' Namespace ───────────────────────────────────────────────────\n\n`);
   chunks.push(`declare namespace bro {\n`);
 
-  // Sub-namespaces (e.g. bro.time)
+  // Sub-namespaces
   for (const ns of namespaces) {
     if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
     chunks.push(`  namespace ${ns.name} {\n`);
@@ -391,11 +397,23 @@ interface Capsule { a: vec3; b: vec3; radius: number; }
     chunks.push(`  }\n\n`);
   }
 
-  // Sub-namespace aliases (e.g. bro.noise -> FastNoise)
-  const hasFastNoise = interfaces.some(i => i.name === 'FastNoise');
-  if (hasFastNoise) {
-    chunks.push(`  /**\n   * FastNoise2 procedural noise generator namespace alias.\n   */\n`);
-    chunks.push(`  const noise: typeof FastNoise;\n`);
+  // Sub-namespace / global aliases via [js_alias="..."]
+  for (const iface of interfaces) {
+    const jsAlias = getAttr(iface, 'js_alias');
+    if (jsAlias && typeof jsAlias === 'string' && jsAlias.startsWith('bro.')) {
+      const aliasName = jsAlias.slice(4);
+      if (iface.doc) chunks.push(formatJSDoc(iface.doc, '  '));
+      chunks.push(`  const ${aliasName}: typeof ${iface.name};\n`);
+    }
+  }
+
+  for (const ns of namespaces) {
+    const jsAlias = getAttr(ns, 'js_alias');
+    if (jsAlias && typeof jsAlias === 'string' && jsAlias.startsWith('bro.')) {
+      const aliasName = jsAlias.slice(4);
+      if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
+      chunks.push(`  const ${aliasName}: typeof ${ns.name};\n`);
+    }
   }
 
   chunks.push(`}\n`);

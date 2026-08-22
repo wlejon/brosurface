@@ -12,13 +12,21 @@ static void url_finalizer(JSRuntime*, JSValue val)
 
 static JSClassDef url_class_def = { "URL", url_finalizer };
 
+static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+                          const char* name)
+{
+    JSCFunctionType ft;
+    ft.getter = fn;
+    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+}
+
 static JSValue url_to_json(JSContext* ctx, JSValueConst this_val,
                                     int argc, JSValueConst* argv)
 {
     auto* w = static_cast<URLWrapper*>(JS_GetOpaque2(ctx, this_val, url_class_id));
     if (!w) return JS_EXCEPTION;
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue url_to_string(JSContext* ctx, JSValueConst this_val,
@@ -27,7 +35,7 @@ static JSValue url_to_string(JSContext* ctx, JSValueConst this_val,
     auto* w = static_cast<URLWrapper*>(JS_GetOpaque2(ctx, this_val, url_class_id));
     if (!w) return JS_EXCEPTION;
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue url_create_object_url(JSContext* ctx, JSValueConst this_val,
@@ -38,7 +46,7 @@ static JSValue url_create_object_url(JSContext* ctx, JSValueConst this_val,
 
     JSValueConst obj = argv[0];
 
-    return JS_NewString(ctx, "FastNoise2 v0.10.0-alpha");
+    return JS_NewString(ctx, "1.0.0");
 }
 
 static JSValue url_revoke_object_url(JSContext* ctx, JSValueConst this_val,

@@ -60,11 +60,12 @@ export function typeToCpp(typeNode) {
     case 'Uint8Array':
     case 'ArrayBuffer':
       return 'std::span<const uint8_t>';
-    case 'Blob':
-      return 'const HostBlob*';
     case 'Promise':
       return 'Value';
     default:
+      if (/^[A-Z]/.test(name) && !['Float32Array', 'Uint8Array', 'ArrayBuffer', 'Promise', 'Value'].includes(name)) {
+        return `const Host${name}*`;
+      }
       return name;
   }
 }
@@ -136,8 +137,8 @@ export function emitArgExtraction(param, idx, indent = '    ') {
     } else {
       lines.push(`${indent}std::string ${pName} = (ev::isObject(${pName}_v) || ev::isUndefined(${pName}_v)) ? "" : ev::toUtf8(${pName}_v);`);
     }
-  } else if (tName === 'Blob') {
-    lines.push(`${indent}const HostBlob* ${pName} = hostBlobOf(argAt(a, ${idx}));`);
+  } else if (/^[A-Z]/.test(tName) && !['Float32Array', 'Uint8Array', 'ArrayBuffer', 'Promise', 'Value'].includes(tName)) {
+    lines.push(`${indent}const Host${tName}* ${pName} = host${tName}Of(argAt(a, ${idx}));`);
   } else {
     lines.push(`${indent}Value ${pName} = argAt(a, ${idx});`);
   }
