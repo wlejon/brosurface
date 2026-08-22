@@ -1,0 +1,428 @@
+/**
+ * =============================================================================
+ * File API Reference — Blob, File, FileReader, URL, Object URLs, Dropped Files
+ * =============================================================================
+ *
+ * This is the surface an app uses to take a file *in*: the user drops one on
+ * the window (or the app builds bytes itself), and something has to turn that
+ * into a texture, a model, a document. On the web that is Blob/File + either
+ * FileReader or an object URL, and both halves have to work or the import path
+ * does not exist.
+ *
+ * Where the pieces live:
+ *   - `Blob` / `File`         brokit (C++, bytes held natively)
+ *   - `FileReader`            src/js/js/file_polyfills.js & bronze_host
+ *   - `URL.createObjectURL`   src/js/js/file_polyfills.js + src/util/object_url.h
+ *   - dropped-file payloads   src/js/event_dispatch_populate.cpp
+ *
+ * @example
+ *   // --- Blob / File Example ------------------------------------------------
+ *   const blob = new Blob([bytes], { type: 'image/png' });
+ *   const png  = await blob.arrayBuffer();
+ *
+ * @example
+ *   // --- FileReader Example -------------------------------------------------
+ *   function readModel(file) {
+ *     return new Promise((resolve, reject) => {
+ *       const r = new FileReader();
+ *       r.onload  = () => resolve(r.result);
+ *       r.onerror = () => reject(r.error);
+ *       r.readAsArrayBuffer(file);
+ *     });
+ *   }
+ *
+ * @example
+ *   // --- Object URLs Example ------------------------------------------------
+ *   // Resolve a model's texture that only exists in memory.
+ *   const url = URL.createObjectURL(textureFile);
+ *   new THREE.TextureLoader().load(url, tex => {
+ *     material.map = tex;
+ *     URL.revokeObjectURL(url);
+ *   });
+ *
+ * @example
+ *   // --- Dropped Files Example ----------------------------------------------
+ *   document.addEventListener('drop', async (event) => {
+ *     event.preventDefault();
+ *     if (event.dataTransfer.types[0] !== 'Files') return;
+ *     for (const file of event.dataTransfer.files) {
+ *       const text = await file.text();          // or a FileReader
+ *       console.log(file.name, file.size, 'from', file.path, text.length);
+ *     }
+ *   });
+ *   document.addEventListener('dragover', e => e.preventDefault());
+ *
+ * @example
+ *   // --- Input File Example -------------------------------------------------
+ *   // The standard hidden-input pattern.
+ *   const input = document.createElement('input');
+ *   input.type = 'file';
+ *   input.accept = 'image/*';
+ *   input.addEventListener('change', () => useTexture(input.files[0]));
+ *   myButton.onclick = () => input.click();
+ *
+ * @example
+ *   // --- Downloading Example (<a download>) ---------------------------------
+ *   function exportScene(text) {
+ *     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+ *     const link = document.createElement('a');
+ *     link.href = url;
+ *     link.download = 'scene.json';
+ *     link.click();
+ *     URL.revokeObjectURL(url);
+ *   }
+ *
+ * @example
+ *   // --- Dragging inside page (DataTransfer) --------------------------------
+ *   row.draggable = true;
+ *   row.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', row.id));
+ *   list.addEventListener('dragover',  e => e.preventDefault());   // required
+ *   list.addEventListener('drop', e => {
+ *     e.preventDefault();
+ *     const moved = document.getElementById(e.dataTransfer.getData('text/plain'));
+ *     const before = e.offsetY < e.target.clientHeight / 2;
+ *     e.target.parentNode.insertBefore(moved, before ? e.target : e.target.nextSibling);
+ *   });
+ */
+
+/**
+ * Union of valid parts that can compose a Blob.
+ */
+typedef (DOMString or ArrayBuffer or ArrayBufferView or Blob) BlobPart;
+
+/**
+ * Initialization dictionary for creating a Blob.
+ */
+dictionary BlobPropertyBag {
+  DOMString type = "";
+};
+
+/**
+ * Initialization dictionary for creating a File.
+ */
+dictionary FilePropertyBag : BlobPropertyBag {
+  long long lastModified;
+};
+
+/**
+ * Represents immutable raw binary data held in native memory.
+ */
+interface Blob {
+  /**
+   * Create a new Blob from an array of parts (strings, ArrayBuffers, TypedArrays, or Blobs).
+   * @param blobParts Array of parts to concatenate into the blob
+   * @param options Configuration options including MIME type
+   */
+  constructor(optional sequence<BlobPart> blobParts, optional BlobPropertyBag options);
+
+  /**
+   * Byte length of the blob data.
+   */
+  readonly attribute unsigned long long size;
+
+  /**
+   * Normalized ASCII-encoded lowercase MIME type string (e.g. "image/png").
+   */
+  readonly attribute DOMString type;
+
+  /**
+   * Returns a new Blob object containing the data in the specified byte range.
+   * @param start Byte offset start (negative offsets count from end)
+   * @param end Byte offset end
+   * @param contentType MIME type of the returned slice
+   * @returns Sliced Blob instance
+   */
+  Blob slice(optional long long start, optional long long end, optional DOMString contentType);
+
+  /**
+   * Asynchronously reads and decodes the blob contents as a UTF-8 text string.
+   * @returns Promise resolving to the text content
+   */
+  Promise<DOMString> text();
+
+  /**
+   * Asynchronously reads the blob contents as a binary ArrayBuffer.
+   * @returns Promise resolving to an ArrayBuffer copy of the bytes
+   */
+  Promise<ArrayBuffer> arrayBuffer();
+
+  /**
+   * Asynchronously returns a Uint8Array view of the blob's binary contents.
+   * @returns Promise resolving to Uint8Array
+   */
+  Promise<Uint8Array> bytes();
+};
+
+/**
+ * A File represents a Blob with file metadata (filename, last modified timestamp, and origin path).
+ */
+interface File : Blob {
+  /**
+   * Construct a File instance.
+   * @param fileBits Array of parts forming the file's binary content
+   * @param fileName The name of the file
+   * @param options Options specifying MIME type and lastModified time
+   */
+  constructor(sequence<BlobPart> fileBits, DOMString fileName, optional FilePropertyBag options);
+
+  /**
+   * Name of the file.
+   */
+  readonly attribute DOMString name;
+
+  /**
+   * Milliseconds timestamp since Unix epoch when the file was last modified.
+   */
+  readonly attribute long long lastModified;
+
+  /**
+   * Relative path if picked via a directory picker, otherwise empty.
+   */
+  readonly attribute DOMString webkitRelativePath;
+
+  /**
+   * Absolute real filesystem path when the file originates from a drag-and-drop gesture or native file picker.
+   */
+  readonly attribute DOMString path;
+};
+
+/**
+ * Event-driven async reader for Blob and File objects.
+ */
+interface FileReader {
+  /**
+   * Construct a new FileReader.
+   */
+  constructor();
+
+  const unsigned short EMPTY = 0;
+  const unsigned short LOADING = 1;
+  const unsigned short DONE = 2;
+
+  /**
+   * Current state of the reader (EMPTY 0, LOADING 1, DONE 2).
+   */
+  readonly attribute unsigned short readyState;
+
+  /**
+   * Result of the read operation (DOMString or ArrayBuffer on success, null on error/empty).
+   */
+  readonly attribute (DOMString or ArrayBuffer)? result;
+
+  /**
+   * Error object if the read failed, otherwise null.
+   */
+  readonly attribute object? error;
+
+  /**
+   * Event handler for read start.
+   */
+  attribute EventHandler onloadstart;
+
+  /**
+   * Event handler for progress updates.
+   */
+  attribute EventHandler onprogress;
+
+  /**
+   * Event handler for successful load completion.
+   */
+  attribute EventHandler onload;
+
+  /**
+   * Event handler for aborted read operations.
+   */
+  attribute EventHandler onabort;
+
+  /**
+   * Event handler for read errors.
+   */
+  attribute EventHandler onerror;
+
+  /**
+   * Event handler for completed read operations (success or failure).
+   */
+  attribute EventHandler onloadend;
+
+  /**
+   * Starts reading the contents of the specified Blob or File as an ArrayBuffer.
+   * @param blob The Blob to read
+   */
+  void readAsArrayBuffer(Blob blob);
+
+  /**
+   * Starts reading the contents of the specified Blob as a binary string (one character per byte).
+   * @param blob The Blob to read
+   */
+  void readAsBinaryString(Blob blob);
+
+  /**
+   * Starts reading the contents of the specified Blob as UTF-8 text.
+   * @param blob The Blob to read
+   * @param encoding Optional encoding string (UTF-8 is default)
+   */
+  void readAsText(Blob blob, optional DOMString encoding);
+
+  /**
+   * Starts reading the contents of the specified Blob as a base64 data: URL.
+   * @param blob The Blob to read
+   */
+  void readAsDataURL(Blob blob);
+
+  /**
+   * Aborts the in-flight read operation and resets reader state.
+   */
+  void abort();
+
+  /**
+   * Register an event listener for reader events.
+   * @param type Event type ('load', 'error', 'loadend', 'progress', 'abort')
+   * @param listener Event listener callback
+   */
+  void addEventListener(DOMString type, EventListener listener);
+
+  /**
+   * Remove a previously registered event listener.
+   * @param type Event type
+   * @param listener Event listener callback
+   */
+  void removeEventListener(DOMString type, EventListener listener);
+};
+
+/**
+ * URL query parameter parser and manipulator.
+ */
+interface URLSearchParams {
+  /**
+   * Create a URLSearchParams object from query string, entries, or dictionary.
+   */
+  constructor(optional (sequence<sequence<DOMString>> or record<DOMString, DOMString> or DOMString) init);
+
+  /**
+   * Appends a specified key/value pair as a new search parameter.
+   */
+  void append(DOMString name, DOMString value);
+
+  /**
+   * Deletes the given search parameter and its associated value(s).
+   */
+  void delete(DOMString name);
+
+  /**
+   * Returns the first value associated to the given search parameter.
+   */
+  DOMString? get(DOMString name);
+
+  /**
+   * Returns all the values associated with a given search parameter as an array.
+   */
+  sequence<DOMString> getAll(DOMString name);
+
+  /**
+   * Returns a boolean indicating if such a search parameter exists.
+   */
+  boolean has(DOMString name);
+
+  /**
+   * Sets the value associated with a given search parameter to the given value.
+   */
+  void set(DOMString name, DOMString value);
+
+  /**
+   * Returns a query string suitable for use in a URL.
+   */
+  DOMString toString();
+};
+
+/**
+ * Standard WHATWG URL interface for parsing, constructing, and resolving URLs and Blob URLs.
+ */
+interface URL {
+  /**
+   * Parse an absolute or relative URL string against an optional base URL.
+   * @param url Absolute or relative URL string
+   * @param base Optional base URL string
+   */
+  constructor(DOMString url, optional DOMString base);
+
+  /**
+   * Full serialized URL href string.
+   */
+  attribute DOMString href;
+
+  /**
+   * Origin of the URL (protocol + hostname + port).
+   */
+  readonly attribute DOMString origin;
+
+  /**
+   * Protocol scheme of the URL (including trailing colon ':').
+   */
+  attribute DOMString protocol;
+
+  /**
+   * Host (hostname and port) of the URL.
+   */
+  attribute DOMString host;
+
+  /**
+   * Hostname without port number.
+   */
+  attribute DOMString hostname;
+
+  /**
+   * Port number string.
+   */
+  attribute DOMString port;
+
+  /**
+   * Pathname component of the URL.
+   */
+  attribute DOMString pathname;
+
+  /**
+   * Query search string (including leading '?').
+   */
+  attribute DOMString search;
+
+  /**
+   * URLSearchParams object representing query parameters.
+   */
+  readonly attribute URLSearchParams searchParams;
+
+  /**
+   * Fragment hash component (including leading '#').
+   */
+  attribute DOMString hash;
+
+  /**
+   * Returns serialized URL href.
+   */
+  DOMString toJSON();
+
+  /**
+   * Returns serialized URL href.
+   */
+  DOMString toString();
+
+  /**
+   * Mint an object URL naming the given Blob's bytes (e.g. "blob:bro/17").
+   * @param obj The Blob to expose
+   * @returns Object URL string
+   */
+  static DOMString createObjectURL(Blob obj);
+
+  /**
+   * Revoke an object URL previously created with createObjectURL.
+   * @param url The object URL string to revoke
+   */
+  static void revokeObjectURL(DOMString url);
+
+  /**
+   * Parse a URL string against a base, returning null on invalid input instead of throwing.
+   * @param url URL string to parse
+   * @param base Optional base URL
+   * @returns Parsed URL instance or null if invalid
+   */
+  static URL? parse(DOMString url, optional DOMString base);
+};

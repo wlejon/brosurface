@@ -1,0 +1,368 @@
+/**
+ * =============================================================================
+ * bro FastNoise2 API Reference
+ * =============================================================================
+ *
+ * SIMD-accelerated procedural noise generation powered by FastNoise2.
+ * Available to all bro JS workers via the global `FastNoise` constructor.
+ *
+ * Two ways to create nodes:
+ *   const simplex = FastNoise.create("Simplex");   // generic (any type)
+ *   const simplex = FastNoise.Simplex();            // shortcut (common types)
+ *
+ * Configure with the generic set() method:
+ *   node.set("PropertyName", value);     // float, int, or enum string
+ *   node.set("Source", otherNode);        // node connection
+ *   node.set("Gain", 0.5);               // hybrid as constant
+ *   node.set("Gain", noiseNode);          // hybrid driven by noise
+ *
+ * Introspect any node:
+ *   node.getMembers();                    // { type, variables, nodes, hybrids }
+ *   FastNoise.types();                    // list all registered node types
+ *
+ * =============================================================================
+ *
+ * EXAMPLES:
+ *
+ * @example
+ *   // --- Terrain heightmap with FBm -----------------------------------------
+ *   const terrainSrc = FastNoise.create("Simplex");
+ *   const terrain = FastNoise.create("FractalFBm");
+ *   terrain.set("Source", terrainSrc);
+ *   terrain.set("Octaves", 6);
+ *   terrain.set("Gain", 0.5);
+ *   terrain.set("Lacunarity", 2.0);
+ *   const heightmap = terrain.genUniformGrid2D(0, 0, 512, 512, 0.002, 1337);
+ *   // heightmap is a Float32Array with 262144 values
+ *
+ * @example
+ *   // --- Ridged mountains blended with plains -------------------------------
+ *   const plains = FastNoise.create("FractalFBm");
+ *   plains.set("Source", FastNoise.create("Simplex"));
+ *   plains.set("Octaves", 4);
+ *
+ *   const mountains = FastNoise.create("FractalRidged");
+ *   mountains.set("Source", FastNoise.create("Perlin"));
+ *   mountains.set("Octaves", 5);
+ *
+ *   const biomeNoise = FastNoise.create("Simplex");
+ *
+ *   const blended = FastNoise.create("Fade");
+ *   blended.set("A", plains);
+ *   blended.set("B", mountains);
+ *   blended.set("Fade", biomeNoise);       // biome noise drives the blend
+ *   blended.set("Interpolation", "Hermite");
+ *
+ *   const world = blended.genUniformGrid2D(0, 0, 1024, 1024, 0.001, 42);
+ *
+ * @example
+ *   // --- 3D voxel density field for caves -----------------------------------
+ *   const caveShape = FastNoise.create("FractalRidged");
+ *   caveShape.set("Source", FastNoise.create("Perlin"));
+ *   caveShape.set("Octaves", 3);
+ *   caveShape.set("Gain", 0.6);
+ *
+ *   const warped = FastNoise.create("DomainWarpGradient");
+ *   warped.set("Source", caveShape);
+ *   warped.set("Warp Amplitude", 30.0);
+ *
+ *   const density = warped.genUniformGrid3D(0, 0, 0, 64, 64, 64, 0.02, 7);
+ *   // density[z * 64*64 + y * 64 + x], negative = solid, positive = air
+ *
+ * @example
+ *   // --- Domain warp fractal for organic terrain ----------------------------
+ *   const dwGrad = FastNoise.create("DomainWarpGradient");
+ *   dwGrad.set("Source", FastNoise.create("Simplex"));
+ *   dwGrad.set("Warp Amplitude", 20.0);
+ *
+ *   const dwFrac = FastNoise.create("DomainWarpFractalProgressive");
+ *   dwFrac.set("Domain Warp Source", dwGrad);
+ *   dwFrac.set("Octaves", 4);
+ *   dwFrac.set("Gain", 0.6);
+ *
+ *   const organic = dwFrac.genUniformGrid2D(0, 0, 256, 256, 0.005, 99);
+ *
+ * @example
+ *   // --- Cellular biome map -------------------------------------------------
+ *   const biomes = FastNoise.create("CellularValue");
+ *   biomes.set("Distance Function", "Euclidean");
+ *   biomes.set("Grid Jitter", 0.8);
+ *   biomes.set("Feature Scale", 0.01);
+ *   const biomeMap = biomes.genUniformGrid2D(0, 0, 256, 256, 0.01, 55);
+ *
+ * @example
+ *   // --- Terraced plateaus --------------------------------------------------
+ *   const baseTerrain = FastNoise.create("FractalFBm");
+ *   baseTerrain.set("Source", FastNoise.create("Simplex"));
+ *   baseTerrain.set("Octaves", 5);
+ *
+ *   const plateaus = FastNoise.create("Terrace");
+ *   plateaus.set("Source", baseTerrain);
+ *   plateaus.set("Step Count", 6.0);
+ *   plateaus.set("Smoothness", 0.2);
+ *
+ *   const terraced = plateaus.genUniformGrid2D(0, 0, 256, 256, 0.005, 123);
+ *
+ * @example
+ *   // --- Runtime introspection ----------------------------------------------
+ *   const allTypes = FastNoise.types();
+ *   const fbmInfo = FastNoise.create("FractalFBm").getMembers();
+ */
+
+/**
+ * Metadata record for a FastNoise node type.
+ */
+dictionary FastNoiseTypeInfo {
+  DOMString name;
+  sequence<DOMString> groups;
+};
+
+/**
+ * Configurable member variable metadata.
+ */
+dictionary FastNoiseMemberVariable {
+  DOMString name;
+  DOMString type;
+  sequence<DOMString>? enumValues;
+};
+
+/**
+ * Configurable node input lookup metadata.
+ */
+dictionary FastNoiseMemberNode {
+  DOMString name;
+};
+
+/**
+ * Configurable hybrid (constant or noise-driven) property metadata.
+ */
+dictionary FastNoiseMemberHybrid {
+  DOMString name;
+  unrestricted double default;
+};
+
+/**
+ * Complete introspection descriptor for a FastNoise node.
+ */
+dictionary FastNoiseNodeMembers {
+  DOMString type;
+  sequence<FastNoiseMemberVariable> variables;
+  sequence<FastNoiseMemberNode> nodes;
+  sequence<FastNoiseMemberHybrid> hybrids;
+};
+
+/**
+ * FastNoise procedural SIMD-accelerated noise generator.
+ */
+interface FastNoise {
+  /**
+   * Create from an encoded node tree string (from FN2 Node Editor).
+   * @param encodedNodeTree Base64-encoded node graph
+   */
+  constructor(DOMString encodedNodeTree);
+
+  /**
+   * Create any node type by name. Works for all registered FastNoise2 node types.
+   * @param typeName e.g. "Simplex", "FractalFBm", "Add"
+   * @returns FastNoise instance
+   */
+  static FastNoise create(DOMString typeName);
+
+  /**
+   * List all registered node types with their group categories.
+   * @returns Array of node type descriptions
+   */
+  static sequence<FastNoiseTypeInfo> types();
+
+  /**
+   * Coherent Noise convenience factory: Simplex
+   */
+  static FastNoise Simplex();
+
+  /**
+   * Coherent Noise convenience factory: SuperSimplex
+   */
+  static FastNoise SuperSimplex();
+
+  /**
+   * Coherent Noise convenience factory: Perlin
+   */
+  static FastNoise Perlin();
+
+  /**
+   * Coherent Noise convenience factory: Value
+   */
+  static FastNoise Value();
+
+  /**
+   * Coherent Noise convenience factory: CellularValue
+   */
+  static FastNoise CellularValue();
+
+  /**
+   * Coherent Noise convenience factory: CellularDistance
+   */
+  static FastNoise CellularDistance();
+
+  /**
+   * Coherent Noise convenience factory: CellularLookup
+   */
+  static FastNoise CellularLookup();
+
+  /**
+   * Fractal convenience factory: FractalFBm
+   */
+  static FastNoise FractalFBm();
+
+  /**
+   * Fractal convenience factory: FractalRidged
+   */
+  static FastNoise FractalRidged();
+
+  /**
+   * Domain Warp convenience factory: DomainWarpGradient
+   */
+  static FastNoise DomainWarpGradient();
+
+  /**
+   * Set any property by name. Automatically routes to the correct member type
+   * (variable, node lookup, or hybrid) using FN2 metadata.
+   *
+   * @param name Property name
+   * @param value float/int variable, enum string, or FastNoise node
+   */
+  void set(DOMString name, (unrestricted double or DOMString or FastNoise) value);
+
+  /**
+   * Introspect this node's configurable members.
+   * @returns Node structure description
+   */
+  FastNoiseNodeMembers getMembers();
+
+  /**
+   * Sample a single 2D noise value.
+   * @param x X coordinate
+   * @param y Y coordinate
+   * @param seed Integer seed
+   * @returns Noise value at (x, y)
+   */
+  unrestricted double genSingle2D(unrestricted double x, unrestricted double y, long seed);
+
+  /**
+   * Sample a single 3D noise value.
+   * @param x X coordinate
+   * @param y Y coordinate
+   * @param z Z coordinate
+   * @param seed Integer seed
+   * @returns Noise value at (x, y, z)
+   */
+  unrestricted double genSingle3D(unrestricted double x, unrestricted double y, unrestricted double z, long seed);
+
+  /**
+   * Generate a 2D grid of noise values. Output layout: out[y * xSize + x]
+   * @param xOffset Starting X position in world space
+   * @param yOffset Starting Y position in world space
+   * @param xSize Number of samples along X
+   * @param ySize Number of samples along Y
+   * @param frequency Step size between samples (both axes)
+   * @param seed Integer seed
+   * @returns Allocated Float32Array with grid samples
+   */
+  Float32Array genUniformGrid2D(unrestricted double xOffset, unrestricted double yOffset, long xSize, long ySize, unrestricted double frequency, long seed);
+
+  /**
+   * In-place variant of genUniformGrid2D. Writes into a caller-supplied
+   * Float32Array (xSize*ySize floats minimum); no per-call allocation.
+   * Preferred on the per-frame path: pair with bro.image.alloc(w, h, 1).
+   *
+   * @param dest Reusable buffer, length >= xSize*ySize
+   * @param xOffset Starting X position in world space
+   * @param yOffset Starting Y position in world space
+   * @param xSize Number of samples along X
+   * @param ySize Number of samples along Y
+   * @param frequency Step size between samples
+   * @param seed Integer seed
+   */
+  void genUniformGrid2DInto(Float32Array dest, unrestricted double xOffset, unrestricted double yOffset, long xSize, long ySize, unrestricted double frequency, long seed);
+
+  /**
+   * Generate a 3D grid of noise values. Output: out[(z * ySize + y) * xSize + x]
+   * @param xOffset Starting X position
+   * @param yOffset Starting Y position
+   * @param zOffset Starting Z position
+   * @param xSize Number of samples along X
+   * @param ySize Number of samples along Y
+   * @param zSize Number of samples along Z
+   * @param frequency Step size between samples (all axes)
+   * @param seed Integer seed
+   * @returns Allocated Float32Array with grid samples
+   */
+  Float32Array genUniformGrid3D(unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
+
+  /**
+   * In-place variant of genUniformGrid3D.
+   *
+   * @param dest Reusable buffer, length >= xSize*ySize*zSize
+   * @param xOffset Starting X position
+   * @param yOffset Starting Y position
+   * @param zOffset Starting Z position
+   * @param xSize Number of samples along X
+   * @param ySize Number of samples along Y
+   * @param zSize Number of samples along Z
+   * @param frequency Step size between samples
+   * @param seed Integer seed
+   */
+  void genUniformGrid3DInto(Float32Array dest, unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long xSize, long ySize, long zSize, unrestricted double frequency, long seed);
+
+  /**
+   * Sample at arbitrary 2D positions rather than on a lattice.
+   *
+   * Positions are consumed as given — there is no `frequency` argument, because
+   * there is no lattice step to scale. Pre-multiply the positions instead.
+   *
+   * The run length is the SHORTEST of xs/ys, so over-allocating one axis yields
+   * the intersection rather than reading past the end of the other. `dest` must
+   * hold at least that many floats or the call throws.
+   *
+   * @param dest Reusable output, length >= min(xs.length, ys.length)
+   * @param xs X coordinate array
+   * @param ys Y coordinate array
+   * @param xOffset Added to every xs value
+   * @param yOffset Added to every ys value
+   * @param seed Integer seed
+   */
+  void genPositionArray2D(Float32Array dest, Float32Array xs, Float32Array ys, unrestricted double xOffset, unrestricted double yOffset, long seed);
+
+  /**
+   * Sample at arbitrary 3D positions rather than on a lattice.
+   *
+   * The uniform-grid calls can only express an axis-aligned box, which rules out
+   * any sample set that is regular in some *other* space. The motivating case is
+   * a cube-sphere planet: its vertices form a regular grid in face space but an
+   * irregular point set in 3D, so no genUniformGrid3D call can produce them.
+   *
+   * Sampling a 3D field directly on a sphere surface also involves no projection,
+   * so spherical noise built this way has no wrap seam, no pole singularity, and
+   * no discontinuity where cube faces meet — unlike any 2D-per-face scheme.
+   *
+   * @param dest Reusable output buffer
+   * @param xs X coordinate array
+   * @param ys Y coordinate array
+   * @param zs Z coordinate array
+   * @param xOffset Added to every xs value
+   * @param yOffset Added to every ys value
+   * @param zOffset Added to every zs value
+   * @param seed Integer seed
+   */
+  void genPositionArray3D(Float32Array dest, Float32Array xs, Float32Array ys, Float32Array zs, unrestricted double xOffset, unrestricted double yOffset, unrestricted double zOffset, long seed);
+
+  /**
+   * Generate seamlessly tileable 2D noise. Maps onto a 4D hypertorus internally.
+   * @param xSize Tile width in samples
+   * @param ySize Tile height in samples
+   * @param frequency Step size between samples
+   * @param seed Integer seed
+   * @returns Allocated Float32Array
+   */
+  Float32Array genTileable2D(long xSize, long ySize, unrestricted double frequency, long seed);
+};
