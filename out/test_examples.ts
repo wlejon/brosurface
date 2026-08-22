@@ -133,9 +133,160 @@ async function example_7() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 8: idl/noise.idl (Header Doc) — Example 1
+// Snippet 8: idl/lm.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
 async function example_8() {
+  // --- Qwen3 Text Generation ----------------------------------------------
+    const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+    const prompt = tokenizer.applyChatTemplate([
+      { role: 'system', content: 'You are concise. Reply in one short sentence.' },
+      { role: 'user', content: 'Say hello to a new friend named Bro.' },
+    ], true);
+    const promptIds = tokenizer.encode(prompt);
+    model.allocateCache(promptIds.length + 64);
+    const newIds = model.generate(promptIds, {
+      maxNewTokens: 40,
+      eosId: tokenizer.imEndId,
+      sampling: { temperature: 0.7, topK: 40, topP: 0.95, seed: 42 },
+    });
+    const reply = tokenizer.decode(newIds);
+    console.log(reply.trim());
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 9: idl/lm.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_9() {
+  // --- Streaming Generation -----------------------------------------------
+    const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+    const prompt = tokenizer.applyChatTemplate([
+      { role: 'user', content: 'Count from 1 to 5.' },
+    ], true);
+    const promptIds = tokenizer.encode(prompt);
+    const acc: number[] = [];
+    let shown = '';
+    model.generateStream(promptIds, {
+      maxNewTokens: 40,
+      eosId: tokenizer.imEndId,
+      sampling: { temperature: 0.7, topK: 40, topP: 0.95, seed: 42 },
+    }, (id) => {
+      acc.push(id);
+      const text = tokenizer.decode(acc);
+      const delta = text.slice(shown.length);
+      shown = text;
+      if (delta) console.log(delta);
+      return true;
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 10: idl/lm.idl (Header Doc) — Example 3
+// -----------------------------------------------------------------------------
+async function example_10() {
+  // --- Async Generation (All Families) ------------------------------------
+    const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+    const promptIds = tokenizer.encode('Hello world');
+    const h = bro.lm.generate(model, promptIds, {
+      maxNewTokens: 256,
+      eosId: tokenizer.imEndId,
+      sampling: { temperature: 0.7, topK: 40, topP: 0.95 },
+      onToken: (id) => {},
+      onDone: (ids) => {
+        console.log(ids);
+      },
+    });
+    h.cancel();
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 11: idl/lm.idl (Header Doc) — Example 4
+// -----------------------------------------------------------------------------
+async function example_11() {
+  // --- Mistral 3.1 --------------------------------------------------------
+    const mis = bro.lm.loadMistral(
+      '../brolm/weights/Mistral-Small-3.1-24B-Instruct-2503-GGUF/mistralai_Mistral-Small-3.1-24B-Instruct-2503-Q4_K_M.gguf',
+      { tokenizerPath: '../brolm/weights/Mistral-Small-3.1-24B-Instruct-2503/tekken.json' });
+    const mPrompt = mis.tokenizer.applyChatTemplate(
+      [{ role: 'user', content: 'One-sentence fun fact about owls.' }], true);
+    const mIds = mis.model.generate(mis.tokenizer.encode(mPrompt, false), {
+      maxNewTokens: 64,
+      eosId: mis.tokenizer.eosId,
+      sampling: { temperature: 0 },
+    });
+    console.log(mis.tokenizer.decode(mIds));
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 12: idl/lm.idl (Header Doc) — Example 5
+// -----------------------------------------------------------------------------
+async function example_12() {
+  // --- Gemma-2 ------------------------------------------------------------
+    const gem = bro.lm.loadGemma2('../brolm/weights/gemma-2-2b');
+    const gIds = gem.model.generate(
+      gem.tokenizer.encode('The capital of France is'), {
+        maxNewTokens: 16,
+        eosId: gem.tokenizer.eosId,
+        sampling: { temperature: 0 },
+      });
+    console.log(gem.tokenizer.decode(gIds));
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 13: idl/lm.idl (Header Doc) — Example 6
+// -----------------------------------------------------------------------------
+async function example_13() {
+  // --- Qwen3.5 & Vision ---------------------------------------------------
+    const q35 = bro.lm.loadQwen35('../brolm/weights/Qwen3.5-0.8B');
+    const ids35 = q35.generate(
+      '<|im_start|>user\\nOne-word answer: capital of France?<|im_end|>\\n<|im_start|>assistant\\n',
+      { maxNewTokens: 16, sampling: { temperature: 0 } });
+    console.log(q35.decode(ids35));
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 14: idl/lm.idl (Header Doc) — Example 7
+// -----------------------------------------------------------------------------
+async function example_14() {
+  // --- NLLB-200 Machine Translation ---------------------------------------
+    const nllb = bro.lm.loadNllb('../brolm/weights/nllb-200-distilled-600M');
+    console.log(nllb.translate('Hello, world!', 'eng_Latn', 'fra_Latn'));
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 15: idl/lm.idl (Header Doc) — Example 8
+// -----------------------------------------------------------------------------
+async function example_15() {
+  // --- CLIP Cross-Modal Scoring -------------------------------------------
+    const clip = bro.lm.loadClip({
+      vocabPath: '../clip-vit-large-patch14/vocab.json',
+      mergesPath: '../clip-vit-large-patch14/merges.txt',
+      weightsPath: '../clip-vit-large-patch14/model.safetensors',
+    });
+    const emb = clip.encodeText('a photo of an astronaut riding a horse');
+    console.log(emb);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 16: idl/lm.idl (Header Doc) — Example 9
+// -----------------------------------------------------------------------------
+async function example_16() {
+  // --- T5 Encoder ---------------------------------------------------------
+    const t5 = bro.lm.loadT5({
+      tokenizerPath: '../FLUX.1-schnell/tokenizer_2/tokenizer.json',
+      shards: [
+        '../FLUX.1-schnell/text_encoder_2/model-00001-of-00002.safetensors',
+        '../FLUX.1-schnell/text_encoder_2/model-00002-of-00002.safetensors',
+      ],
+      maxLength: 256,
+    });
+    const t5enc = t5.encode('a serene mountain lake at dawn');
+    console.log(t5enc.length, 'tokens', t5enc.dim, 'dims');
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 17: idl/noise.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_17() {
   // --- Terrain heightmap with FBm -----------------------------------------
     const terrainSrc = FastNoise.create("Simplex");
     const terrain = FastNoise.create("FractalFBm");
@@ -148,9 +299,9 @@ async function example_8() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 9: idl/noise.idl (Header Doc) — Example 2
+// Snippet 18: idl/noise.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_9() {
+async function example_18() {
   // --- Ridged mountains blended with plains -------------------------------
     const plains = FastNoise.create("FractalFBm");
     plains.set("Source", FastNoise.create("Simplex"));
@@ -172,9 +323,9 @@ async function example_9() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 10: idl/noise.idl (Header Doc) — Example 3
+// Snippet 19: idl/noise.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_10() {
+async function example_19() {
   // --- 3D voxel density field for caves -----------------------------------
     const caveShape = FastNoise.create("FractalRidged");
     caveShape.set("Source", FastNoise.create("Perlin"));
@@ -190,9 +341,9 @@ async function example_10() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 11: idl/noise.idl (Header Doc) — Example 4
+// Snippet 20: idl/noise.idl (Header Doc) — Example 4
 // -----------------------------------------------------------------------------
-async function example_11() {
+async function example_20() {
   // --- Domain warp fractal for organic terrain ----------------------------
     const dwGrad = FastNoise.create("DomainWarpGradient");
     dwGrad.set("Source", FastNoise.create("Simplex"));
@@ -207,9 +358,9 @@ async function example_11() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 12: idl/noise.idl (Header Doc) — Example 5
+// Snippet 21: idl/noise.idl (Header Doc) — Example 5
 // -----------------------------------------------------------------------------
-async function example_12() {
+async function example_21() {
   // --- Cellular biome map -------------------------------------------------
     const biomes = FastNoise.create("CellularValue");
     biomes.set("Distance Function", "Euclidean");
@@ -219,9 +370,9 @@ async function example_12() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 13: idl/noise.idl (Header Doc) — Example 6
+// Snippet 22: idl/noise.idl (Header Doc) — Example 6
 // -----------------------------------------------------------------------------
-async function example_13() {
+async function example_22() {
   // --- Terraced plateaus --------------------------------------------------
     const baseTerrain = FastNoise.create("FractalFBm");
     baseTerrain.set("Source", FastNoise.create("Simplex"));
@@ -236,18 +387,18 @@ async function example_13() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 14: idl/noise.idl (Header Doc) — Example 7
+// Snippet 23: idl/noise.idl (Header Doc) — Example 7
 // -----------------------------------------------------------------------------
-async function example_14() {
+async function example_23() {
   // --- Runtime introspection ----------------------------------------------
     const allTypes = FastNoise.types();
     const fbmInfo = FastNoise.create("FractalFBm").getMembers();
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 15: idl/time.idl (Header Doc) — Example 1
+// Snippet 24: idl/time.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_15() {
+async function example_24() {
   // Pause menu idiom
     window.addEventListener('action', (e) => {
       if (e.name === 'pause') bro.time.paused = !bro.time.paused;
@@ -255,18 +406,18 @@ async function example_15() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 16: idl/time.idl (Header Doc) — Example 2
+// Snippet 25: idl/time.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_16() {
+async function example_25() {
   // Slow-motion effect
     bro.time.scale = 0.25;                           // bullet time
     setTimeout(() => { bro.time.scale = 1; }, 500);  // 500 scaled ms = 2000 wall ms
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 17: idl/time.idl (Header Doc) — Example 3
+// Snippet 26: idl/time.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_17() {
+async function example_26() {
   // Headless testing
     bro.time.scale = 0.5;
     advanceTime(100);        // scaled clock advances 50ms; timers/rAF/physics see 50ms

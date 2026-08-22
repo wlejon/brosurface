@@ -1,0 +1,828 @@
+/**
+ * =============================================================================
+ * bro.lm — Language-model text generation & cross-modal machine learning
+ * =============================================================================
+ *
+ * Backed by brolm (tokenizers + transformer text models) on top of brotensor.
+ * Defaults to CUDA; pass { device: 'cpu' } to force the CPU backend.
+ *
+ * Generation model families (plus the NLLB-200 translator and CLIP/T5 encoders):
+ *   - Qwen3 (loadQwen): GGUF checkpoint, Qwen BPE tokenizer, ChatML chat
+ *     template. The original surface.
+ *   - Mistral 3.1 text (loadMistral): quantized GGUF + native "tekken"
+ *     tokenizer (tekken.json), [INST] chat template. Returns paired { model, tokenizer }.
+ *   - Gemma-2 (loadGemma2): HF checkpoint dir (config.json + tokenizer.json +
+ *     *.safetensors shards), google/gemma-2-2b. Same { model, tokenizer } pair.
+ *   - Qwen3.5 (loadQwen35): safetensors checkpoint dir driven by brolm's VLM
+ *     driver (hybrid full/linear-attention decoder, M-RoPE).
+ *   - Qwen3-VL (loadQwen3VL): safetensors checkpoint dir driven by brolm's VLM
+ *     driver: dense (plain GQA, full-rotary M-RoPE) decoder plus vision tower.
+ *   - NLLB-200 (loadNllb): machine translation between 200+ FLORES-200 languages.
+ *   - CLIP (loadClip): ViT-L/14 cross-modal scorer (text <-> image similarity).
+ *   - T5 (loadT5): encoder-only text encoder (T5-XXL, Flux text conditioning).
+ *
+ * @example
+ *   // --- Qwen3 Text Generation ----------------------------------------------
+ *   const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+ *   const prompt = tokenizer.applyChatTemplate([
+ *     { role: 'system', content: 'You are concise. Reply in one short sentence.' },
+ *     { role: 'user', content: 'Say hello to a new friend named Bro.' },
+ *   ], true);
+ *   const promptIds = tokenizer.encode(prompt);
+ *   model.allocateCache(promptIds.length + 64);
+ *   const newIds = model.generate(promptIds, {
+ *     maxNewTokens: 40,
+ *     eosId: tokenizer.imEndId,
+ *     sampling: { temperature: 0.7, topK: 40, topP: 0.95, seed: 42 },
+ *   });
+ *   const reply = tokenizer.decode(newIds);
+ *   console.log(reply.trim());
+ *
+ * @example
+ *   // --- Streaming Generation -----------------------------------------------
+ *   const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+ *   const prompt = tokenizer.applyChatTemplate([
+ *     { role: 'user', content: 'Count from 1 to 5.' },
+ *   ], true);
+ *   const promptIds = tokenizer.encode(prompt);
+ *   const acc: number[] = [];
+ *   let shown = '';
+ *   model.generateStream(promptIds, {
+ *     maxNewTokens: 40,
+ *     eosId: tokenizer.imEndId,
+ *     sampling: { temperature: 0.7, topK: 40, topP: 0.95, seed: 42 },
+ *   }, (id) => {
+ *     acc.push(id);
+ *     const text = tokenizer.decode(acc);
+ *     const delta = text.slice(shown.length);
+ *     shown = text;
+ *     if (delta) console.log(delta);
+ *     return true;
+ *   });
+ *
+ * @example
+ *   // --- Async Generation (All Families) ------------------------------------
+ *   const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
+ *   const promptIds = tokenizer.encode('Hello world');
+ *   const h = bro.lm.generate(model, promptIds, {
+ *     maxNewTokens: 256,
+ *     eosId: tokenizer.imEndId,
+ *     sampling: { temperature: 0.7, topK: 40, topP: 0.95 },
+ *     onToken: (id) => {},
+ *     onDone: (ids) => {
+ *       console.log(ids);
+ *     },
+ *   });
+ *   h.cancel();
+ *
+ * @example
+ *   // --- Mistral 3.1 --------------------------------------------------------
+ *   const mis = bro.lm.loadMistral(
+ *     '../brolm/weights/Mistral-Small-3.1-24B-Instruct-2503-GGUF/mistralai_Mistral-Small-3.1-24B-Instruct-2503-Q4_K_M.gguf',
+ *     { tokenizerPath: '../brolm/weights/Mistral-Small-3.1-24B-Instruct-2503/tekken.json' });
+ *   const mPrompt = mis.tokenizer.applyChatTemplate(
+ *     [{ role: 'user', content: 'One-sentence fun fact about owls.' }], true);
+ *   const mIds = mis.model.generate(mis.tokenizer.encode(mPrompt, false), {
+ *     maxNewTokens: 64,
+ *     eosId: mis.tokenizer.eosId,
+ *     sampling: { temperature: 0 },
+ *   });
+ *   console.log(mis.tokenizer.decode(mIds));
+ *
+ * @example
+ *   // --- Gemma-2 ------------------------------------------------------------
+ *   const gem = bro.lm.loadGemma2('../brolm/weights/gemma-2-2b');
+ *   const gIds = gem.model.generate(
+ *     gem.tokenizer.encode('The capital of France is'), {
+ *       maxNewTokens: 16,
+ *       eosId: gem.tokenizer.eosId,
+ *       sampling: { temperature: 0 },
+ *     });
+ *   console.log(gem.tokenizer.decode(gIds));
+ *
+ * @example
+ *   // --- Qwen3.5 & Vision ---------------------------------------------------
+ *   const q35 = bro.lm.loadQwen35('../brolm/weights/Qwen3.5-0.8B');
+ *   const ids35 = q35.generate(
+ *     '<|im_start|>user\\nOne-word answer: capital of France?<|im_end|>\\n<|im_start|>assistant\\n',
+ *     { maxNewTokens: 16, sampling: { temperature: 0 } });
+ *   console.log(q35.decode(ids35));
+ *
+ * @example
+ *   // --- NLLB-200 Machine Translation ---------------------------------------
+ *   const nllb = bro.lm.loadNllb('../brolm/weights/nllb-200-distilled-600M');
+ *   console.log(nllb.translate('Hello, world!', 'eng_Latn', 'fra_Latn'));
+ *
+ * @example
+ *   // --- CLIP Cross-Modal Scoring -------------------------------------------
+ *   const clip = bro.lm.loadClip({
+ *     vocabPath: '../clip-vit-large-patch14/vocab.json',
+ *     mergesPath: '../clip-vit-large-patch14/merges.txt',
+ *     weightsPath: '../clip-vit-large-patch14/model.safetensors',
+ *   });
+ *   const emb = clip.encodeText('a photo of an astronaut riding a horse');
+ *   console.log(emb);
+ *
+ * @example
+ *   // --- T5 Encoder ---------------------------------------------------------
+ *   const t5 = bro.lm.loadT5({
+ *     tokenizerPath: '../FLUX.1-schnell/tokenizer_2/tokenizer.json',
+ *     shards: [
+ *       '../FLUX.1-schnell/text_encoder_2/model-00001-of-00002.safetensors',
+ *       '../FLUX.1-schnell/text_encoder_2/model-00002-of-00002.safetensors',
+ *     ],
+ *     maxLength: 256,
+ *   });
+ *   const t5enc = t5.encode('a serene mountain lake at dawn');
+ *   console.log(t5enc.length, 'tokens', t5enc.dim, 'dims');
+ */
+
+/**
+ * Chat message turn representation for applyChatTemplate.
+ */
+dictionary ChatMessage {
+  required DOMString role;
+  required DOMString content;
+};
+
+/**
+ * Autoregressive sampling configuration options.
+ */
+dictionary SamplingOptions {
+  unrestricted double temperature;
+  long topK;
+  unrestricted double topP;
+  long seed;
+};
+
+/**
+ * Text and multimodal generation options.
+ */
+dictionary GenerateOptions {
+  long maxNewTokens;
+  long eosId;
+  SamplingOptions sampling;
+  (object or sequence<object>) images;
+  Function onToken;
+  Function onDone;
+  Function onError;
+};
+
+/**
+ * Model loading options for causal LM backends.
+ */
+dictionary LoadModelOptions {
+  DOMString device = "cuda";
+  DOMString tokenizerPath;
+  long maxSeqLen = 4096;
+  Function onReady;
+  Function onError;
+};
+
+/**
+ * BPE Tokenizer loading options.
+ */
+dictionary LoadTokenizerOptions {
+  required DOMString vocabPath;
+  required DOMString mergesPath;
+};
+
+/**
+ * CLIP cross-modal scorer loading options.
+ */
+dictionary LoadClipOptions {
+  required DOMString vocabPath;
+  required DOMString mergesPath;
+  DOMString weightsPath;
+  DOMString textPath;
+  DOMString imagePath;
+  DOMString projectionPath;
+  DOMString textPrefix = "text_model.";
+  DOMString visionPrefix = "vision_model.";
+  DOMString projectionPrefix = "";
+  DOMString device = "cuda";
+};
+
+/**
+ * T5 architectural dimension configuration overrides.
+ */
+dictionary T5Config {
+  long vocabSize;
+  long dModel;
+  long dFf;
+  long dKv;
+  long numHeads;
+  long numLayers;
+};
+
+/**
+ * T5 text encoder loading options.
+ */
+dictionary LoadT5Options {
+  required DOMString tokenizerPath;
+  DOMString ggufPath;
+  DOMString weightsPath;
+  sequence<DOMString> shards;
+  DOMString prefix = "";
+  long maxLength = 512;
+  boolean quantizeWeights = false;
+  T5Config config;
+  DOMString device = "cuda";
+};
+
+/**
+ * Per-call encoding options for T5.
+ */
+dictionary T5EncodeOptions {
+  long maxLength;
+};
+
+/**
+ * Flattened hidden state tensor result from T5 text encoder.
+ */
+dictionary T5EncodeResult {
+  required Float32Array data;
+  required long length;
+  required long dim;
+  required Int32Array ids;
+};
+
+/**
+ * Options for NLLB-200 beam-search translation.
+ */
+dictionary NllbTranslateOptions {
+  long numBeams = 5;
+  long maxNewTokens = 200;
+  unrestricted double lengthPenalty = 1.0;
+  Function onDone;
+  Function onError;
+};
+
+/**
+ * Asynchronous job handle with cancellation support.
+ */
+interface AsyncHandle {
+  /**
+   * Cancel the in-flight background job.
+   */
+  void cancel();
+};
+
+/**
+ * Qwen3 BPE Tokenizer handle.
+ */
+interface QwenTokenizer {
+  /**
+   * Id of the <|im_end|> turn terminator (use as eosId).
+   */
+  readonly attribute long imEndId;
+
+  /**
+   * Id of the <|im_start|> role marker.
+   */
+  readonly attribute long imStartId;
+
+  /**
+   * BPE-encode a string to token ids.
+   * @param text Text string to encode
+   * @returns Array of token ids
+   */
+  sequence<long> encode(DOMString text);
+
+  /**
+   * Decode token ids back to text string.
+   * @param ids Array of token ids or Int32Array
+   * @returns Decoded text
+   */
+  DOMString decode((sequence<long> or Int32Array) ids);
+
+  /**
+   * Render an array of { role, content } messages into the Qwen chat format.
+   * @param messages Array of chat turn messages
+   * @param addGenerationPrompt Append assistant turn marker if true
+   * @returns Formatted prompt string
+   */
+  DOMString applyChatTemplate(sequence<ChatMessage> messages, optional boolean addGenerationPrompt);
+};
+
+/**
+ * Mistral 3.1 native tekken BPE Tokenizer handle.
+ */
+interface MistralTokenizer {
+  /**
+   * End of sequence token id.
+   */
+  readonly attribute long eosId;
+
+  /**
+   * Beginning of sequence token id.
+   */
+  readonly attribute long bosId;
+
+  /**
+   * Total vocabulary token count.
+   */
+  readonly attribute long vocabCount;
+
+  /**
+   * BPE-encode text to Int32Array token ids.
+   * @param text Text to encode
+   * @param addSpecial Prepend BOS (<s>) token if true
+   * @returns Int32Array of token ids
+   */
+  Int32Array encode(DOMString text, optional boolean addSpecial);
+
+  /**
+   * Decode token ids back to text string.
+   * @param ids Token ids
+   * @returns Decoded text
+   */
+  DOMString decode((sequence<long> or Int32Array) ids);
+
+  /**
+   * Render messages into Mistral's [INST] chat format.
+   * @param messages Chat messages
+   * @param addGenerationPrompt Append generation prompt if true
+   * @returns Formatted prompt string
+   */
+  DOMString applyChatTemplate(sequence<ChatMessage> messages, optional boolean addGenerationPrompt);
+};
+
+/**
+ * Gemma-2 SentencePiece-BPE Tokenizer handle.
+ */
+interface GemmaTokenizer {
+  /**
+   * End of sequence token id.
+   */
+  readonly attribute long eosId;
+
+  /**
+   * Beginning of sequence token id.
+   */
+  readonly attribute long bosId;
+
+  /**
+   * Padding token id.
+   */
+  readonly attribute long padId;
+
+  /**
+   * Unknown token id.
+   */
+  readonly attribute long unkId;
+
+  /**
+   * Total vocabulary token count.
+   */
+  readonly attribute long vocabCount;
+
+  /**
+   * BPE-encode text to Int32Array token ids.
+   * @param text Text to encode
+   * @param addBos Prepend <bos> token if true (default true)
+   * @returns Int32Array of token ids
+   */
+  Int32Array encode(DOMString text, optional boolean addBos);
+
+  /**
+   * Decode token ids back to text string.
+   * @param ids Token ids
+   * @returns Decoded text
+   */
+  DOMString decode((sequence<long> or Int32Array) ids);
+};
+
+/**
+ * Causal Transformer Language Model (Qwen3, Mistral 3.1, Gemma-2).
+ */
+interface LMModel {
+  /**
+   * Model family name ('qwen3', 'mistral3', 'gemma2').
+   */
+  readonly attribute DOMString family;
+
+  /**
+   * Vocabulary dimension size.
+   */
+  readonly attribute long vocabSize;
+
+  /**
+   * Hidden embedding dimension size.
+   */
+  readonly attribute long hiddenSize;
+
+  /**
+   * Number of hidden transformer layers.
+   */
+  readonly attribute long numLayers;
+
+  /**
+   * Maximum position sequence length.
+   */
+  readonly attribute long maxSeqLen;
+
+  /**
+   * Current allocated KV cache token capacity.
+   */
+  readonly attribute long cacheLen;
+
+  /**
+   * Size and allocate the KV cache. Reused across generate calls.
+   * @param maxTokens Maximum capacity (prompt + generated tokens)
+   */
+  void allocateCache(long maxTokens);
+
+  /**
+   * Reset the KV cache state.
+   */
+  void resetCache();
+
+  /**
+   * Run synchronous autoregressive generation.
+   * @param promptIds Input prompt token ids
+   * @param opts Sampling and stopping options
+   * @returns Generated token ids (excluding prompt)
+   */
+  sequence<long> generate((sequence<long> or Int32Array) promptIds, optional GenerateOptions opts);
+
+  /**
+   * Run synchronous streaming generation with per-token callbacks.
+   * @param promptIds Input prompt token ids
+   * @param opts Sampling and stopping options
+   * @param onToken Callback invoked with each generated token id
+   * @returns All newly generated token ids
+   */
+  sequence<long> generateStream((sequence<long> or Int32Array) promptIds, GenerateOptions opts, Function onToken);
+};
+
+/**
+ * Qwen3.5 hybrid full/linear-attention vision-language model handle.
+ */
+interface Qwen35Model {
+  /**
+   * Model family identifier ('qwen35').
+   */
+  readonly attribute DOMString family;
+
+  /**
+   * Vocabulary dimension size.
+   */
+  readonly attribute long vocabSize;
+
+  /**
+   * Hidden embedding dimension size.
+   */
+  readonly attribute long hiddenSize;
+
+  /**
+   * Number of hidden transformer layers.
+   */
+  readonly attribute long numLayers;
+
+  /**
+   * Maximum sequence context length.
+   */
+  readonly attribute long maxSeqLen;
+
+  /**
+   * End-of-sequence token id.
+   */
+  readonly attribute long eosId;
+
+  /**
+   * Turn terminator token id (<|im_end|>).
+   */
+  readonly attribute long imEndId;
+
+  /**
+   * End-of-text special token id.
+   */
+  readonly attribute long endoftextId;
+
+  /**
+   * Tokenize text into Int32Array token ids.
+   * @param text String to encode
+   * @param addSpecial Optional flag to add special tokens
+   * @returns Int32Array of token ids
+   */
+  Int32Array encode(DOMString text, optional boolean addSpecial);
+
+  /**
+   * Decode token ids into text string.
+   * @param ids Token ids
+   * @returns Decoded text
+   */
+  DOMString decode((sequence<long> or Int32Array) ids);
+
+  /**
+   * Generate text or multimodal responses from a string prompt.
+   * @param prompt Prompt string formatted with ChatML / vision tokens
+   * @param opts Generation options including images
+   * @returns Generated token ids
+   */
+  Int32Array generate(DOMString prompt, optional GenerateOptions opts);
+};
+
+/**
+ * Qwen3-VL dense decoder vision-language model handle with DeepStack feature injection.
+ */
+interface Qwen3VLModel {
+  /**
+   * Model family identifier ('qwen3vl').
+   */
+  readonly attribute DOMString family;
+
+  /**
+   * Vocabulary dimension size.
+   */
+  readonly attribute long vocabSize;
+
+  /**
+   * Hidden embedding dimension size.
+   */
+  readonly attribute long hiddenSize;
+
+  /**
+   * Number of hidden transformer layers.
+   */
+  readonly attribute long numLayers;
+
+  /**
+   * Maximum sequence context length.
+   */
+  readonly attribute long maxSeqLen;
+
+  /**
+   * End-of-sequence token id.
+   */
+  readonly attribute long eosId;
+
+  /**
+   * Turn terminator token id (<|im_end|>).
+   */
+  readonly attribute long imEndId;
+
+  /**
+   * End-of-text special token id.
+   */
+  readonly attribute long endoftextId;
+
+  /**
+   * Tokenize text into Int32Array token ids.
+   * @param text String to encode
+   * @param addSpecial Optional flag to add special tokens
+   * @returns Int32Array of token ids
+   */
+  Int32Array encode(DOMString text, optional boolean addSpecial);
+
+  /**
+   * Decode token ids into text string.
+   * @param ids Token ids
+   * @returns Decoded text
+   */
+  DOMString decode((sequence<long> or Int32Array) ids);
+
+  /**
+   * Generate text or multimodal responses from a string prompt.
+   * @param prompt Prompt string formatted with ChatML / vision tokens
+   * @param opts Generation options including images
+   * @returns Generated token ids
+   */
+  Int32Array generate(DOMString prompt, optional GenerateOptions opts);
+};
+
+/**
+ * NLLB-200 encoder-decoder machine translation model handle.
+ */
+interface NllbModel {
+  /**
+   * Model family identifier ('nllb').
+   */
+  readonly attribute DOMString family;
+
+  /**
+   * Vocabulary dimension size.
+   */
+  readonly attribute long vocabSize;
+
+  /**
+   * Model embedding dimension size.
+   */
+  readonly attribute long dModel;
+
+  /**
+   * Number of encoder layers.
+   */
+  readonly attribute long encoderLayers;
+
+  /**
+   * Number of decoder layers.
+   */
+  readonly attribute long decoderLayers;
+
+  /**
+   * Total number of supported FLORES-200 languages.
+   */
+  readonly attribute long languageCount;
+
+  /**
+   * Check whether a FLORES-200 language code is supported.
+   * @param code Language code (e.g. 'eng_Latn', 'fra_Latn')
+   * @returns True if supported
+   */
+  boolean hasLanguage(DOMString code);
+
+  /**
+   * Translate text from source language to target language.
+   * @param text Text string to translate
+   * @param srcLang Source language FLORES-200 code
+   * @param tgtLang Target language FLORES-200 code
+   * @param opts Translation options (numBeams, onDone for async)
+   * @returns Translated string in sync mode, or AsyncHandle if onDone provided
+   */
+  (DOMString or AsyncHandle) translate(DOMString text, DOMString srcLang, DOMString tgtLang, optional NllbTranslateOptions opts);
+};
+
+/**
+ * CLIP ViT-L/14 cross-modal text and image similarity scorer.
+ */
+interface ClipModel {
+  /**
+   * Dimension size of the shared cross-modal embedding space (768).
+   */
+  readonly attribute long projectionDim;
+
+  /**
+   * Compute normalized text embeddings in the shared space.
+   * @param text Single prompt string or array of prompt strings
+   * @returns Float32Array or array of Float32Array embeddings
+   */
+  (Float32Array or sequence<Float32Array>) encodeText((DOMString or sequence<DOMString>) text);
+
+  /**
+   * Compute normalized image embedding in the shared space.
+   * @param image ImageBitmap or ImageData object
+   * @returns Projected Float32Array image embedding
+   */
+  Float32Array encodeImage(object image);
+
+  /**
+   * Compute cosine similarity in [-1, 1] between text and image.
+   * @param text Single prompt or array of candidate prompts
+   * @param image ImageBitmap or ImageData
+   * @returns Cosine score or array of scores
+   */
+  (unrestricted double or sequence<unrestricted double>) score((DOMString or sequence<DOMString>) text, object image);
+};
+
+/**
+ * T5 encoder-only text encoder (T5-XXL / Flux text conditioning).
+ */
+interface T5Model {
+  /**
+   * Transformer hidden dimension size (4096 for T5-XXL).
+   */
+  readonly attribute long dModel;
+
+  /**
+   * Fixed maximum encode sequence length.
+   */
+  readonly attribute long maxLength;
+
+  /**
+   * Pad token id.
+   */
+  readonly attribute long padId;
+
+  /**
+   * End of sequence token id.
+   */
+  readonly attribute long eosId;
+
+  /**
+   * Total vocabulary token count.
+   */
+  readonly attribute long vocabCount;
+
+  /**
+   * Encode text to fixed-length row-major hidden state tensor.
+   * @param text Prompt text to encode
+   * @param opts Encoding options
+   * @returns Encoded data buffer and dimension metadata
+   */
+  T5EncodeResult encode(DOMString text, optional T5EncodeOptions opts);
+};
+
+/**
+ * Result pair returned by loadQwen containing model and tokenizer.
+ */
+dictionary LMModelPair {
+  required LMModel model;
+  required QwenTokenizer tokenizer;
+};
+
+/**
+ * Result pair returned by loadMistral containing model and tokenizer.
+ */
+dictionary MistralModelPair {
+  required LMModel model;
+  required MistralTokenizer tokenizer;
+};
+
+/**
+ * Result pair returned by loadGemma2 containing model and tokenizer.
+ */
+dictionary GemmaModelPair {
+  required LMModel model;
+  required GemmaTokenizer tokenizer;
+};
+
+/**
+ * Language-model inference and cross-modal embedding namespace.
+ */
+[gate=BRO_WITH_LM, prefix="bro."]
+namespace lm {
+  /**
+   * Initialize LM runtime subsystem.
+   */
+  void init();
+
+  /**
+   * Load a Qwen3 model + tokenizer from a GGUF checkpoint.
+   * @param ggufPath Path to Qwen3 .gguf file
+   * @param opts Optional device configuration
+   * @returns Paired model and tokenizer
+   */
+  LMModelPair loadQwen(DOMString ggufPath, optional LoadModelOptions opts);
+
+  /**
+   * Load Mistral 3.1 text decoder from GGUF and native tekken tokenizer.
+   * @param ggufPath Path to Mistral .gguf file
+   * @param opts Options with required tokenizerPath (tekken.json)
+   * @returns Paired model and tokenizer
+   */
+  MistralModelPair loadMistral(DOMString ggufPath, LoadModelOptions opts);
+
+  /**
+   * Load Gemma-2 from a HuggingFace checkpoint directory.
+   * @param modelDir Directory containing config.json and *.safetensors
+   * @param opts Loading options
+   * @returns Paired model and tokenizer
+   */
+  GemmaModelPair loadGemma2(DOMString modelDir, optional LoadModelOptions opts);
+
+  /**
+   * Load a Qwen3.5 VLM checkpoint directory.
+   * @param checkpointDir Directory containing config.json and safetensors
+   * @param opts Loading options
+   * @returns Qwen35Model handle
+   */
+  Qwen35Model loadQwen35(DOMString checkpointDir, optional LoadModelOptions opts);
+
+  /**
+   * Load a Qwen3-VL checkpoint directory.
+   * @param checkpointDir Directory containing config.json and safetensors
+   * @param opts Loading options
+   * @returns Qwen3VLModel handle
+   */
+  Qwen3VLModel loadQwen3VL(DOMString checkpointDir, optional LoadModelOptions opts);
+
+  /**
+   * Load an NLLB-200 translation model checkpoint directory.
+   * @param checkpointDir Directory containing config.json and safetensors
+   * @param opts Loading options
+   * @returns NllbModel handle
+   */
+  NllbModel loadNllb(DOMString checkpointDir, optional LoadModelOptions opts);
+
+  /**
+   * Load standalone Qwen tokenizer without weights.
+   * @param opts Options specifying vocabPath and mergesPath
+   * @returns QwenTokenizer handle
+   */
+  QwenTokenizer loadTokenizer(LoadTokenizerOptions opts);
+
+  /**
+   * Load CLIP ViT-L/14 cross-modal scorer.
+   * @param opts Scorer options specifying weights and vocab
+   * @returns ClipModel handle
+   */
+  ClipModel loadClip(LoadClipOptions opts);
+
+  /**
+   * Load T5 text encoder.
+   * @param opts Options specifying tokenizer and safetensors/gguf paths
+   * @returns T5Model handle
+   */
+  T5Model loadT5(LoadT5Options opts);
+
+  /**
+   * Asynchronously run generation on a background thread with real-time cancellation.
+   * @param model Model handle (LMModel, Qwen35Model, or Qwen3VLModel)
+   * @param prompt Token ids array or prompt string
+   * @param opts Generation options including onToken and onDone callbacks
+   * @returns AsyncHandle for cancellation
+   */
+  AsyncHandle generate(object model, (sequence<long> or DOMString) prompt, optional GenerateOptions opts);
+};
