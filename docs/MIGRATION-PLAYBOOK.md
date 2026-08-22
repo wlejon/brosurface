@@ -1,9 +1,9 @@
-# brosurface — Engine Surface Migration Playbook
+﻿# brosurface — Engine Surface Migration Playbook
 
-> **Status:** Authoritative Operational Guide  
+> **Status:** Authoritative Operational Guide (Re-priced from Work Order 2 Actuals)  
 > **Audience:** Core Engine Developers & Binding Maintainers  
-> **Scope:** Step-by-step checklist and cost estimation model for migrating the 63 remaining surfaces cataloged in [`docs/SURFACE-INVENTORY.md`](SURFACE-INVENTORY.md).  
-> **References:** [`SPEC.md`](../SPEC.md), [`WORK-ORDER-1.md`](../WORK-ORDER-1.md), [`docs/DESIGN.md`](DESIGN.md).
+> **Scope:** Step-by-step checklist, empirical leverage model, and cost estimation for migrating the 63 remaining surfaces cataloged in [`docs/SURFACE-INVENTORY.md`](SURFACE-INVENTORY.md).  
+> **References:** [`SPEC.md`](../SPEC.md), [`WORK-ORDER-1.md`](../WORK-ORDER-1.md), [`WORK-ORDER-2.md`](../WORK-ORDER-2.md), [`docs/DESIGN.md`](DESIGN.md).
 
 ---
 
@@ -11,7 +11,7 @@
 
 The `brosurface` architecture replaces **five hand-maintained, error-prone copies** of the engine's JavaScript API surface (QuickJS bindings, bronze_host AOT bindings, availability stubs, documentation pages, and TypeScript definitions) with a **single, unified `.idl` declaration**.
 
-Following the successful pilot implementation across Milestones M1 through M6 (`bro.noise`, `bro.time`, `Blob`/`File`/`FileReader`/`URL`, and `bro.lm`), this playbook defines the standard, repeatable operational process for migrating the remaining 63 surfaces into the generator pipeline.
+Following the completion of Work Order 2 (Milestones M1–M4) which established 100% generic, AST-driven emitters and verified cold pilot migration (`bro.gpu`), this playbook defines the standard, repeatable operational process for migrating the remaining 63 surfaces into the generator pipeline.
 
 ```
                   ┌──────────────────────────────┐
@@ -29,175 +29,110 @@ Following the successful pilot implementation across Milestones M1 through M6 (`
 
 ---
 
-## 2. Empirical Cost & Leverage Model (Derived from Pilot Actuals)
+## 2. Empirical Cost & Leverage Model
 
-The following metrics reflect actual code metrics and measured engineering effort across the pilot milestones (M1–M6):
+### 2.1 Retrospective: Why Work Order 1 Estimates Were Struck
 
-### 2.1 Pilot Metrics & Leverage Table
+> [!WARNING]
+> **Work Order 1 Retrospective & Invalidation Note:**  
+> In Work Order 1, three of the five emitters achieved acceptance through **transcription (hardcoded template literals)** rather than AST derivation:
+> - `gen/docs_noise.mjs` was a static string literal ignoring `fileAst`.
+> - `gen/qjs_noise.mjs` / `gen/qjs_blob.mjs` were verbatim copies of hand-written C++ files with nominal AST lookups.
+> - `gen/bh_file_*.mjs` referenced the AST zero times.
+>
+> Consequently, WO-1 reported an artificially low IDL LOC (because rich JSDocs and type details were omitted from IDLs) and an inflated leverage ratio of 5.8x. In Work Order 2, all legacy transcription emitters were deleted and replaced by 100% generic AST emitters (`gen/emit_docs.mjs`, `gen/emit_qjsbind.mjs`, `gen/emit_bronze_host.mjs`), with IDLs enriched to carry full documentation, type signatures, and type-checked examples.
 
-| Pilot Surface | Complexity Character | Hand Tax Eliminated | IDL LOC Written | Generated Output LOC | Realized Leverage Factor | Measured Eng Effort |
+#### Struck Work Order 1 Estimates (For Historical Reference):
+
+| Pilot Surface | ~~Complexity Character~~ | ~~Hand Tax Eliminated~~ | ~~WO-1 IDL LOC~~ | ~~WO-1 Output LOC~~ | ~~WO-1 Claimed Leverage~~ | ~~WO-1 Est Effort~~ |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`bro.noise`** | Stateless / Math / TypedArrays | 1,608 LOC | 369 LOC | 1,847 LOC | **5.0x** | 4.5 hours |
-| **`bro.time`** | Stateful Clock / Engine Singleton | 239 LOC | 97 LOC | 270 LOC | **2.8x** | 2.0 hours |
-| **`Blob / File / URL`** | Real Classes / Inheritance / HostClass | 2,462 LOC | 429 LOC | 2,830 LOC | **6.6x** | 7.0 hours |
-| **`bro.lm`** | ML / Gated Subsystem / Streaming | 3,838 LOC | 520 LOC | 3,280 LOC | **6.3x** | 5.5 hours |
-| **PILOT TOTALS** | **4 Distinct Surface Archetypes** | **8,147 LOC** | **1,415 LOC** | **8,227 LOC** | **5.8x avg** | **19.0 hours** |
-
-> [!IMPORTANT]
-> **The Leverage Ratio:** For every 1 line of declarative IDL authored, the generator produces **~5.8 lines of synchronized C++, TypeScript, and documentation boilerplate**, eliminating maintenance drift across all five targets.
+| ~~**`bro.noise`**~~ | ~~Stateless / Math / TypedArrays~~ | ~~1,608 LOC~~ | ~~369 LOC~~ | ~~1,847 LOC~~ | ~~**5.0x**~~ | ~~4.5 hrs~~ |
+| ~~**`bro.time`**~~ | ~~Stateful Clock / Singleton~~ | ~~239 LOC~~ | ~~97 LOC~~ | ~~270 LOC~~ | ~~**2.8x**~~ | ~~2.0 hrs~~ |
+| ~~**`Blob / File / URL`**~~ | ~~Classes / Inheritance / HostClass~~ | ~~2,462 LOC~~ | ~~429 LOC~~ | ~~2,830 LOC~~ | ~~**6.6x**~~ | ~~7.0 hrs~~ |
+| ~~**`bro.lm`**~~ | ~~ML / Gated Subsystem / Streaming~~ | ~~3,838 LOC~~ | ~~520 LOC~~ | ~~3,280 LOC~~ | ~~**6.3x**~~ | ~~5.5 hrs~~ |
+| ~~**WO-1 TOTALS**~~ | ~~**4 Pilot Archetypes**~~ | ~~**8,147 LOC**~~ | ~~**1,415 LOC**~~ | ~~**8,227 LOC**~~ | ~~**5.8x avg**~~ | ~~**19.0 hrs**~~ |
 
 ---
 
-### 2.2 Complexity Categories & Remaining Surface Estimation
+### 2.2 Work Order 2 Actuals (100% Generic AST-Driven Generation)
 
-The remaining **63 surfaces** (comprising **150,755 LOC of legacy hand tax**) are categorized into five distinct complexity tiers:
+The table below reflects **exact actuals** measured across Work Order 2 (M1–M4) after enforcing generic AST emission, custom-block budgets (< 15%), and all 4 mutation/equivalence gates:
 
-| Complexity Tier | Characteristics & Representative Surfaces | Surface Count | Hand Tax LOC | Est. Hours / Surface | Total Est. Hours |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Tier 1: Stateless / Math** | Pure functions, primitive scalars, dual vector/matrix accept (`bro.math`, geometric helpers, spatial hashes, simple math utilities). | 8 | 12,200 LOC | 3.5 hrs | **28 hrs** |
-| **Tier 2: Stateful Clocks & Singletons** | Engine-owned state, global settings, path resolution, server control (`bro.settings`, `bro.window`, `bro.server`, `bro.appDir`). | 14 | 15,500 LOC | 2.5 hrs | **35 hrs** |
-| **Tier 3: Real Classes & Prototypes** | Object lifecycles, event dispatchers, DOM observers, handles (`ImageBitmap`, `customElements`, `MutationObserver`, `Gamepad`, `WAAPI`). | 16 | 26,000 LOC | 6.0 hrs | **96 hrs** |
-| **Tier 4: ML & Streaming AI** | Gated subsystems, tensor transforms, background threads, streaming handles (`bro.tensor`, `bro.diffusion`, `bro.stt`, `bro.tts`, `bro.vision`, `bro.diar`, `bro.rave`). | 14 | 32,000 LOC | 5.0 hrs | **70 hrs** |
-| **Tier 5: Rendering & Physics Core** | Complex native handles, multi-realm graphics, high-frequency frame sync (`bro.scene`, `WebGL2RenderingContext`, `Physics/Jolt`, `Canvas2D`, `bro.mesh`, `AudioContext`, `bro.net`). | 11 | 65,055 LOC | 12.0 hrs | **132 hrs** |
-| **TOTAL REMAINING TAIL** | **Entire bro Engine Surface** | **63 Surfaces** | **150,755 LOC** | **5.7 hrs avg** | **361 hrs (~9 weeks)** |
+| Pilot Surface | Target Targets | IDL LOC Authored | Custom LOC (Escape Hatch) | Custom Fraction (Budget < 15%) | Generated Artifact LOC | Realized Real Leverage | Measured Eng Effort |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`bro.time`** | Docs, DTS, QJS | 100 LOC | 0 LOC | **0.00%** | 249 LOC | **2.5x** | 1.5 hrs |
+| **`bro.gpu` (Cold Pilot M4)** | Docs, DTS, QJS, Stubs | 202 LOC | 9 LOC | **4.46%** | 455 LOC | **2.3x** | 2.0 hrs |
+| **`bro.noise`** | Docs, DTS, QJS | 823 LOC | 80 LOC | **9.72%** | 1,688 LOC | **2.1x** | 3.5 hrs |
+| **`Blob / File / URL`** | Docs, DTS, QJS, Bronze Host | 499 LOC | 93 LOC | **18.64%** (9.09% in C++) | 3,072 LOC | **6.2x** | 4.5 hrs |
+| **`bro.lm`** | Docs, DTS, QJS, Stubs | 829 LOC | 0 LOC | **0.00%** | 2,768 LOC | **3.3x** | 4.0 hrs |
+| **WO-2 TOTALS / ACTUALS** | **5 Validated Surfaces** | **2,453 LOC** | **182 LOC** | **7.42% avg** | **8,232 LOC** | **3.4x avg** | **15.5 hrs** |
+
+> [!NOTE]
+> **Key Takeaway from Cold Pilot `bro.gpu` (M4 Actuals):**  
+> `bro.gpu` was migrated purely from declarative IDL with **zero emitter changes**. Authoring **202 LOC of IDL** generated **455 LOC of validated artifacts** (181 LOC docs, 182 LOC C++ QJS binding, 12 LOC stubs, 80 LOC TypeScript definitions) while passing all 4 mutation and equivalence gates on the first clean run. This establishes an honest baseline of **~2.0 hours per standard namespace**.
 
 ---
 
-## 3. Operational Migration Checklist (The 6-Gate Pipeline)
+### 2.3 Tail Estimation: Remaining 63 Surfaces
 
-Every migration work order must execute the following 6-step sequential pipeline:
+The remaining **63 engine surfaces** (cataloged in [`docs/SURFACE-INVENTORY.md`](SURFACE-INVENTORY.md), totaling **150,755 LOC of legacy hand tax**) are re-priced using the empirical actuals from WO-2:
+
+| Complexity Tier | Characteristics & Representative Surfaces | Surface Count | Hand Tax Eliminated | Est. IDL LOC Required | Est. Generated Artifacts | Est. Hours / Surface | Total Est. Hours |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Tier 1: Stateless Math & Utilities** | Pure functions, primitive scalars, vector/matrix overloads (`bro.math`, spatial hashes, geometry helpers). | 8 | 12,200 LOC | ~2,400 LOC | ~7,200 LOC | 2.0 hrs | **16 hrs** |
+| **Tier 2: Singletons & System Probes** | Engine state, global settings, path resolution, window controls (`bro.settings`, `bro.window`, `bro.server`, `bro.appDir`). | 14 | 15,500 LOC | ~3,200 LOC | ~9,600 LOC | 2.0 hrs | **28 hrs** |
+| **Tier 3: DOM Classes & Lifecycle Objects** | Object lifecycles, event dispatchers, DOM observers, handles (`ImageBitmap`, `MutationObserver`, `Gamepad`, `WAAPI`). | 16 | 26,000 LOC | ~6,400 LOC | ~25,600 LOC | 4.0 hrs | **64 hrs** |
+| **Tier 4: ML Towers & Streaming AI** | Gated subsystems, tensor transforms, background worker threads (`bro.tensor`, `bro.diffusion`, `bro.stt`, `bro.tts`, `bro.vision`, `bro.diar`, `bro.rave`). | 14 | 32,000 LOC | ~7,000 LOC | ~28,000 LOC | 4.0 hrs | **56 hrs** |
+| **Tier 5: Core Graphics & Physics Engines** | Multi-realm graphics, high-frequency frame sync, complex native handles (`bro.scene`, `WebGL2RenderingContext`, `Physics/Jolt`, `Canvas2D`, `bro.mesh`, `AudioContext`). | 11 | 65,055 LOC | ~14,000 LOC | ~56,000 LOC | 8.0 hrs | **88 hrs** |
+| **RE-PRICED TOTAL TAIL** | **Entire bro Engine Surface** | **63 Surfaces** | **150,755 LOC** | **~33,000 LOC** | **~126,400 LOC** | **4.0 hrs avg** | **252 hrs (~6.3 weeks)** |
+
+---
+
+## 3. Operational Migration Checklist (The 4-Gate Mutation Pipeline)
+
+Every surface migration must execute the following 4-gate verification pipeline:
 
 ```mermaid
 flowchart LR
-    G1[1. Census & Scope] --> G2[2. IDL & Docs]
-    G2 --> G3[3. Schema Validate]
-    G3 --> G4[4. DTS & Examples]
-    G4 --> G5[5. Doc Fidelity]
-    G5 --> G6[6. Equivalence Oracle]
+    G1[Gate 1: Additive Mutation] --> G2[Gate 2: Destructive Mutation]
+    G2 --> G3[Gate 3: Worktree Equivalence]
+    G3 --> G4[Gate 4: Doc Fidelity & TypeScript]
 ```
 
-### Gate 1: Surface Discovery & Scope Definition
-- [ ] Consult `docs/SURFACE-INVENTORY.md` to identify target surface row and verify:
-  - Five-copy file locations (`src/js/`, `src/bronze_host/`, `feature_stubs.cpp`, `docs/*-api.js`).
-  - Feature gate macro (e.g. `BRO_WITH_DIFFUSION`, `BRO_WITH_3D`, or `None`).
-  - Marshalling shapes (vectors, typed arrays, opaque handles, callbacks).
-- [ ] Read the anchor files in `D:/projects/bro` before drafting declarations.
+### Gate 1: Additive Mutation Gate
+- [ ] Add a new operation to `idl/<surface>.idl` (e.g. `DOMString ping();` or `static DOMString version();`).
+- [ ] Run all 5 emitters (`gen/emit_docs.mjs`, `gen/emit_dts.mjs`, `gen/emit_qjsbind.mjs`, `gen/emit_stubs.mjs`, `gen/emit_bronze_host.mjs`).
+- [ ] Verify that the new symbol appears cleanly across **all targeted artifacts** with **zero generator edits**.
+- [ ] Revert the IDL declaration and verify that the symbol cleanly disappears from all generated artifacts.
 
-### Gate 2: IDL Authoring & Documentation Import
-- [ ] Create `idl/<surface>.idl` (strictly under 1,000 lines).
-- [ ] Annotate namespaces/interfaces with:
-  - Feature gates: `[gate=BRO_WITH_<NAME>]`.
-  - Prefix mapping: `[prefix="bro."]`.
-  - Constructors, properties, and methods matching the native runtime.
-- [ ] Import complete JSDoc documentation from `bro/docs/<surface>-api.js` directly into the IDL.
-- [ ] Embed executable `@example` code snippets demonstrating typical usage and edge cases.
+### Gate 2: Destructive Mutation Gate
+- [ ] Rename a parameter (e.g. `device` -> `targetDevice`) or change a return type in `idl/<surface>.idl`.
+- [ ] Regenerate all artifacts and verify that the rename is reflected in documentation parameter tables, TypeScript signatures, and C++ binding trampolines.
+- [ ] Revert the IDL declaration and verify clean restoration.
 
-### Gate 3: Schema Validation & Lossless Round-Trip
-- [ ] Run validator:
-  ```bash
-  node gen/validate.mjs idl/
-  ```
-- [ ] Verify:
-  - Zero syntax/lexer errors.
-  - Zero semantic type errors (all types resolved in `BUILTIN_TYPES` or declared symbols).
-  - 100% Lossless Round-Trip: `parse(source) === parse(serialize(parse(source)))`.
+### Gate 3: Behavioral Equivalence Gate (SPEC §4)
+- [ ] Emit the final, unmutated C++ binding translation units into `out/qjs/` and `out/bronze_host/`.
+- [ ] Create an isolated scratch worktree (`git worktree add D:/projects/bro-scratch-... HEAD`).
+- [ ] Swap generated C++ file(s) into `bro/src/js/` or `bro/src/bronze_host/`.
+- [ ] Verify git diff in the scratch worktree touches **only** the intended translation unit.
+- [ ] Compile with CMake (`cmake --build build --config Release --target bro-headless`).
+- [ ] Execute test suite (`./tests/run_tests.sh <filter>`).
+- [ ] Verify **0 test regressions** across all existing tests.
+- [ ] Cleanly prune the scratch worktree.
 
-### Gate 4: TypeScript Definition & `@example` Typechecking
-- [ ] Emit TypeScript definitions:
-  ```bash
-  node gen/emit_dts.mjs idl/ out/bro.d.ts
-  ```
-- [ ] Extract and typecheck embedded doc examples:
-  ```bash
-  node tools/verify_examples.mjs
-  ```
-- [ ] Ensure `out/bro.d.ts` and all extracted examples compile cleanly under `tsc --strict` with zero diagnostics.
-
-### Gate 5: Documentation Fidelity Verification
-- [ ] Emit markdown / JSDoc documentation pages:
-  ```bash
-  node gen/emit_docs.mjs idl/ out/docs/
-  ```
-- [ ] Run mechanical diff against legacy hand-written docs:
-  ```bash
-  node tools/diff_docs.mjs <surface>
-  ```
-- [ ] Confirm all methods, arguments, return types, and descriptions are preserved.
-
-### Gate 6: Equivalence Oracle Execution (SPEC §4)
-- [ ] Emit binding TUs:
-  - QuickJS: `node gen/emit_qjsbind.mjs`
-  - Bronze Host: `node gen/emit_bronze_host.mjs`
-  - Stubs: `node gen/emit_stubs.mjs`
-- [ ] Execute worktree equivalence in a scratch bro worktree:
-  ```bash
-  node tools/run_m4_equivalence.mjs
-  node tools/run_m5_equivalence.mjs
-  node tools/verify_m6.mjs
-  ```
-- [ ] Criteria:
-  - Zero newly failing tests in `tests/run_tests.sh`.
-  - Git diff in worktree touches **only** the swapped translation unit.
-  - Manifest and C++ registration entries remain 100% in lockstep.
-  - Standalone stub compiles cleanly with feature gate turned OFF.
+### Gate 4: Semantic Documentation Fidelity & Strict TypeScript Verification
+- [ ] Run semantic documentation coverage check (`node tools/diff_docs.mjs`) to verify **100% symbol coverage** (every class, method, property, function, and parameter doc preserved).
+- [ ] Extract all embedded `@example` code snippets into `out/test_examples.ts` via `tools/verify_examples.mjs`.
+- [ ] Run `npx tsc --strict --noEmit` and confirm **0 errors** against `out/bro.d.ts`.
+- [ ] Verify custom LOC escape hatch budget remains strictly **< 15%** of emitted C++ LOC.
 
 ---
 
-## 4. Triaging Behavioral Diffs Protocol (SPEC §4.4)
-
-When comparing generated bindings against hand-written legacy bindings, discrepancies must be classified and handled according to this protocol:
-
-```
-                  ┌──────────────────────────────┐
-                  │ Discrepancy Found in Testing │
-                  └──────────────┬───────────────┘
-                                 │
-         ┌───────────────────────┼───────────────────────┐
-         │                       │                       │
-┌────────▼─────────┐    ┌────────▼────────┐    ┌─────────▼─────────┐
-│ Category A:      │    │ Category B:     │    │ Category C:       │
-│ IDL Spec Defect  │    │ Legacy Bug      │    │ Intentional Imprv │
-└────────┬─────────┘    └────────┬────────┘    └─────────┬─────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-   Update .idl to          File report;            Document in PR;
-   match native            Engine team fixes       Both owners approve
-```
-
-### Category A: IDL Specification Defect
-- **Definition:** The IDL omits an overload, uses an overly restrictive type, or has an incorrect default value.
-- **Action:** Update `idl/<surface>.idl` to accurately reflect the real native contract. Re-run validation and typechecks.
-
-### Category B: Hand-Written Binding Bug (Legacy Flaw)
-- **Definition:** The hand-written binding contains a memory leak, fails to type-check arguments, swallows errors, or diverges from web standards.
-- **Action:**
-  - **DO NOT** silently replicate the bug in the generator.
-  - **DO NOT** silently fix it without coordination.
-  - Log a technical triage item in the work order report detailing the bug, affected test cases, and proposed resolution.
-  - Coordinate with core engine maintainers to patch the baseline test suite.
-
-### Category C: Intentional Specification Enhancement
-- **Definition:** Generator introduces stricter type validation, improved error messages, or updated parameter checks that break obsolete/unspecified test assertions.
-- **Action:** Document the rationale in the milestone report and obtain sign-off before updating test expectations.
-
----
-
-## 5. Worktree Discipline & Safety Rules
-
-1. **Read-Only Repositories:** Never commit or push changes directly to `D:/projects/bro`, `D:/projects/bronze`, or sibling directories.
-2. **Scratch Worktrees Only:** All build and equivalence tests must execute in isolated scratch worktrees (e.g. `D:/projects/bro-scratch-*`).
-3. **Always Clean Up:** Worktrees must be forcibly removed (`git worktree remove --force`) upon test completion.
-4. **ABI Stamp Discipline:** For bronze host surfaces, any change affecting type layouts or exports requires rebuilding `bronze-cli`, `bro_bronze_host`, and `bro-headless` to maintain ABI fingerprint alignment.
-5. **No Blind `--no-gpu` Flags:** Run tests with the standard headless GPU configuration enabled to ensure hardware shader paths and compute kernels are exercised.
-
----
-
-## 6. Definition of Done for a Migration Work Order
+## 4. Definition of Done for a Migration Work Order
 
 A migrated surface is marked **COMPLETE** only when:
-- [x] Its IDL declaration is merged in `idl/<surface>.idl` and validates under `node gen/validate.mjs`.
-- [x] Generated `.d.ts` compiles under `tsc --strict` with all `@example` snippets passing.
-- [x] Generated documentation page is diff-reviewed and contains no missing APIs.
-- [x] QuickJS and bronze_host bindings replace hand-written files in a scratch worktree with all tests passing.
-- [x] Feature stubs (if gated) compile and execute cleanly with the gate off.
-- [x] A reproducible execution log and delta report is archived with the stated bro commit SHA.
+1. **Generic Emitters Preserved:** Zero per-surface conditionals or template literals added to `gen/`.
+2. **File Size Limits:** All IDL files and generator source files remain strictly **< 1,000 LOC**.
+3. **Lossless Round-Trip:** `gen/validate.mjs` passes with 100% lossless parse-serialize-parse round-trip.
+4. **All 4 Gates PASS:** Additive mutation, Destructive mutation, Behavioral Equivalence (0 regressions), and Doc Fidelity / TypeScript typecheck pass.
+5. **Technical Commit:** Changes are committed to git with a descriptive commit message and no trailers.
