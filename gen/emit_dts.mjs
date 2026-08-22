@@ -1,0 +1,475 @@
+// gen/emit_dts.mjs - TypeScript Definition Emitter for brosurface
+// Consumes validated AST from schema/parser.mjs and emits out/bro.d.ts
+
+import fs from 'fs';
+import path from 'path';
+import { tokenize } from '../schema/lexer.mjs';
+import { parse } from '../schema/parser.mjs';
+import { validate } from '../schema/validator.mjs';
+
+/**
+ * Maps IDL type node to TypeScript type string.
+ * @param {Object} typeNode
+ * @returns {string}
+ */
+export function typeToTS(typeNode) {
+  if (!typeNode) return 'any';
+
+  if (typeNode.isUnion) {
+    const memberTypes = typeNode.unionMembers.map(m => typeToTS(m));
+    const unionStr = memberTypes.join(' | ');
+    return typeNode.nullable ? `(${unionStr}) | null` : unionStr;
+  }
+
+  let tsType = 'any';
+  const name = typeNode.name;
+
+  switch (name) {
+    case 'void':
+      tsType = 'void';
+      break;
+    case 'undefined':
+      tsType = 'undefined';
+      break;
+    case 'any':
+      tsType = 'any';
+      break;
+    case 'object':
+      tsType = 'object';
+      break;
+    case 'Function':
+      tsType = 'Function';
+      break;
+    case 'boolean':
+      tsType = 'boolean';
+      break;
+    case 'byte':
+    case 'octet':
+    case 'short':
+    case 'unsigned short':
+    case 'long':
+    case 'unsigned long':
+    case 'long long':
+    case 'unsigned long long':
+    case 'float':
+    case 'double':
+    case 'unrestricted float':
+    case 'unrestricted double':
+    case 'number':
+    case 'int':
+    case 'uint':
+    case 'int32':
+    case 'uint32':
+    case 'int64':
+    case 'uint64':
+    case 'float32':
+    case 'float64':
+      tsType = 'number';
+      break;
+    case 'bigint':
+      tsType = 'bigint';
+      break;
+    case 'string':
+    case 'DOMString':
+    case 'ByteString':
+    case 'USVString':
+      tsType = 'string';
+      break;
+    case 'ArrayBuffer':
+    case 'ArrayBufferView':
+    case 'Uint8Array':
+    case 'Int8Array':
+    case 'Uint16Array':
+    case 'Int16Array':
+    case 'Uint32Array':
+    case 'Int32Array':
+    case 'Float32Array':
+    case 'Float64Array':
+    case 'Uint8ClampedArray':
+    case 'BigInt64Array':
+    case 'BigUint64Array':
+    case 'DataView':
+      tsType = name;
+      break;
+    case 'EventListener':
+      tsType = '(event: any) => void';
+      break;
+    case 'EventHandler':
+      tsType = '((event: any) => any) | null';
+      break;
+    case 'sequence':
+    case 'Array':
+      if (typeNode.genericArgs && typeNode.genericArgs.length > 0) {
+        const argType = typeToTS(typeNode.genericArgs[0]);
+        tsType = argType.includes('|') ? `(${argType})[]` : `${argType}[]`;
+      } else {
+        tsType = 'any[]';
+      }
+      break;
+    case 'Promise':
+      if (typeNode.genericArgs && typeNode.genericArgs.length > 0) {
+        tsType = `Promise<${typeToTS(typeNode.genericArgs[0])}>`;
+      } else {
+        tsType = 'Promise<void>';
+      }
+      break;
+    case 'record':
+      if (typeNode.genericArgs && typeNode.genericArgs.length >= 2) {
+        tsType = `Record<${typeToTS(typeNode.genericArgs[0])}, ${typeToTS(typeNode.genericArgs[1])}>`;
+      } else {
+        tsType = 'Record<string, any>';
+      }
+      break;
+    default:
+      // Custom interface, dictionary, typedef, enum, or math type
+      tsType = name;
+      break;
+  }
+
+  if (typeNode.isArray) {
+    tsType = tsType.includes('|') ? `(${tsType})[]` : `${tsType}[]`;
+  }
+
+  if (typeNode.nullable) {
+    tsType = `${tsType} | null`;
+  }
+
+  return tsType;
+}
+
+/**
+ * Formats JSDoc comment for TypeScript.
+ * @param {string} doc
+ * @param {string} indent
+ * @returns {string}
+ */
+export function formatJSDoc(doc, indent = '') {
+  if (!doc || doc.trim() === '') return '';
+  const lines = doc.split('\n');
+  const out = [];
+  out.push(`${indent}/**`);
+  for (const line of lines) {
+    if (line.trim() === '') {
+      out.push(`${indent} *`);
+    } else {
+      out.push(`${indent} * ${line}`);
+    }
+  }
+  out.push(`${indent} */\n`);
+  return out.join('\n');
+}
+
+/**
+ * Formats parameter declaration for TypeScript.
+ * @param {Object} param
+ * @returns {string}
+ */
+export function formatParam(param) {
+  let name = param.name;
+  if (param.variadic) {
+    name = `...${name}`;
+  }
+  const isOptional = param.optional || param.defaultValue !== null;
+  const optMark = (isOptional && !param.variadic) ? '?' : '';
+  const typeStr = typeToTS(param.dataType);
+  return `${name}${optMark}: ${typeStr}`;
+}
+
+/**
+ * Emits TypeScript definitions from IDL ASTs.
+ * @param {Array<Object>} astList
+ * @returns {string}
+ */
+export function emitTypeScript(astList) {
+  const chunks = [];
+
+  // Preamble & Dual-Accept Math Types
+  chunks.push(`/**
+ * =============================================================================
+ * bro Engine API — TypeScript Type Definitions
+ * =============================================================================
+ *
+ * Auto-generated by brosurface TypeScript Definition Emitter.
+ * Source IDL definitions located in idl/
+ *
+ * Consumed by broworkshop apps, tools, and scripts.
+ * =============================================================================
+ */
+
+// ── Math & Dual-Accept Vector / Geometry Vocabulary ──────────────────────────
+
+/** 2D vector object representation. */
+interface Vec2Object { x: number; y: number; }
+/** 2D vector accepting either an object {x, y} or a tuple [x, y]. */
+type vec2 = Vec2Object | [number, number];
+
+/** 3D vector object representation. */
+interface Vec3Object { x: number; y: number; z: number; }
+/** 3D vector accepting either an object {x, y, z} or a tuple [x, y, z]. */
+type vec3 = Vec3Object | [number, number, number];
+
+/** 4D vector object representation. */
+interface Vec4Object { x: number; y: number; z: number; w: number; }
+/** 4D vector accepting either an object {x, y, z, w} or a tuple [x, y, z, w]. */
+type vec4 = Vec4Object | [number, number, number, number];
+
+/** Quaternion rotation object representation. */
+interface QuatObject { x: number; y: number; z: number; w: number; }
+/** Quaternion accepting either an object {x, y, z, w} or a tuple [x, y, z, w]. */
+type quat = QuatObject | [number, number, number, number];
+
+/** 4x4 matrix representation (Float32Array or array of 16 numbers). */
+type mat4 = Float32Array | number[];
+
+/** RGBA floating point color (0.0 .. 1.0). */
+interface ColorObject { r: number; g: number; b: number; a?: number; }
+/** Floating point color accepting object {r, g, b, a} or array [r, g, b, a]. */
+type color = ColorObject | [number, number, number, number] | [number, number, number];
+
+/** RGBA 8-bit uint8 color (0 .. 255). */
+interface Color8Object { r: number; g: number; b: number; a?: number; }
+/** 8-bit color accepting object {r, g, b, a} or array [r, g, b, a]. */
+type Color8 = Color8Object | [number, number, number, number] | [number, number, number];
+
+/** 3D Axis-Aligned Bounding Box. */
+interface AABB3 { min: vec3; max: vec3; }
+/** 3D Sphere. */
+interface Sphere { center: vec3; radius: number; }
+/** 3D Ray. */
+interface Ray { origin: vec3; dir: vec3; }
+/** 3D Plane. */
+interface Plane { normal: vec3; distance: number; }
+/** 3D Capsule. */
+interface Capsule { a: vec3; b: vec3; radius: number; }
+
+`);
+
+  // Collect all definitions
+  const typedefs = [];
+  const enums = [];
+  const dictionaries = [];
+  const interfaces = [];
+  const namespaces = [];
+
+  for (const fileAst of astList) {
+    for (const def of fileAst.definitions) {
+      if (def.type === 'Typedef') typedefs.push(def);
+      else if (def.type === 'Enum') enums.push(def);
+      else if (def.type === 'Dictionary') dictionaries.push(def);
+      else if (def.type === 'Interface') interfaces.push(def);
+      else if (def.type === 'Namespace') namespaces.push(def);
+    }
+  }
+
+  // 1. Typedefs
+  if (typedefs.length > 0) {
+    chunks.push(`// ── Typedefs ─────────────────────────────────────────────────────────────────\n\n`);
+    for (const td of typedefs) {
+      if (td.doc) chunks.push(formatJSDoc(td.doc));
+      chunks.push(`type ${td.name} = ${typeToTS(td.targetType)};\n\n`);
+    }
+  }
+
+  // 2. Enums
+  if (enums.length > 0) {
+    chunks.push(`// ── Enums ────────────────────────────────────────────────────────────────────\n\n`);
+    for (const en of enums) {
+      if (en.doc) chunks.push(formatJSDoc(en.doc));
+      const unionVals = en.values.map(v => JSON.stringify(v.value)).join(' | ');
+      chunks.push(`type ${en.name} = ${unionVals};\n\n`);
+    }
+  }
+
+  // 3. Dictionaries
+  if (dictionaries.length > 0) {
+    chunks.push(`// ── Dictionaries ─────────────────────────────────────────────────────────────\n\n`);
+    for (const dict of dictionaries) {
+      if (dict.doc) chunks.push(formatJSDoc(dict.doc));
+      const parentStr = dict.parent ? ` extends ${dict.parent}` : '';
+      chunks.push(`interface ${dict.name}${parentStr} {\n`);
+      for (const m of dict.members) {
+        if (m.doc) chunks.push(formatJSDoc(m.doc, '  '));
+        const opt = m.required ? '' : '?';
+        chunks.push(`  ${m.name}${opt}: ${typeToTS(m.dataType)};\n`);
+      }
+      chunks.push(`}\n\n`);
+    }
+  }
+
+  // 4. Interfaces (Global Classes)
+  if (interfaces.length > 0) {
+    chunks.push(`// ── Global Classes & Interfaces ──────────────────────────────────────────────\n\n`);
+    for (const iface of interfaces) {
+      if (iface.doc) chunks.push(formatJSDoc(iface.doc));
+      const parentStr = iface.parent ? ` extends ${iface.parent}` : '';
+      chunks.push(`declare class ${iface.name}${parentStr} {\n`);
+
+      // Constructors
+      const constructors = iface.members.filter(m => m.type === 'ConstructorMember');
+      for (const ctor of constructors) {
+        if (ctor.doc) chunks.push(formatJSDoc(ctor.doc, '  '));
+        const paramStr = ctor.parameters.map(formatParam).join(', ');
+        chunks.push(`  constructor(${paramStr});\n`);
+      }
+
+      // Constants
+      const constants = iface.members.filter(m => m.type === 'ConstantMember');
+      for (const c of constants) {
+        if (c.doc) chunks.push(formatJSDoc(c.doc, '  '));
+        chunks.push(`  static readonly ${c.name}: ${typeToTS(c.dataType)};\n`);
+        chunks.push(`  readonly ${c.name}: ${typeToTS(c.dataType)};\n`);
+      }
+
+      // Static Attributes
+      const staticAttrs = iface.members.filter(m => m.type === 'AttributeMember' && m.isStatic);
+      for (const a of staticAttrs) {
+        if (a.doc) chunks.push(formatJSDoc(a.doc, '  '));
+        const ro = a.readonly ? 'readonly ' : '';
+        chunks.push(`  static ${ro}${a.name}: ${typeToTS(a.dataType)};\n`);
+      }
+
+      // Static Operations
+      const staticOps = iface.members.filter(m => m.type === 'OperationMember' && m.isStatic);
+      for (const op of staticOps) {
+        if (op.doc) chunks.push(formatJSDoc(op.doc, '  '));
+        const paramStr = op.parameters.map(formatParam).join(', ');
+        chunks.push(`  static ${op.name}(${paramStr}): ${typeToTS(op.returnType)};\n`);
+      }
+
+      // Instance Attributes
+      const instanceAttrs = iface.members.filter(m => m.type === 'AttributeMember' && !m.isStatic);
+      for (const a of instanceAttrs) {
+        if (a.doc) chunks.push(formatJSDoc(a.doc, '  '));
+        const ro = a.readonly ? 'readonly ' : '';
+        chunks.push(`  ${ro}${a.name}: ${typeToTS(a.dataType)};\n`);
+      }
+
+      // Instance Operations
+      const instanceOps = iface.members.filter(m => m.type === 'OperationMember' && !m.isStatic);
+      for (const op of instanceOps) {
+        if (op.doc) chunks.push(formatJSDoc(op.doc, '  '));
+        const paramStr = op.parameters.map(formatParam).join(', ');
+        chunks.push(`  ${op.name}(${paramStr}): ${typeToTS(op.returnType)};\n`);
+      }
+
+      chunks.push(`}\n\n`);
+    }
+  }
+
+  // 5. Global 'bro' Namespace
+  chunks.push(`// ── Global 'bro' Namespace ───────────────────────────────────────────────────\n\n`);
+  chunks.push(`declare namespace bro {\n`);
+
+  // Sub-namespaces (e.g. bro.time)
+  for (const ns of namespaces) {
+    if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
+    chunks.push(`  namespace ${ns.name} {\n`);
+
+    // Constants
+    const constants = ns.members.filter(m => m.type === 'ConstantMember');
+    for (const c of constants) {
+      if (c.doc) chunks.push(formatJSDoc(c.doc, '    '));
+      chunks.push(`    const ${c.name}: ${typeToTS(c.dataType)};\n`);
+    }
+
+    // Attributes
+    const attrs = ns.members.filter(m => m.type === 'AttributeMember');
+    for (const a of attrs) {
+      if (a.doc) chunks.push(formatJSDoc(a.doc, '    '));
+      const decl = a.readonly ? 'const' : 'let';
+      chunks.push(`    ${decl} ${a.name}: ${typeToTS(a.dataType)};\n`);
+    }
+
+    // Operations
+    const ops = ns.members.filter(m => m.type === 'OperationMember');
+    for (const op of ops) {
+      if (op.doc) chunks.push(formatJSDoc(op.doc, '    '));
+      const paramStr = op.parameters.map(formatParam).join(', ');
+      chunks.push(`    function ${op.name}(${paramStr}): ${typeToTS(op.returnType)};\n`);
+    }
+
+    chunks.push(`  }\n\n`);
+  }
+
+  // Sub-namespace aliases (e.g. bro.noise -> FastNoise)
+  const hasFastNoise = interfaces.some(i => i.name === 'FastNoise');
+  if (hasFastNoise) {
+    chunks.push(`  /**\n   * FastNoise2 procedural noise generator namespace alias.\n   */\n`);
+    chunks.push(`  const noise: typeof FastNoise;\n`);
+  }
+
+  chunks.push(`}\n`);
+
+  return chunks.join('');
+}
+
+function findIdlFiles(dirOrFile) {
+  const stat = fs.statSync(dirOrFile);
+  if (stat.isFile()) {
+    return [path.resolve(dirOrFile)];
+  }
+  const files = [];
+  const entries = fs.readdirSync(dirOrFile, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dirOrFile, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...findIdlFiles(full));
+    } else if (entry.isFile() && entry.name.endsWith('.idl')) {
+      files.push(path.resolve(full));
+    }
+  }
+  return files;
+}
+
+export function runEmitDts(targetPath = 'idl/', outPath = 'out/') {
+  console.log(`[brosurface DTS Emitter] Reading IDLs from: ${targetPath}`);
+
+  if (!fs.existsSync(targetPath)) {
+    console.error(`Target path does not exist: ${targetPath}`);
+    process.exit(1);
+  }
+
+  const idlFiles = findIdlFiles(targetPath);
+  const astList = [];
+  const sourceMap = new Map();
+
+  for (const f of idlFiles) {
+    const rel = path.relative(process.cwd(), f).replace(/\\/g, '/');
+    const src = fs.readFileSync(f, 'utf8');
+    sourceMap.set(rel, src);
+    const tokens = tokenize(src, rel);
+    const fileAst = parse(tokens, rel);
+    astList.push(fileAst);
+  }
+
+  // Validate ASTs
+  const valErrors = validate(astList, sourceMap);
+  if (valErrors.length > 0) {
+    console.error(`Validation failed with ${valErrors.length} error(s):`);
+    for (const err of valErrors) {
+      console.error(`  ${err.toString()}`);
+    }
+    process.exit(1);
+  }
+
+  const dtsContent = emitTypeScript(astList);
+
+  let targetOutputFile = outPath;
+  if (outPath.endsWith('/') || outPath.endsWith('\\') || !outPath.endsWith('.d.ts')) {
+    fs.mkdirSync(outPath, { recursive: true });
+    targetOutputFile = path.join(outPath, 'bro.d.ts');
+  } else {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  }
+
+  fs.writeFileSync(targetOutputFile, dtsContent, 'utf8');
+  const lineCount = dtsContent.split('\n').length;
+  console.log(`✅ Emitted TypeScript definitions: ${targetOutputFile} (${lineCount} lines)`);
+  return targetOutputFile;
+}
+
+// CLI entry point
+const args = process.argv.slice(2);
+const idlDir = args[0] || 'idl/';
+const outDir = args[1] || 'out/';
+runEmitDts(idlDir, outDir);
