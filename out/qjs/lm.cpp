@@ -1,3 +1,5 @@
+#if BRO_WITH_LM
+
 #include "js/lm_bindings.h"
 
 extern "C" {
@@ -129,3 +131,5 @@ void LmBindings::install(JSContext* ctx) {
 }
 
 } // namespace bro::js
+
+#endif // BRO_WITH_LM

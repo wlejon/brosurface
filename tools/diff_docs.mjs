@@ -44,12 +44,15 @@ export function extractDocSymbols(content) {
     if (methodMatch) {
       const isStatic = Boolean(methodMatch[1]);
       const name = methodMatch[2];
-      const prefix = currentClass ? `${currentClass}.${isStatic ? 'static ' : ''}` : '';
-      if (name === 'constructor') {
-        methods.add(`${currentClass}.constructor`);
-      } else {
-        methods.add(`${prefix}${name}`);
-        methods.add(name); // also register bare name
+      const keywords = new Set(['if', 'for', 'while', 'switch', 'catch', 'function', 'return']);
+      if (!keywords.has(name)) {
+        const prefix = currentClass ? `${currentClass}.${isStatic ? 'static ' : ''}` : '';
+        if (name === 'constructor') {
+          methods.add(`${currentClass}.constructor`);
+        } else {
+          methods.add(`${prefix}${name}`);
+          methods.add(name); // also register bare name
+        }
       }
     }
 
@@ -151,6 +154,7 @@ export function diffDocs(generatedDir = 'out/docs/', referenceDir = 'D:/projects
     { name: 'time', file: 'time-api.js' },
     { name: 'file', file: 'file-api.js' },
     { name: 'lm', file: 'lm-api.js' },
+    { name: 'gpu', file: 'gpu-api.js' },
   ];
 
   let totalMismatches = 0;

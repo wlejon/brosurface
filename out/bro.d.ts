@@ -80,6 +80,20 @@ interface FilePropertyBag extends BlobPropertyBag {
 }
 
 /**
+ * GPU device memory capacity and availability information in bytes.
+ */
+interface GpuMemoryInfo {
+  /**
+   * Free VRAM in bytes available for allocation.
+   */
+  freeBytes: number;
+  /**
+   * Total physical VRAM in bytes on the device.
+   */
+  totalBytes: number;
+}
+
+/**
  * Chat message turn representation for applyChatTemplate.
  */
 interface ChatMessage {
@@ -1138,6 +1152,119 @@ declare class FastNoise {
 // ── Global 'bro' Namespace ───────────────────────────────────────────────────
 
 declare namespace bro {
+  /**
+   * Runtime GPU-backend probe and device memory introspection namespace.
+   */
+  namespace gpu {
+    /**
+     * Whether a GPU device is registered and is the default compute device.
+     * `false` on a CPU-only build, and also on a GPU build with no usable device
+     * (e.g. no CUDA driver / no card present).
+     */
+    const available: boolean;
+    /**
+     * The default compute device: what a freshly-loaded model lands on.
+     * One of 'cuda' | 'metal' | 'cpu' (best available: CUDA > Metal > CPU).
+     */
+    const backend: string;
+    /**
+     * Every backend registered in this binary at runtime, e.g. ['cpu'] on a
+     * CPU-only build or ['cpu', 'cuda'] when a CUDA device is present. CPU is
+     * always included. One entry per BACKEND, not per card: a two-GPU box still
+     * reports ['cpu', 'cuda'] — see `deviceCount()` for how many cards, and the
+     * 'cuda:N' argument form for addressing a specific one.
+     */
+    const devices: string[];
+    /**
+     * The tensor backends COMPILED INTO this binary: a static build-time fact from
+     * the BRO_WITH_TENSOR_CUDA / _METAL flags, independent of whether a matching GPU
+     * is present. 'cpu' is always included; 'cuda'/'metal' appear when built in.
+     *
+     * This is distinct from `devices` (and `backend`/`available`): those report the
+     * runtime device and read ['cpu']/'cpu'/false on a machine with no GPU driver
+     * even for a CUDA-capable binary. `compiledBackends` answers "can this build
+     * EVER use a GPU," so it's the right signal for build/packaging checks, e.g. a
+     * CI smoke test verifying a release binary actually ships the GPU backend on a
+     * GPU-less runner, where the runtime probes can't tell.
+     */
+    const compiledBackends: string[];
+    /**
+     * How many devices of `device`'s backend are registered: the card count on a
+     * multi-GPU box, 1 for 'cpu', 0 when that backend isn't registered at all.
+     * The valid indices for the 'cuda:N' form accepted by `memoryInfo`,
+     * `deviceName`, and `trim` are 0 .. deviceCount('cuda') - 1.
+     *
+     * @param device 'cuda' | 'metal' | 'cpu'
+     * @returns Device count for the specified backend
+     *
+     * @example
+     *   for (let i = 0; i < bro.gpu.deviceCount('cuda'); i++) {
+     *     const mem = bro.gpu.memoryInfo('cuda:' + i);
+     *     if (mem) {
+     *       console.log(bro.gpu.deviceName('cuda:' + i),
+     *                   (mem.freeBytes / 1e9).toFixed(1) + ' GB free');
+     *     }
+     *   }
+     */
+    function deviceCount(device?: string): number;
+    /**
+     * Device-wide free/total VRAM in bytes for `device` (e.g. cudaMemGetInfo).
+     * Lets a loader print a real budget line instead of guessing from nvidia-smi,
+     * or gate a large model load on available headroom. Returns `null` when the
+     * backend isn't registered or can't report: always `null` for 'cpu'.
+     *
+     * @param device 'cuda' | 'metal' | 'cpu', optionally with a card index on a multi-GPU box: 'cuda:1'
+     * @returns Free and total VRAM in bytes, or null
+     *
+     * @example
+     *   const mem = bro.gpu.memoryInfo();
+     *   if (mem && mem.freeBytes < 4e9) {
+     *     status('Less than 4 GB VRAM free: model may not fit.', 'warn');
+     *   }
+     */
+    function memoryInfo(device?: string): GpuMemoryInfo | null;
+    /**
+     * The card's human-readable name (e.g. `cudaDeviceProp.name`,
+     * "NVIDIA GeForce RTX 4090") for `device`. Returns `null` when the backend
+     * isn't registered or can't report: always `null` for 'cpu'. Pair with
+     * `memoryInfo()` to label a VRAM budget line with the actual card.
+     *
+     * @param device 'cuda' | 'metal' | 'cpu', optionally with a card index on a multi-GPU box: 'cuda:1'
+     * @returns Device name string or null
+     *
+     * @example
+     *   const card = bro.gpu.deviceName() || bro.gpu.backend.toUpperCase();
+     *   const mem = bro.gpu.memoryInfo();
+     *   if (mem) {
+     *     status(card + ' · ' + (mem.totalBytes / 1e9).toFixed(1) + ' GB');
+     *   }
+     */
+    function deviceName(device?: string): string | null;
+    /**
+     * Return the backend allocator's cached-but-unused memory to the driver,
+     * keeping at most `keepBytes` cached. Synchronizes the device first so
+     * stream-ordered frees are actually reclaimable.
+     *
+     * Call this between pipeline phases with very different scratch shapes (e.g.
+     * switching from a diffusion U-Net to a VAE decode, or between successive
+     * model loads): cached blocks count against device residency, and on Windows
+     * (WDDM) sustained near-full commit makes the OS silently demote large
+     * resident allocations to shared memory: turning what should be a VRAM
+     * weight read into PCIe traffic. Returns `false` when the backend isn't
+     * registered or has no trimmable allocator: always `false` for 'cpu'.
+     *
+     * @param device 'cuda' | 'metal' | 'cpu', optionally with a card index on a multi-GPU box: 'cuda:1'
+     * @param keepBytes bytes to keep cached
+     * @returns Whether trim succeeded
+     *
+     * @example
+     *   const unet = bro.diffusion.loadModel(unetDir);
+     *   // ... run denoise steps ...
+     *   bro.gpu.trim(); // release U-Net scratch before the VAE decode allocates
+     */
+    function trim(device?: string, keepBytes?: number): boolean;
+  }
+
   /**
    * Language-model inference and cross-modal embedding namespace.
    */

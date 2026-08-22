@@ -75,8 +75,14 @@ export function emitNamespaceTU(nsDef) {
   const cppInstall = getAttr(nsDef, 'cpp_install') || `${toPascalCase(nsDef.name)}Bindings::install`;
   const isEngineStashed = hasAttr(nsDef, 'engine_stashed') || hasAttr(nsDef, 'engine_bound');
   const prefix = getAttr(nsDef, 'prefix') || 'bro.';
+  const cppGuard = getAttr(nsDef, 'cpp_guard') || (hasAttr(nsDef, 'gate') ? getAttr(nsDef, 'gate') : null);
+  const cppPrologue = getAttr(nsDef, 'cpp_prologue') || '';
 
   // 1. Headers & Includes
+  if (cppGuard) {
+    lines.push(`#if ${cppGuard}`);
+    lines.push('');
+  }
   lines.push(`#include "${cppHeader}"`);
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
@@ -92,6 +98,13 @@ export function emitNamespaceTU(nsDef) {
   lines.push('');
   lines.push(`namespace ${cppNamespace} {`);
   lines.push('');
+
+  if (cppPrologue) {
+    for (const pl of cppPrologue.split('\n')) {
+      lines.push(pl);
+    }
+    lines.push('');
+  }
 
   // 2. Engine pointer stash helper if engine-stashed
   if (isEngineStashed) {
@@ -139,7 +152,12 @@ export function emitNamespaceTU(nsDef) {
       if (isEngineStashed) {
         lines.push(`    auto* eng = getEngine(ctx);`);
       }
-      if (getterCpp) {
+      const getterBody = getAttr(a, 'getter_body') || getAttr(a, 'cpp_body');
+      if (getterBody) {
+        for (const gb of getterBody.split('\n')) {
+          lines.push(`    ${gb}`);
+        }
+      } else if (getterCpp) {
         lines.push(emitReturnConversion(a.dataType, getterCpp, '    '));
       } else {
         lines.push(emitReturnConversion(a.dataType, '0', '    '));
@@ -172,7 +190,7 @@ export function emitNamespaceTU(nsDef) {
   const ops = nsDef.members.filter(m => m.type === 'OperationMember');
   for (const op of ops) {
     const fnName = `js_${nsDef.name}_${toSnakeCase(op.name)}`;
-    const customBody = getAttr(op, 'cpp_body');
+    const customBody = getAttr(op, 'cpp_body') || getAttr(op, 'cpp_call');
 
     lines.push(`static JSValue ${fnName}(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {`);
     if (customBody) {
@@ -268,6 +286,10 @@ export function emitNamespaceTU(nsDef) {
   lines.push(`}`);
   lines.push('');
   lines.push(`} // namespace ${cppNamespace}`);
+  if (cppGuard) {
+    lines.push('');
+    lines.push(`#endif // ${cppGuard}`);
+  }
   lines.push('');
 
   return lines.join('\n');
@@ -285,10 +307,15 @@ export function emitInterfaceTU(interfaceDefs) {
   const cppIncludes = getAttr(primary, 'cpp_includes') || '';
   const cppInstall = getAttr(primary, 'cpp_install') || `install${primary.name}`;
   const cppEpilogue = getAttr(primary, 'cpp_epilogue') || '';
+  const cppGuard = getAttr(primary, 'cpp_guard') || (hasAttr(primary, 'gate') ? getAttr(primary, 'gate') : null);
 
   const lines = [];
 
   // 1. Header includes
+  if (cppGuard) {
+    lines.push(`#if ${cppGuard}`);
+    lines.push('');
+  }
   lines.push(`#include "${cppHeader}"`);
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
@@ -750,6 +777,10 @@ export function emitInterfaceTU(interfaceDefs) {
   lines.push(`}`);
   lines.push('');
   lines.push(`} // namespace ${cppNamespace}`);
+  if (cppGuard) {
+    lines.push('');
+    lines.push(`#endif // ${cppGuard}`);
+  }
   lines.push('');
 
   return lines.join('\n');

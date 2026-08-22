@@ -13,9 +13,23 @@
 
 #include "js/feature_stub.h"
 
+#include "js/gpu_bindings.h"
 #include "js/lm_bindings.h"
 
 namespace bro::js {
+
+// ── GPU ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_TENSOR
+void installGpuBindings(JSContext* ctx) {
+    installFeatureStub(ctx,
+        "(function(){var b=(globalThis.bro=globalThis.bro||{});"
+        "b.gpu={available:false,backend:'cpu',devices:['cpu'],compiledBackends:['cpu'],"
+        "deviceName:function(){return null;},"
+        "deviceCount:function(d){return (!d||d==='cpu')?1:0;},"
+        "memoryInfo:function(){return null;},"
+        "trim:function(){return false;}};})();");
+}
+#endif
 
 // ── LM ───────────────────────────────────────────────────────────────────────
 #if !BRO_WITH_LM

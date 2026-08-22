@@ -168,6 +168,14 @@ declare var list: any;
 declare var material: any;
 declare var bytes: Uint8Array;
 declare var textureFile: Blob | File;
+declare function status(msg: string, type?: string): void;
+declare function confirm(msg: string): boolean;
+declare var loadFn: () => void;
+declare var unetDir: string;
+declare namespace bro {
+  var diffusion: any;
+}
+
 
 `;
 
