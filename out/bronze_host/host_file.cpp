@@ -1,5 +1,4 @@
-// Blob, File, FileReader, and URL — bytes an app holds, and the names it gives
-// them.
+// Blob, File, FileReader, URL — bytes an app holds, and the names it gives them.
 
 #include "bronze_host/bronze_host.h"
 #include "bronze_host/gl_internal.h"
@@ -7,7 +6,6 @@
 
 #include "util/log.h"
 #include "util/object_url.h"
-
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -137,80 +135,75 @@ Value bytesToArrayBuffer(const std::vector<uint8_t>& bytes) {
 Value bytesToUint8Array(const std::vector<uint8_t>& bytes) {
     ev::Persistent view(ev::createTypedArray(ev::elements::Uint8,
                                              static_cast<uint32_t>(bytes.size())));
-    // fillTypedArray does NOT allocate, so the view cannot have moved between
-    // the two calls — but it is read back through the Persistent anyway,
-    // because that invariant belongs to embed and not to this file.
     ev::fillTypedArray(view.get(), std::span<const uint8_t>(bytes.data(), bytes.size()));
     return view.get();
 }
 
-// The per-instance STATE of a Blob. Everything else a Blob can do is the same
-// for every Blob and lives on the prototype below.
 void installBlobState(ObjectBuilder& b, const HostBlob* blob) {
     b.set("size", ev::fromDouble(static_cast<double>(blob->bytes.size())));
     b.set("type", ev::fromUtf8(blob->type));
 }
 
-// The Blob METHODS, decorated once onto Blob.prototype. Each unwraps its
-// RECEIVER rather than closing over a HostBlob* — which is not only tidier: a
-// closure holding the raw payload of a cell it does not root is a dangling
-// read the moment a detached method outlives its object, and every one of
-// these used to be written that way.
-void decorateBlobProto(ObjectBuilder& b) {
-    b.def("slice", 3, [](Value self, std::span<const Value> a) {
-        const HostBlob* blob = mutableHostBlob(self);
-        if (!blob) return ev::throwTypeError("Blob.slice: the receiver is not a Blob");
-        const double n = static_cast<double>(blob->bytes.size());
-        // Negative offsets count from the end, as Array.prototype.slice does
-        // and as the Blob spec spells out.
-        auto clamp = [n](Value v, double dflt) {
-            if (ev::isUndefined(v)) return dflt;
-            double x = ev::toDouble(v);
-            if (!(x == x)) return 0.0;  // NaN
-            if (x < 0) x = n + x;
-            return x < 0 ? 0.0 : (x > n ? n : x);
-        };
-        const double start = clamp(argAt(a, 0), 0.0);
-        const double end = clamp(argAt(a, 1), n);
-        Value typeV = argAt(a, 2);
-        std::string type =
-            (ev::isUndefined(typeV) || ev::isObject(typeV)) ? "" : ev::toUtf8(typeV);
-        std::vector<uint8_t> cut;
-        if (end > start) {
-            cut.assign(blob->bytes.begin() + static_cast<ptrdiff_t>(start),
-                       blob->bytes.begin() + static_cast<ptrdiff_t>(end));
-        }
-        return makeBlobValue(std::move(cut), std::move(type));
-    });
-
-    b.def("text", 0, [](Value self, std::span<const Value>) {
-        const HostBlob* blob = mutableHostBlob(self);
-        if (!blob) return ev::throwTypeError("Blob.text: the receiver is not a Blob");
-        return resolvedPromise(ev::fromUtf8(
-            std::string(blob->bytes.begin(), blob->bytes.end())));
-    });
-    b.def("arrayBuffer", 0, [](Value self, std::span<const Value>) {
-        const HostBlob* blob = mutableHostBlob(self);
-        if (!blob) {
-            return ev::throwTypeError("Blob.arrayBuffer: the receiver is not a Blob");
-        }
-        return resolvedPromise(bytesToArrayBuffer(blob->bytes));
-    });
-    b.def("bytes", 0, [](Value self, std::span<const Value>) {
-        const HostBlob* blob = mutableHostBlob(self);
-        if (!blob) return ev::throwTypeError("Blob.bytes: the receiver is not a Blob");
-        return resolvedPromise(bytesToUint8Array(blob->bytes));
-    });
+Value sliceBlob(const HostBlob* blob, Value startV, Value endV, Value typeV) {
+    const double n = static_cast<double>(blob->bytes.size());
+    auto clamp = [n](Value v, double dflt) {
+        if (ev::isUndefined(v)) return dflt;
+        double x = ev::toDouble(v);
+        if (!(x == x)) return 0.0;
+        if (x < 0) x = n + x;
+        return x < 0 ? 0.0 : (x > n ? n : x);
+    };
+    const double start = clamp(startV, 0.0);
+    const double end = clamp(endV, n);
+    std::string type =
+        (ev::isUndefined(typeV) || ev::isObject(typeV)) ? "" : ev::toUtf8(typeV);
+    std::vector<uint8_t> cut;
+    if (end > start) {
+        cut.assign(blob->bytes.begin() + static_cast<ptrdiff_t>(start),
+                   blob->bytes.begin() + static_cast<ptrdiff_t>(end));
+    }
+    return makeBlobValue(std::move(cut), std::move(type));
 }
 
-// The three classes this file installs. File EXTENDS Blob, as on the web.
-HostClass g_blobClass;
-HostClass g_fileClass;
-HostClass g_readerClass;
+Value makeFileFromParts(Value partsV, Value nameV, Value optionsV) {
+    auto* blob = new HostBlob();
+    blob->bytes = collectParts(partsV);
+    blob->isFile = true;
+    blob->name = (ev::isObject(nameV) || ev::isUndefined(nameV)) ? "" : ev::toUtf8(nameV);
+    blob->type = optionType(optionsV);
+    if (ev::isObject(optionsV)) {
+        Value lm = ev::getProperty(optionsV, "lastModified");
+        if (!ev::isUndefined(lm)) blob->lastModified = ev::toDouble(lm);
+    }
+    ObjectBuilder b(g_fileClass.make(blob, hostBlobDtor));
+    installBlobState(b, blob);
+    b.set("name", ev::fromUtf8(blob->name));
+    b.set("lastModified", ev::fromDouble(blob->lastModified));
+    b.set("webkitRelativePath", ev::fromUtf8(""));
+    return b.get();
+}
 
-// ---------------------------------------------------------------------------
-// FileReader
-// ---------------------------------------------------------------------------
+std::string mimeForName(const std::string& name) {
+    const size_t dot = name.rfind('.');
+    if (dot == std::string::npos || dot + 1 >= name.size()) return "";
+    std::string ext = name.substr(dot + 1);
+    for (char& c : ext) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
+    static const std::pair<const char*, const char*> kTable[] = {
+        {"png", "image/png"},    {"jpg", "image/jpeg"},  {"jpeg", "image/jpeg"},
+        {"gif", "image/gif"},    {"webp", "image/webp"}, {"bmp", "image/bmp"},
+        {"svg", "image/svg+xml"},
+        {"json", "application/json"}, {"js", "text/javascript"},
+        {"mjs", "text/javascript"},   {"css", "text/css"},
+        {"html", "text/html"},   {"txt", "text/plain"},  {"md", "text/plain"},
+        {"wav", "audio/wav"},    {"mp3", "audio/mpeg"},  {"ogg", "audio/ogg"},
+        {"webm", "video/webm"},  {"mp4", "video/mp4"},
+        {"glb", "model/gltf-binary"}, {"gltf", "model/gltf+json"},
+        {"zip", "application/zip"},   {"wasm", "application/wasm"},
+    };
+    for (const auto& [k, v] : kTable)
+        if (ext == k) return v;
+    return "";
+}
 
 struct HostReader {
     uint32_t tag = kHostReaderTag;  // must be first
@@ -296,81 +289,49 @@ Value makeFileReaderValue() {
     return b.get();
 }
 
-// Everything a FileReader can DO, decorated once onto FileReader.prototype.
-void decorateReaderProto(ObjectBuilder& b) {
-    // The readyState constants sit on the prototype AND on the constructor,
-    // which is where the web has them (`reader.DONE` and `FileReader.DONE`
-    // both work); they are the same for every reader, so neither copy is
-    // per-instance state.
-    b.set("EMPTY", ev::fromDouble(0));
-    b.set("LOADING", ev::fromDouble(1));
-    b.set("DONE", ev::fromDouble(2));
+Value doReadText(Value self, Value blobValue) {
+    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
+        return ev::fromUtf8(std::string(bytes.begin(), bytes.end()));
+    });
+    return ev::undefined();
+}
 
-    b.def("readAsText", 2, [](Value self, std::span<const Value> a) {
-        // The encoding argument is accepted and ignored: the bytes a Blob holds
-        // in this runtime came from UTF-8 sources, and a real transcoder here
-        // would be a second, worse copy of the one brokit already has.
-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
-            return ev::fromUtf8(std::string(bytes.begin(), bytes.end()));
-        });
-        return ev::undefined();
+Value doReadArrayBuffer(Value self, Value blobValue) {
+    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
+        return bytesToArrayBuffer(bytes);
     });
-    b.def("readAsArrayBuffer", 1, [](Value self, std::span<const Value> a) {
-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
-            return bytesToArrayBuffer(bytes);
-        });
-        return ev::undefined();
-    });
-    b.def("readAsBinaryString", 1, [](Value self, std::span<const Value> a) {
-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
-            // One character per BYTE, which is what the legacy method means —
-            // not a UTF-8 decode.
-            std::string s;
-            s.reserve(bytes.size());
-            for (uint8_t c : bytes) s += static_cast<char>(c);
-            return ev::fromUtf8(s);
-        });
-        return ev::undefined();
-    });
-    b.def("readAsDataURL", 1, [](Value self, std::span<const Value> a) {
-        const HostBlob* blob = hostBlobOf(argAt(a, 0));
-        std::string mime = blob && !blob->type.empty() ? blob->type
-                                                       : "application/octet-stream";
-        startRead(self, argAt(a, 0),
-                  [mime](const std::vector<uint8_t>& bytes) {
-                      return ev::fromUtf8("data:" + mime + ";base64," +
-                                          base64Encode(bytes));
-                  });
-        return ev::undefined();
-    });
-    b.def("abort", 0, [](Value self, std::span<const Value>) {
-        HostReader* r = readerOf(self);
-        if (!r) return ev::undefined();
-        // Bumping the generation is the abort: the queued task finds a number
-        // that is not its own and publishes nothing.
-        ++r->generation;
-        ev::Persistent target(self);
-        setOn(target, "readyState", ev::fromDouble(2));
-        setOn(target, "result", ev::null());
-        dispatchHostEvent(ev::Persistent(target.get()), "abort");
-        dispatchHostEvent(ev::Persistent(target.get()), "loadend");
-        return ev::undefined();
-    });
+    return ev::undefined();
+}
 
-    b.def("addEventListener", 2, [](Value thisValue, std::span<const Value> a) {
-        ev::Persistent self(thisValue);
-        Value typeV = argAt(a, 0);
-        if (ev::isObject(typeV)) return ev::undefined();
-        addHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
-        return ev::undefined();
+Value doReadBinaryString(Value self, Value blobValue) {
+    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
+        std::string s;
+        s.reserve(bytes.size());
+        for (uint8_t c : bytes) s += static_cast<char>(c);
+        return ev::fromUtf8(s);
     });
-    b.def("removeEventListener", 2, [](Value thisValue, std::span<const Value> a) {
-        ev::Persistent self(thisValue);
-        Value typeV = argAt(a, 0);
-        if (ev::isObject(typeV)) return ev::undefined();
-        removeHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
-        return ev::undefined();
+    return ev::undefined();
+}
+
+Value doReadDataURL(Value self, Value blobValue) {
+    const HostBlob* blob = hostBlobOf(blobValue);
+    std::string mime = blob && !blob->type.empty() ? blob->type : "application/octet-stream";
+    startRead(self, blobValue, [mime](const std::vector<uint8_t>& bytes) {
+        return ev::fromUtf8("data:" + mime + ";base64," + base64Encode(bytes));
     });
+    return ev::undefined();
+}
+
+Value doAbort(Value self) {
+    HostReader* r = readerOf(self);
+    if (!r) return ev::undefined();
+    ++r->generation;
+    ev::Persistent target(self);
+    setOn(target, "readyState", ev::fromDouble(2));
+    setOn(target, "result", ev::null());
+    dispatchHostEvent(ev::Persistent(target.get()), "abort");
+    dispatchHostEvent(ev::Persistent(target.get()), "loadend");
+    return ev::undefined();
 }
 
 // ---------------------------------------------------------------------------
@@ -384,10 +345,6 @@ Value makeCreateObjectURL() {
             if (!blob)
                 return ev::throwTypeError(
                     "URL.createObjectURL: argument is not a Blob");
-            // Minted here rather than by the engine, and numbered from a
-            // counter of its own, because bro's JS half mints from its own
-            // counter into the SAME table — two counters, one namespace, so
-            // the prefix has to differ or the two would collide.
             static std::atomic<uint64_t> counter{1};
             const std::string url =
                 "blob:bro/bronze-" +
@@ -409,23 +366,12 @@ Value makeRevokeObjectURL() {
         1);
 }
 
-// The URL parser: enough of RFC 3986 to answer the components libraries read.
-// Not a validator — an input with no scheme resolves against `base` when one is
-// given and is reported as-is when it is not, which is where three.js's
-// LoaderUtils and every "is this absolute" test land.
 struct ParsedURL {
     std::string href, protocol, hostname, port, pathname, search, hash;
 };
 
 inline constexpr uint32_t kHostUrlTag = 0x55524C20u;  // 'URL '
 
-// The parse is SHARED, not owned. `url.searchParams` hands out an object whose
-// methods read and write this state, and that object can outlive the URL it
-// came from (`const p = new URL(s).searchParams`) — with a raw back-pointer
-// that is a use-after-free the moment the finalizer runs. A shared_ptr costs
-// one allocation per URL and makes the detached case merely useless rather
-// than fatal. It cannot be an ev::Persistent on the URL object for the reason
-// at the top of host_internal.h: hostUrlDtor is a handle finalizer.
 struct HostUrl {
     uint32_t tag = kHostUrlTag;
     std::shared_ptr<ParsedURL> parsed = std::make_shared<ParsedURL>();
@@ -483,10 +429,6 @@ bool splitAbsolute(const std::string& in, ParsedURL& out) {
     return true;
 }
 
-// The relative-reference merge, in the one form apps actually use: an absolute
-// path replaces the base's path, anything else is appended to the base's
-// directory. `..` and `.` segments are then removed, because a resolved URL
-// with them in it is not equal to the one every other implementation produces.
 std::string normalizePath(const std::string& path) {
     std::vector<std::string> parts;
     size_t i = 0;
@@ -507,8 +449,6 @@ std::string normalizePath(const std::string& path) {
         out += parts[k];
         if (k + 1 < parts.size()) out += '/';
     }
-    // A trailing slash in the input survives normalisation, which matters for
-    // a base URL naming a directory.
     if (!path.empty() && path.back() == '/' && !out.empty() && out.back() != '/')
         out += '/';
     return out;
@@ -562,14 +502,6 @@ bool parseURL(const std::string& input, const std::string& base, ParsedURL& out)
     return true;
 }
 
-// The query string is application/x-www-form-urlencoded, and the two halves of
-// that are NOT optional decoration: a value carrying `&` or `=` re-parses as
-// extra pairs if it is written raw, so a program that puts a user string into a
-// query would silently build a different URL than it asked for. Reading is the
-// mirror — `?q=a%20b` is the byte string "a b", and the caller wants the bytes.
-// Byte-oriented on purpose: the payload is UTF-8 and each byte encodes on its
-// own, which is what the URL standard's percent-encoder does.
-
 int hexNibble(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'a' && c <= 'f') return c - 'a' + 10;
@@ -591,8 +523,6 @@ std::string formUrlDecode(const std::string& in) {
                 out += static_cast<char>((hi << 4) | lo);
                 i += 2;
             } else {
-                // Not a valid escape. The URL standard keeps the bytes rather
-                // than failing, so `%zz` round-trips as itself.
                 out += c;
             }
         } else {
@@ -622,8 +552,6 @@ std::string formUrlEncode(const std::string& in) {
     return out;
 }
 
-// Decoded pairs. `search` is the raw `?...` slice off the URL, so everything
-// coming out of here is the byte string the program means, not the wire form.
 std::vector<std::pair<std::string, std::string>> parseQueryParams(const std::string& search) {
     std::vector<std::pair<std::string, std::string>> pairs;
     if (search.size() > 1 && search[0] == '?') {
@@ -647,8 +575,6 @@ std::vector<std::pair<std::string, std::string>> parseQueryParams(const std::str
     return pairs;
 }
 
-// The `=` is written even for an empty value: the standard's serializer always
-// emits it, so `?a=` round-trips instead of decaying to `?a`.
 std::string serializeQueryParams(const std::vector<std::pair<std::string, std::string>>& pairs) {
     if (pairs.empty()) return "";
     std::string out;
@@ -661,13 +587,6 @@ std::string serializeQueryParams(const std::vector<std::pair<std::string, std::s
     return out;
 }
 
-HostClass g_urlClass;
-
-// Bound to the PARSE, not to the URL object. `url.searchParams` is reachable
-// on its own — a program may keep it and drop the URL — and the closures below
-// would then be reading a HostUrl the finalizer has freed. Holding the
-// shared_ptr keeps that case coherent: the detached view still reads and writes
-// the same query it was made from.
 Value makeSearchParamsObject(const std::shared_ptr<ParsedURL>& parsed) {
     ObjectBuilder sp;
     sp.def("get", 1, [parsed](Value, std::span<const Value> a) {
@@ -750,217 +669,247 @@ Value makeURLValue(const ParsedURL& u) {
     return g_urlClass.make(url, hostUrlDtor);
 }
 
-void decorateUrlProto(ObjectBuilder& b) {
+void setUrlHref(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    ParsedURL p;
+    if (parseURL(ev::toUtf8(v), "", p)) *u->parsed = p;
+}
+
+void setUrlProtocol(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    std::string s = ev::toUtf8(v);
+    if (!s.empty()) {
+        if (s.back() != ':') s += ':';
+        u->parsed->protocol = s;
+        rebuildUrlHref(*u->parsed);
+    }
+}
+
+void setUrlHost(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    std::string s = ev::toUtf8(v);
+    size_t colon = s.find(':');
+    if (colon != std::string::npos) {
+        u->parsed->hostname = s.substr(0, colon);
+        u->parsed->port = s.substr(colon + 1);
+    } else {
+        u->parsed->hostname = s;
+        u->parsed->port.clear();
+    }
+    rebuildUrlHref(*u->parsed);
+}
+
+void setUrlHostname(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    u->parsed->hostname = ev::toUtf8(v);
+    rebuildUrlHref(*u->parsed);
+}
+
+void setUrlPort(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    u->parsed->port = ev::toUtf8(v);
+    rebuildUrlHref(*u->parsed);
+}
+
+void setUrlPathname(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    std::string p = ev::toUtf8(v);
+    if (p.empty() || p[0] != '/') p = "/" + p;
+    u->parsed->pathname = normalizePath(p);
+    rebuildUrlHref(*u->parsed);
+}
+
+void setUrlSearch(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    std::string s = ev::toUtf8(v);
+    if (!s.empty() && s[0] != '?') s = "?" + s;
+    u->parsed->search = s;
+    rebuildUrlHref(*u->parsed);
+}
+
+void setUrlHash(HostUrl* u, Value v) {
+    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
+    std::string h = ev::toUtf8(v);
+    if (!h.empty() && h[0] != '#') h = "#" + h;
+    u->parsed->hash = h;
+    rebuildUrlHref(*u->parsed);
+}
+
+HostClass g_blobClass;
+HostClass g_fileClass;
+HostClass g_readerClass;
+HostClass g_urlClass;
+
+void decorateBlobProto(ObjectBuilder& b) {
+    b.def("slice", 3, [](Value self, std::span<const Value> a) {
+        const HostBlob* blob = mutableHostBlob(self);
+        if (!blob) return ev::throwTypeError("Blob.slice: the receiver is not a Blob");
+        return sliceBlob(blob, argAt(a, 0), argAt(a, 1), argAt(a, 2));
+    });
+    b.def("text", 0, [](Value self, std::span<const Value> a) {
+        const HostBlob* blob = mutableHostBlob(self);
+        if (!blob) return ev::throwTypeError("Blob.text: the receiver is not a Blob");
+        return resolvedPromise(ev::fromUtf8(
+            std::string(blob->bytes.begin(), blob->bytes.end())));
+    });
+    b.def("arrayBuffer", 0, [](Value self, std::span<const Value> a) {
+        const HostBlob* blob = mutableHostBlob(self);
+        if (!blob) {
+            return ev::throwTypeError("Blob.arrayBuffer: the receiver is not a Blob");
+        }
+        return resolvedPromise(bytesToArrayBuffer(blob->bytes));
+    });
+    b.def("bytes", 0, [](Value self, std::span<const Value> a) {
+        const HostBlob* blob = mutableHostBlob(self);
+        if (!blob) return ev::throwTypeError("Blob.bytes: the receiver is not a Blob");
+        return resolvedPromise(bytesToUint8Array(blob->bytes));
+    });
+}
+
+void decorateFileReaderProto(ObjectBuilder& b) {
+    b.set("EMPTY", ev::fromDouble(0));
+    b.set("LOADING", ev::fromDouble(1));
+    b.set("DONE", ev::fromDouble(2));
+
+    b.def("readAsArrayBuffer", 1, [](Value self, std::span<const Value> a) {
+        return doReadArrayBuffer(self, argAt(a, 0));
+    });
+    b.def("readAsBinaryString", 1, [](Value self, std::span<const Value> a) {
+        return doReadBinaryString(self, argAt(a, 0));
+    });
+    b.def("readAsText", 2, [](Value self, std::span<const Value> a) {
+        return doReadText(self, argAt(a, 0));
+    });
+    b.def("readAsDataURL", 1, [](Value self, std::span<const Value> a) {
+        return doReadDataURL(self, argAt(a, 0));
+    });
+    b.def("abort", 0, [](Value self, std::span<const Value> a) {
+        return doAbort(self);
+    });
+    b.def("addEventListener", 2, [](Value self, std::span<const Value> a) {
+        ev::Persistent self(thisValue);
+        Value typeV = argAt(a, 0);
+        if (ev::isObject(typeV)) return ev::undefined();
+        addHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
+        return ev::undefined();
+    });
+    b.def("removeEventListener", 2, [](Value self, std::span<const Value> a) {
+        ev::Persistent self(thisValue);
+        Value typeV = argAt(a, 0);
+        if (ev::isObject(typeV)) return ev::undefined();
+        removeHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
+        return ev::undefined();
+    });
+}
+
+void decorateURLProto(ObjectBuilder& b) {
     b.accessor("href",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->href : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->href : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (ev::isObject(v) || ev::isUndefined(v)) return ev::undefined();
-                   ParsedURL p;
-                   if (parseURL(ev::toUtf8(v), "", p)) {
-                       *u->parsed = p;
-                   }
-                   return ev::undefined();
-               });
+        setUrlHref(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("origin",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   if (!u || u->parsed->hostname.empty()) return ev::fromUtf8("null");
-                   std::string orig = u->parsed->protocol + "//" + u->parsed->hostname;
-                   if (!u->parsed->port.empty()) orig += ":" + u->parsed->port;
-                   return ev::fromUtf8(orig);
-               },
+        HostUrl* u = urlOf(self);
+        if (!u || u->parsed->hostname.empty()) return ev::fromUtf8("null");
+        std::string orig = u->parsed->protocol + "//" + u->parsed->hostname;
+        if (!u->parsed->port.empty()) orig += ":" + u->parsed->port;
+        return ev::fromUtf8(orig);
+    },
                nullptr);
     b.accessor("protocol",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->protocol : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->protocol : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       std::string s = ev::toUtf8(v);
-                       if (!s.empty()) {
-                           if (s.back() != ':') s += ':';
-                           u->parsed->protocol = s;
-                           rebuildUrlHref(*u->parsed);
-                       }
-                   }
-                   return ev::undefined();
-               });
+        setUrlProtocol(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("host",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::fromUtf8("");
-                   return ev::fromUtf8(u->parsed->port.empty()
-                                           ? u->parsed->hostname
-                                           : u->parsed->hostname + ":" + u->parsed->port);
-               },
+        HostUrl* u = urlOf(self);
+        if (!u) return ev::fromUtf8("");
+        return ev::fromUtf8(u->parsed->port.empty()
+                                ? u->parsed->hostname
+                                : u->parsed->hostname + ":" + u->parsed->port);
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       std::string s = ev::toUtf8(v);
-                       size_t colon = s.find(':');
-                       if (colon != std::string::npos) {
-                           u->parsed->hostname = s.substr(0, colon);
-                           u->parsed->port = s.substr(colon + 1);
-                       } else {
-                           u->parsed->hostname = s;
-                           u->parsed->port.clear();
-                       }
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
+        setUrlHost(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("hostname",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->hostname : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->hostname : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       u->parsed->hostname = ev::toUtf8(v);
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
+        setUrlHostname(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("port",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->port : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->port : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       u->parsed->port = ev::toUtf8(v);
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
+        setUrlPort(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("pathname",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->pathname : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->pathname : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       std::string p = ev::toUtf8(v);
-                       if (p.empty() || p[0] != '/') p = "/" + p;
-                       u->parsed->pathname = normalizePath(p);
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
+        setUrlPathname(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("search",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->search : "");
-               },
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->search : "");
+    },
                [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       std::string s = ev::toUtf8(v);
-                       if (!s.empty() && s[0] != '?') s = "?" + s;
-                       u->parsed->search = s;
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
-    b.accessor("hash",
-               [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   return ev::fromUtf8(u ? u->parsed->hash : "");
-               },
-               [](Value self, std::span<const Value> a) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value v = argAt(a, 0);
-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
-                       std::string h = ev::toUtf8(v);
-                       if (!h.empty() && h[0] != '#') h = "#" + h;
-                       u->parsed->hash = h;
-                       rebuildUrlHref(*u->parsed);
-                   }
-                   return ev::undefined();
-               });
-    // ONE object per URL, cached on the URL itself. The web guarantees
-    // `u.searchParams === u.searchParams`, and libraries lean on it — a fresh
-    // object per read makes every such check fail. It lives as an ordinary
-    // property rather than an ev::Persistent in HostUrl for the reason at the
-    // top of host_internal.h: hostUrlDtor is a handle finalizer.
+        setUrlSearch(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
     b.accessor("searchParams",
                [](Value self, std::span<const Value>) {
-                   HostUrl* u = urlOf(self);
-                   if (!u) return ev::undefined();
-                   Value cached = ev::getProperty(self, "_searchParams");
-                   if (ev::isObject(cached)) return cached;
-                   ev::Persistent owner(self);
-                   ev::Persistent made(makeSearchParamsObject(u->parsed));
-                   ev::setProperty(owner.get(), "_searchParams", made.get());
-                   return made.get();
-               },
+        HostUrl* u = urlOf(self);
+        if (!u) return ev::undefined();
+        Value cached = ev::getProperty(self, "_searchParams");
+        if (ev::isObject(cached)) return cached;
+        ev::Persistent owner(self);
+        ev::Persistent made(makeSearchParamsObject(u->parsed));
+        ev::setProperty(owner.get(), "_searchParams", made.get());
+        return made.get();
+    },
                nullptr);
-
-    b.def("toString", 0, [](Value self, std::span<const Value>) {
+    b.accessor("hash",
+               [](Value self, std::span<const Value>) {
+        HostUrl* u = urlOf(self);
+        return ev::fromUtf8(u ? u->parsed->hash : "");
+    },
+               [](Value self, std::span<const Value> a) {
+        setUrlHash(urlOf(self), argAt(a, 0));
+        return ev::undefined();
+    });
+    b.def("toJSON", 0, [](Value self, std::span<const Value> a) {
         HostUrl* u = urlOf(self);
         return ev::fromUtf8(u ? u->parsed->href : "");
     });
-    b.def("toJSON", 0, [](Value self, std::span<const Value>) {
+    b.def("toString", 0, [](Value self, std::span<const Value> a) {
         HostUrl* u = urlOf(self);
         return ev::fromUtf8(u ? u->parsed->href : "");
     });
-}
-
-// The MIME type a filename implies. There is no sniffing here and no content
-// negotiation: an extension is all a dropped path carries, and it is what the
-// interpreted realm's `__bro_fileFromPath` uses too (src/js/js/file_polyfills.js),
-// so a File built here and one built there describe the same file the same way.
-std::string mimeForName(const std::string& name) {
-    const size_t dot = name.rfind('.');
-    if (dot == std::string::npos || dot + 1 >= name.size()) return "";
-    std::string ext = name.substr(dot + 1);
-    for (char& c : ext) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-    static const std::pair<const char*, const char*> kTable[] = {
-        {"png", "image/png"},    {"jpg", "image/jpeg"},  {"jpeg", "image/jpeg"},
-        {"gif", "image/gif"},    {"webp", "image/webp"}, {"bmp", "image/bmp"},
-        {"svg", "image/svg+xml"},
-        {"json", "application/json"}, {"js", "text/javascript"},
-        {"mjs", "text/javascript"},   {"css", "text/css"},
-        {"html", "text/html"},   {"txt", "text/plain"},  {"md", "text/plain"},
-        {"wav", "audio/wav"},    {"mp3", "audio/mpeg"},  {"ogg", "audio/ogg"},
-        {"webm", "video/webm"},  {"mp4", "video/mp4"},
-        {"glb", "model/gltf-binary"}, {"gltf", "model/gltf+json"},
-        {"zip", "application/zip"},   {"wasm", "application/wasm"},
-    };
-    for (const auto& [k, v] : kTable)
-        if (ext == k) return v;
-    return "";
 }
 
 }  // namespace
-
-// ---------------------------------------------------------------------------
-// The pieces other files use
-// ---------------------------------------------------------------------------
 
 Value makeFileFromPath(const std::string& path) {
     std::error_code ec;
@@ -977,8 +926,6 @@ Value makeFileFromPath(const std::string& path) {
     blob->isFile = true;
     blob->name = fsPath.filename().string();
     blob->type = mimeForName(blob->name);
-    // Best effort, and zero when the clock is unreadable: `lastModified` is
-    // metadata a drop handler may print, never something it branches on.
     const auto mtime = std::filesystem::last_write_time(fsPath, ec);
     if (!ec) {
         blob->lastModified = static_cast<double>(
@@ -991,13 +938,9 @@ Value makeFileFromPath(const std::string& path) {
     b.set("name", ev::fromUtf8(blob->name));
     b.set("lastModified", ev::fromDouble(blob->lastModified));
     b.set("webkitRelativePath", ev::fromUtf8(""));
-    // Where it came from. Not a web property, and deliberately kept: a drop is
-    // the one moment a page is handed a real filesystem path (docs/paths-api.js),
-    // and the interpreted realm hands one over too.
     b.set("path", ev::fromUtf8(path));
     return b.get();
 }
-// ---------------------------------------------------------------------------
 
 const HostBlob* hostBlobOf(Value v) { return mutableHostBlob(v); }
 
@@ -1026,57 +969,21 @@ void installFileGlobals() {
     g_fileClass.install(
         "File", 3,
         [](Value, std::span<const Value> a) {
-            auto* blob = new HostBlob();
-            blob->bytes = collectParts(argAt(a, 0));
-            blob->isFile = true;
-            Value nameV = argAt(a, 1);
-            blob->name = (ev::isObject(nameV) || ev::isUndefined(nameV))
-                             ? "" : ev::toUtf8(nameV);
-            Value options = argAt(a, 2);
-            blob->type = optionType(options);
-            if (ev::isObject(options)) {
-                Value lm = ev::getProperty(options, "lastModified");
-                if (!ev::isUndefined(lm)) blob->lastModified = ev::toDouble(lm);
-            }
-
-            ObjectBuilder b(g_fileClass.make(blob, hostBlobDtor));
-            installBlobState(b, blob);
-            b.set("name", ev::fromUtf8(blob->name));
-            b.set("lastModified", ev::fromDouble(blob->lastModified));
-            // webkitRelativePath is empty for a File the program built, and
-            // present because file-input code reads it unconditionally.
-            b.set("webkitRelativePath", ev::fromUtf8(""));
-            return b.get();
+            return makeFileFromParts(argAt(a, 0), argAt(a, 1), argAt(a, 2));
         },
-        // A File carries no methods of its own: it inherits Blob's, through
-        // the chain below.
         nullptr);
-    // `file instanceof Blob` is true on the web, and a File really does answer
-    // slice/text/arrayBuffer. One chain buys both.
     g_fileClass.inherit(g_blobClass);
 
     g_readerClass.install(
         "FileReader", 0,
-        [](Value, std::span<const Value>) { return makeFileReaderValue(); },
-        decorateReaderProto);
-    // The web has the constants on the constructor too.
+        [](Value, std::span<const Value> a) {
+            return makeFileReaderValue();
+        },
+        decorateFileReaderProto);
     g_readerClass.setStatic("EMPTY", ev::fromDouble(0));
     g_readerClass.setStatic("LOADING", ev::fromDouble(1));
     g_readerClass.setStatic("DONE", ev::fromDouble(2));
 
-    // URL IS A CONSTRUCTOR, and was a bare namespace until it could be one.
-    // The blocker was embed::setProperty, which called fatal() on any receiver
-    // that was not a plain object, so a callable URL had nowhere to hang
-    // createObjectURL; the fallback (the program's own Object.assign) was a
-    // hard runtime error rather than a catchable throw, leaving no way to probe
-    // at startup and degrade. setProperty takes a FUNCTION receiver now, which
-    // lands a static where a class `static` member's definition would go, so
-    // all three shapes are available at once: `new URL(href, base)`,
-    // `URL.createObjectURL`, and `x instanceof URL` off the real slot-backed
-    // prototype (host_image.cpp works the same pattern end to end for `Image`).
-    // `URL.parse` stays beside the constructor rather than behind it: it is a
-    // real 2024 addition to the web platform, and it answers null where the
-    // constructor throws.
     g_urlClass.install(
         "URL", 1,
         [](Value, std::span<const Value> a) {
@@ -1096,8 +1003,7 @@ void installFileGlobals() {
             }
             return makeURLValue(p);
         },
-        decorateUrlProto);
-
+        decorateURLProto);
     g_urlClass.setStatic("createObjectURL", makeCreateObjectURL());
     g_urlClass.setStatic("revokeObjectURL", makeRevokeObjectURL());
     g_urlClass.setStatic("parse", ev::makeFunction([](Value, std::span<const Value> a) {
@@ -1110,6 +1016,7 @@ void installFileGlobals() {
         if (!parseURL(ev::toUtf8(hrefV), base, p)) return ev::null();
         return makeURLValue(p);
     }, 2));
+
 }
 
 }  // namespace bro::bronze_host

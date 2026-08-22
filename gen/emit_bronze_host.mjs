@@ -1,40 +1,22 @@
-// gen/emit_bronze_host.mjs - Bronze Host C++ Binding and Manifest Emitter
-// Consumes validated AST from schema/parser.mjs and emits drop-in replacement artifacts:
-//   - out/bronze_host/host_file.cpp
-//   - out/bronze_host/manifest_entries.txt
-//   - out/bronze_host/dom_globals_install.cpp
+// gen/emit_bronze_host.mjs - Bronze Host C++ Binding and Manifest Emitter for brosurface
+// 100% generic, AST-driven emitter consuming validated IDL AST from schema/parser.mjs.
+// Emits drop-in C++ replacement translation units into out/bronze_host/
+// Zero per-namespace conditionals or hardcoded text.
 
 import fs from 'fs';
 import path from 'path';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { validate } from '../schema/validator.mjs';
-import {
-  emitBlobHelpers,
-  emitBlobMethodsAndClasses,
-  emitBlobPublicApi,
-  emitBlobInstallBlock
-} from './bh_file_blob.mjs';
-import {
-  emitReaderStateAndHelpers,
-  emitReaderProto,
-  emitReaderInstallBlock
-} from './bh_file_reader.mjs';
-import {
-  emitUrlStaticFactories,
-  emitUrlParserAndState,
-  emitSearchParams,
-  emitUrlValueAndProto,
-  emitMimeForName,
-  emitUrlInstallBlock
-} from './bh_file_url.mjs';
-import {
-  extractDeclaredGlobals,
-  emitManifestEntries,
-  emitDomGlobalsInstallSnippet
-} from './bh_manifest.mjs';
+import { getAttr, hasAttr, emitBronzeHostTU } from './bh_codegen.mjs';
+import { extractDeclaredGlobals, emitManifestEntries, emitDomGlobalsInstallSnippet } from './bh_manifest.mjs';
 
-function findIdlFiles(dirOrFile) {
+/**
+ * Finds all .idl files recursively within a directory or single file path.
+ * @param {string} dirOrFile
+ * @returns {string[]}
+ */
+export function findIdlFiles(dirOrFile) {
   const stat = fs.statSync(dirOrFile);
   if (stat.isFile()) {
     return [path.resolve(dirOrFile)];
@@ -53,127 +35,36 @@ function findIdlFiles(dirOrFile) {
 }
 
 /**
- * Emits host_file.cpp translation unit from AST.
- * @param {Array<Object>} astList
- * @param {Object} [options={}]
- * @returns {string}
+ * Calculates custom escape-hatch LOC lines within an AST node or its members.
+ * Per SPEC §5.1 / DESIGN §1.2, counts operations/members marked with [custom] or custom bodies.
+ * @param {Object} def
+ * @returns {number}
  */
-export function emitHostFileCpp(astList, options = {}) {
-  const exclude = new Set(options.excludeGlobals || []);
+export function calculateCustomLoc(def) {
+  let customLines = 0;
 
-  let blobDef = null;
-  let fileDef = null;
-  let readerDef = null;
-  let urlDef = null;
-  let searchParamsDef = null;
-
-  for (const fileAst of astList) {
-    for (const def of fileAst.definitions) {
-      if (def.type === 'Interface') {
-        if (def.name === 'Blob') blobDef = def;
-        if (def.name === 'File') fileDef = def;
-        if (def.name === 'FileReader') readerDef = def;
-        if (def.name === 'URL') urlDef = def;
-        if (def.name === 'URLSearchParams') searchParamsDef = def;
+  if (def.members) {
+    for (const m of def.members) {
+      if (hasAttr(m, 'custom') || hasAttr(m, 'bh_custom') || hasAttr(m, 'bh_body') || hasAttr(m, 'bh_call') || hasAttr(m, 'bh_getter') || hasAttr(m, 'bh_setter') || hasAttr(m, 'bh_static_body')) {
+        const body = getAttr(m, 'bh_body') || getAttr(m, 'bh_call') || getAttr(m, 'bh_getter') || getAttr(m, 'bh_setter') || getAttr(m, 'bh_static_body') || getAttr(m, 'cpp_body') || getAttr(m, 'cpp_call');
+        if (typeof body === 'string') {
+          customLines += body.split('\n').length;
+        } else {
+          customLines += 1;
+        }
       }
     }
   }
 
-  const out = [];
-
-  // 1. File Header
-  out.push(`// Blob, File, FileReader, and URL — bytes an app holds, and the names it gives
-// them.
-
-#include "bronze_host/bronze_host.h"
-#include "bronze_host/gl_internal.h"
-#include "bronze_host/host_internal.h"
-
-#include "util/log.h"
-#include "util/object_url.h"
-
-#include <algorithm>
-#include <atomic>
-#include <cstdint>
-#include <chrono>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <memory>
-#include <system_error>
-#include <utility>
-#include <string>
-#include <vector>
-
-namespace bro::bronze_host {
-
-namespace {
-`);
-
-  // 2. Blob / File Helpers
-  out.push(emitBlobHelpers());
-
-  // 3. Blob Methods & Classes
-  out.push(emitBlobMethodsAndClasses(blobDef, fileDef));
-
-  // 4. FileReader (if not excluded)
-  if (!exclude.has('FileReader') && readerDef) {
-    out.push(emitReaderStateAndHelpers());
-    out.push(emitReaderProto(readerDef));
-  }
-
-  // 5. URL & URLSearchParams (if not excluded)
-  if (!exclude.has('URL') && urlDef) {
-    out.push(emitUrlStaticFactories());
-    out.push(emitUrlParserAndState());
-    if (searchParamsDef) {
-      const sp = emitSearchParams(searchParamsDef);
-      if (sp) out.push(sp);
-    }
-    out.push(emitUrlValueAndProto(urlDef));
-  }
-
-  // 6. MIME Helper
-  out.push(emitMimeForName());
-
-  // Close anonymous namespace
-  out.push(`}  // namespace\n`);
-
-  // 7. Public API functions
-  out.push(emitBlobPublicApi());
-
-  // 8. installFileGlobals()
-  const installs = [];
-  if (!exclude.has('Blob') && !exclude.has('File')) {
-    installs.push(emitBlobInstallBlock());
-  }
-  if (!exclude.has('FileReader') && readerDef) {
-    installs.push(emitReaderInstallBlock());
-  }
-  if (!exclude.has('URL') && urlDef) {
-    installs.push(emitUrlInstallBlock());
-  }
-
-  out.push(`// ---------------------------------------------------------------------------
-// install
-// ---------------------------------------------------------------------------
-
-void installFileGlobals() {
-${installs.join('\n\n')}
-}
-
-}  // namespace bro::bronze_host
-`);
-
-  return out.join('\n');
+  return customLines;
 }
 
 /**
- * Runs the bronze_host emitter on target IDL directory.
+ * Runs the generic Bronze Host C++ binding emitter on all IDLs in targetPath.
  * @param {string} [targetPath='idl/']
  * @param {string} [outPath='out/bronze_host/']
  * @param {Object} [options={}]
- * @returns {{ success: boolean, files: string[], globals: string[] }}
+ * @returns {{ success: boolean, files: string[], globals: string[], stats: Array<{ file: string, totalLines: number, customLines: number, customFraction: number }> }}
  */
 export function runEmitBronzeHost(targetPath = 'idl/', outPath = 'out/bronze_host/', options = {}) {
   console.log(`[brosurface bronze_host Emitter] Reading IDLs from: ${targetPath}`);
@@ -208,15 +99,60 @@ export function runEmitBronzeHost(targetPath = 'idl/', outPath = 'out/bronze_hos
 
   fs.mkdirSync(outPath, { recursive: true });
 
-  const generatedFiles = [];
+  // Group definitions by their target C++ translation unit (bh_file or cpp_file attribute or default)
+  const tuGroups = new Map(); // targetFileName -> Array<def>
 
-  // 1. host_file.cpp
-  const hostFileCpp = emitHostFileCpp(astList, options);
-  const hostFilePath = path.join(outPath, 'host_file.cpp');
-  fs.writeFileSync(hostFilePath, hostFileCpp, 'utf8');
-  const cppLines = hostFileCpp.split('\n').length;
-  console.log(`  - Emitted: ${hostFilePath} (${cppLines} lines)`);
-  generatedFiles.push(hostFilePath);
+  for (const fileAst of astList) {
+    for (const def of fileAst.definitions) {
+      const bhFile = getAttr(def, 'bh_file');
+      if (bhFile) {
+        if (!tuGroups.has(bhFile)) {
+          tuGroups.set(bhFile, []);
+        }
+        tuGroups.get(bhFile).push(def);
+      }
+    }
+  }
+
+  // If no bh_file specified on any def, group all interfaces/namespaces into host_file.cpp
+  if (tuGroups.size === 0) {
+    const allDefs = [];
+    for (const fileAst of astList) {
+      for (const def of fileAst.definitions) {
+        if (def.type === 'Interface' || def.type === 'Namespace') {
+          allDefs.push(def);
+        }
+      }
+    }
+    tuGroups.set('host_file.cpp', allDefs);
+  }
+
+  const generatedFiles = [];
+  const stats = [];
+
+  for (const [cppFileName, defs] of tuGroups.entries()) {
+    const cppContent = emitBronzeHostTU(defs, options);
+    if (!cppContent) continue;
+
+    let customLinesCount = 0;
+    for (const def of defs) {
+      customLinesCount += calculateCustomLoc(def);
+    }
+
+    const outFilePath = path.join(outPath, cppFileName);
+    fs.writeFileSync(outFilePath, cppContent, 'utf8');
+    const totalLines = cppContent.split('\n').length;
+    const customFraction = (customLinesCount / totalLines) * 100;
+
+    console.log(`  - Emitted: ${outFilePath} (${totalLines} lines, custom: ${customLinesCount} lines / ${customFraction.toFixed(2)}%)`);
+    generatedFiles.push(outFilePath);
+    stats.push({
+      file: cppFileName,
+      totalLines,
+      customLines: customLinesCount,
+      customFraction,
+    });
+  }
 
   // 2. manifest_entries.txt
   const globals = extractDeclaredGlobals(astList, options);
@@ -227,18 +163,19 @@ export function runEmitBronzeHost(targetPath = 'idl/', outPath = 'out/bronze_hos
   generatedFiles.push(manifestPath);
 
   // 3. dom_globals_install.cpp
-  const installSnippet = emitDomGlobalsInstallSnippet(globals);
+  const installSnippet = emitDomGlobalsInstallSnippet(globals, astList);
   const installPath = path.join(outPath, 'dom_globals_install.cpp');
   fs.writeFileSync(installPath, installSnippet, 'utf8');
   console.log(`  - Emitted: ${installPath}`);
   generatedFiles.push(installPath);
 
-  console.log(`\nGenerated bronze_host C++ bindings & manifest in: ${outPath}`);
-  return { success: true, files: generatedFiles, globals };
+  console.log(`\n✅ Generic AST-driven bronze_host emitter completed: ${generatedFiles.length} artifact(s) emitted to ${outPath}`);
+  return { success: true, files: generatedFiles, globals, stats };
 }
 
 // CLI entry point
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve('gen/emit_bronze_host.mjs')) {
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([a-zA-Z]:)/, '$1'));
+if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_bronze_host.mjs'))) {
   const args = process.argv.slice(2);
   const idlDir = args[0] || 'idl/';
   const outDir = args[1] || 'out/bronze_host/';
