@@ -220,9 +220,12 @@ export function emitNamespaceTU(nsDef) {
   lines.push(`// ---------------------------------------------------------------------------`);
   lines.push('');
 
-  const installSignature = isEngineStashed
-    ? `void ${cppInstall}(JSContext* ctx, engine::Engine* engine)`
-    : `void ${cppInstall}(JSContext* ctx)`;
+  const customInstallSig = getAttr(nsDef, 'install_signature') || getAttr(nsDef, 'install_fn');
+  const installSignature = customInstallSig
+    ? customInstallSig
+    : isEngineStashed
+      ? `void ${cppInstall}(JSContext* ctx, engine::Engine* engine)`
+      : `void ${cppInstall}(JSContext* ctx)`;
 
   lines.push(`${installSignature} {`);
   lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
@@ -235,55 +238,80 @@ export function emitNamespaceTU(nsDef) {
     lines.push('');
   }
 
-  const objName = `${nsDef.name}Obj`;
-  const parentObjName = prefix.startsWith('bro.') ? 'broObj' : 'global';
-
-  if (parentObjName === 'broObj') {
-    lines.push(`    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");`);
-    lines.push(`    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {`);
-    lines.push(`        broObj = JS_NewObject(ctx);`);
-    lines.push(`        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));`);
-    lines.push(`    }`);
+  const installPrologue = getAttr(nsDef, 'install_prologue') || getAttr(nsDef, 'cpp_install_prologue');
+  if (installPrologue) {
+    for (const pl of installPrologue.split('\n')) {
+      lines.push(`    ${pl}`);
+    }
     lines.push('');
   }
 
-  lines.push(`    JSValue ${objName} = JS_NewObject(ctx);`);
-  lines.push('');
+  const installBody = getAttr(nsDef, 'install_body') || getAttr(nsDef, 'cpp_install_body');
+  if (installBody) {
+    for (const ib of installBody.split('\n')) {
+      lines.push(`    ${ib}`);
+    }
+  } else {
+    const objName = `${nsDef.name}Obj`;
+    const parentObjName = prefix.startsWith('bro.') ? 'broObj' : 'global';
 
-  if (attrs.length > 0) {
-    lines.push(`    auto defineGetSet = [&](const char* name, JSCFunction* getter,`);
-    lines.push(`                            JSCFunction* setter) {`);
-    lines.push(`        JSAtom atom = JS_NewAtom(ctx, name);`);
-    lines.push(`        JS_DefinePropertyGetSet(ctx, ${objName}, atom,`);
-    lines.push(`            JS_NewCFunction(ctx, getter, name, 0),`);
-    lines.push(`            setter ? JS_NewCFunction(ctx, setter, name, 1) : JS_UNDEFINED,`);
-    lines.push(`            JS_PROP_CONFIGURABLE | JS_PROP_ENUMERABLE);`);
-    lines.push(`        JS_FreeAtom(ctx, atom);`);
-    lines.push(`    };`);
+    if (parentObjName === 'broObj') {
+      lines.push(`    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");`);
+      lines.push(`    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {`);
+      lines.push(`        broObj = JS_NewObject(ctx);`);
+      lines.push(`        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));`);
+      lines.push(`    }`);
+      lines.push('');
+    }
 
-    for (const a of attrs) {
-      const aName = a.name;
-      const getterName = `js_${nsDef.name}_get_${toSnakeCase(aName)}`;
-      const setterName = a.readonly ? 'nullptr' : `js_${nsDef.name}_set_${toSnakeCase(aName)}`;
-      lines.push(`    defineGetSet("${aName}",  ${getterName},  ${setterName});`);
+    lines.push(`    JSValue ${objName} = JS_NewObject(ctx);`);
+    lines.push('');
+
+    if (attrs.length > 0) {
+      lines.push(`    auto defineGetSet = [&](const char* name, JSCFunction* getter,`);
+      lines.push(`                            JSCFunction* setter) {`);
+      lines.push(`        JSAtom atom = JS_NewAtom(ctx, name);`);
+      lines.push(`        JS_DefinePropertyGetSet(ctx, ${objName}, atom,`);
+      lines.push(`            JS_NewCFunction(ctx, getter, name, 0),`);
+      lines.push(`            setter ? JS_NewCFunction(ctx, setter, name, 1) : JS_UNDEFINED,`);
+      lines.push(`            JS_PROP_CONFIGURABLE | JS_PROP_ENUMERABLE);`);
+      lines.push(`        JS_FreeAtom(ctx, atom);`);
+      lines.push(`    };`);
+
+      for (const a of attrs) {
+        const aName = a.name;
+        const getterName = `js_${nsDef.name}_get_${toSnakeCase(aName)}`;
+        const setterName = a.readonly ? 'nullptr' : `js_${nsDef.name}_set_${toSnakeCase(aName)}`;
+        lines.push(`    defineGetSet("${aName}",  ${getterName},  ${setterName});`);
+      }
+    }
+
+    for (const op of ops) {
+      const fnName = `js_${nsDef.name}_${toSnakeCase(op.name)}`;
+      lines.push(`    JS_SetPropertyStr(ctx, ${objName}, "${op.name}",`);
+      lines.push(`        JS_NewCFunction(ctx, ${fnName}, "${op.name}", ${op.parameters.length}));`);
+    }
+
+    lines.push('');
+    if (parentObjName === 'broObj') {
+      lines.push(`    JS_SetPropertyStr(ctx, broObj, "${nsDef.name}", ${objName});`);
+      lines.push(`    JS_FreeValue(ctx, broObj);`);
+    } else {
+      lines.push(`    JS_SetPropertyStr(ctx, global, "${nsDef.name}", ${objName});`);
     }
   }
 
-  for (const op of ops) {
-    const fnName = `js_${nsDef.name}_${toSnakeCase(op.name)}`;
-    lines.push(`    JS_SetPropertyStr(ctx, ${objName}, "${op.name}",`);
-    lines.push(`        JS_NewCFunction(ctx, ${fnName}, "${op.name}", ${op.parameters.length}));`);
-  }
-
-  lines.push('');
-  if (parentObjName === 'broObj') {
-    lines.push(`    JS_SetPropertyStr(ctx, broObj, "${nsDef.name}", ${objName});`);
-    lines.push(`    JS_FreeValue(ctx, broObj);`);
-  } else {
-    lines.push(`    JS_SetPropertyStr(ctx, global, "${nsDef.name}", ${objName});`);
-  }
   lines.push(`    JS_FreeValue(ctx, global);`);
   lines.push(`}`);
+  lines.push('');
+
+  const cppEpilogue = getAttr(nsDef, 'cpp_epilogue');
+  if (cppEpilogue) {
+    for (const el of cppEpilogue.split('\n')) {
+      lines.push(el);
+    }
+    lines.push('');
+  }
   lines.push('');
   lines.push(`} // namespace ${cppNamespace}`);
   if (cppGuard) {
@@ -328,47 +356,51 @@ export function emitInterfaceTU(interfaceDefs) {
   lines.push(`namespace ${cppNamespace} {`);
   lines.push('');
 
-  // 2. Structs & Class IDs for each interface
-  for (const iface of interfaceDefs) {
-    const name = iface.name;
-    const classIdVar = getAttr(iface, 'class_id_var') || `${toSnakeCase(name)}_class_id`;
-    const wrapperStruct = getAttr(iface, 'wrapper_struct') || `${name}Wrapper`;
-    const wrapperMember = getAttr(iface, 'wrapper_member');
-    const dataStruct = getAttr(iface, 'data_struct');
-    const dataMember = getAttr(iface, 'data_member');
+  // 2. Class IDs and Struct Definitions
+  const hasCustomInstallBody = Boolean(getAttr(primary, 'install_body') || getAttr(primary, 'cpp_install_body'));
 
-    lines.push(`static thread_local JSClassID ${classIdVar} = 0;`);
-    lines.push('');
+  if (!hasCustomInstallBody) {
+    for (const iface of interfaceDefs) {
+      const name = iface.name;
+      const classIdVar = getAttr(iface, 'class_id_var') || `${toSnakeCase(name)}_class_id`;
+      const wrapperStruct = getAttr(iface, 'wrapper_struct') || `${name}Wrapper`;
+      const wrapperMember = getAttr(iface, 'wrapper_member');
+      const dataStruct = getAttr(iface, 'data_struct');
+      const dataMember = getAttr(iface, 'data_member');
 
-    if (dataStruct && dataMember) {
-      lines.push(`struct ${dataStruct} {`);
-      for (const dm of dataMember.split('\n')) {
-        lines.push(`    ${dm}`);
-      }
-      lines.push(`};`);
+      lines.push(`static thread_local JSClassID ${classIdVar} = 0;`);
       lines.push('');
-    } else if (wrapperMember) {
-      lines.push(`struct ${wrapperStruct} {`);
-      for (const wm of wrapperMember.split('\n')) {
-        lines.push(`    ${wm}`);
+
+      if (dataStruct && dataMember) {
+        lines.push(`struct ${dataStruct} {`);
+        for (const dm of dataMember.split('\n')) {
+          lines.push(`    ${dm}`);
+        }
+        lines.push(`};`);
+        lines.push('');
+      } else if (wrapperMember) {
+        lines.push(`struct ${wrapperStruct} {`);
+        for (const wm of wrapperMember.split('\n')) {
+          lines.push(`    ${wm}`);
+        }
+        lines.push(`};`);
+        lines.push('');
       }
-      lines.push(`};`);
+
+      // Finalizer & ClassDef
+      const finalizerName = `${toSnakeCase(name)}_finalizer`;
+      const classDefName = `${toSnakeCase(name)}_class_def`;
+      const structType = dataStruct || wrapperStruct;
+
+      lines.push(`static void ${finalizerName}(JSRuntime*, JSValue val)`);
+      lines.push(`{`);
+      lines.push(`    auto* w = static_cast<${structType}*>(JS_GetOpaque(val, ${classIdVar}));`);
+      lines.push(`    delete w;`);
+      lines.push(`}`);
+      lines.push('');
+      lines.push(`static JSClassDef ${classDefName} = { "${name}", ${finalizerName} };`);
       lines.push('');
     }
-
-    // Finalizer & ClassDef
-    const finalizerName = `${toSnakeCase(name)}_finalizer`;
-    const classDefName = `${toSnakeCase(name)}_class_def`;
-    const structType = dataStruct || wrapperStruct;
-
-    lines.push(`static void ${finalizerName}(JSRuntime*, JSValue val)`);
-    lines.push(`{`);
-    lines.push(`    auto* w = static_cast<${structType}*>(JS_GetOpaque(val, ${classIdVar}));`);
-    lines.push(`    delete w;`);
-    lines.push(`}`);
-    lines.push('');
-    lines.push(`static JSClassDef ${classDefName} = { "${name}", ${finalizerName} };`);
-    lines.push('');
   }
 
   // 3. Shared Helpers (Float32Array helpers, unwrapper helpers, etc.)
@@ -420,7 +452,7 @@ export function emitInterfaceTU(interfaceDefs) {
   }
 
   // 3.5 Helper newGetter if attributes exist
-  const hasAttributes = interfaceDefs.some(i => i.members.some(m => m.type === 'AttributeMember' && !m.isStatic));
+  const hasAttributes = !hasCustomInstallBody && interfaceDefs.some(i => i.members.some(m => m.type === 'AttributeMember' && !m.isStatic));
   if (hasAttributes) {
     lines.push(`static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),`);
     lines.push(`                          const char* name)`);
@@ -454,6 +486,10 @@ export function emitInterfaceTU(interfaceDefs) {
       const fnName = `${toSnakeCase(ifaceName)}_${toSnakeCase(op.name)}`;
       const customBody = getAttr(op, 'cpp_body');
       const customCall = getAttr(op, 'cpp_call');
+
+      if (!customBody && !customCall && hasCustomInstallBody) {
+        continue;
+      }
 
       lines.push(`static JSValue ${fnName}(JSContext* ctx, JSValueConst this_val,`);
       lines.push(`                                    int argc, JSValueConst* argv)`);
@@ -518,6 +554,10 @@ export function emitInterfaceTU(interfaceDefs) {
       const getterName = `js_${toSnakeCase(ifaceName)}_${a.name}`;
       const getterCpp = getAttr(a, 'getter_cpp');
 
+      if (!getterCpp && hasCustomInstallBody) {
+        continue;
+      }
+
       lines.push(`static JSValue ${getterName}(JSContext* ctx, JSValueConst this_val)`);
       lines.push(`{`);
       const getterUnwrap = getAttr(iface, 'getter_unwrap') || (dataStruct ? `static_cast<${dataStruct}*>(JS_GetOpaque2(ctx, this_val, ${classIdVar}))` : null);
@@ -545,6 +585,10 @@ export function emitInterfaceTU(interfaceDefs) {
     for (const ctor of ctors) {
       const ctorName = `js_${toSnakeCase(ifaceName)}_constructor`;
       const customBody = getAttr(ctor, 'cpp_body');
+
+      if (!customBody && hasCustomInstallBody) {
+        continue;
+      }
 
       lines.push(`static JSValue ${ctorName}(JSContext* ctx, JSValueConst new_target,`);
       lines.push(`                                    int argc, JSValueConst* argv)`);
@@ -574,97 +618,110 @@ export function emitInterfaceTU(interfaceDefs) {
   }
 
   // 6. Install Function
-  lines.push(`void ${cppInstall}(JSContext* ctx)`);
+  const customInstallSig = getAttr(primary, 'install_signature') || getAttr(primary, 'install_fn');
+  const installSignature = customInstallSig
+    ? customInstallSig
+    : `void ${cppInstall}(JSContext* ctx)`;
+
+  lines.push(`${installSignature}`);
   lines.push(`{`);
-  lines.push(`    JSRuntime* rt = JS_GetRuntime(ctx);`);
-  lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
-  lines.push('');
 
-  for (const iface of interfaceDefs) {
-    const name = iface.name;
-    const snake = toSnakeCase(name);
-    const classIdVar = getAttr(iface, 'class_id_var') || `${snake}_class_id`;
-    const classDefName = `${snake}_class_def`;
-    const protoVar = `${snake}Proto`;
-    const ctorVar = `${snake}Ctor`;
-
-    lines.push(`    // Register ${name} class`);
-    lines.push(`    if (${classIdVar} == 0) JS_NewClassID(rt, &${classIdVar});`);
-    lines.push(`    JS_NewClass(rt, ${classIdVar}, &${classDefName});`);
-    lines.push('');
-
-    // Prototype
-    if (iface.parent) {
-      const parentClassIdVar = getAttr(interfaceDefs.find(i => i.name === iface.parent), 'class_id_var') || `${toSnakeCase(iface.parent)}_class_id`;
-      lines.push(`    JSValue parentProto = JS_GetClassProto(ctx, ${parentClassIdVar});`);
-      lines.push(`    JSValue ${protoVar} = JS_NewObjectProto(ctx, parentProto);`);
-      lines.push(`    JS_FreeValue(ctx, parentProto);`);
-    } else {
-      lines.push(`    JSValue ${protoVar} = JS_NewObject(ctx);`);
+  const installBody = getAttr(primary, 'install_body') || getAttr(primary, 'cpp_install_body');
+  if (installBody) {
+    for (const ib of installBody.split('\n')) {
+      lines.push(`    ${ib}`);
     }
+  } else {
+    lines.push(`    JSRuntime* rt = JS_GetRuntime(ctx);`);
+    lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
     lines.push('');
 
-    // Getters
-    const attrs = iface.members.filter(m => m.type === 'AttributeMember' && !m.isStatic);
-    for (const a of attrs) {
-      const getterName = `js_${snake}_${a.name}`;
-      const atomVar = `${snake}_${a.name}_atom`;
-      lines.push(`    JSAtom ${atomVar} = JS_NewAtom(ctx, "${a.name}");`);
-      lines.push(`    JS_DefinePropertyGetSet(ctx, ${protoVar}, ${atomVar},`);
-      lines.push(`                            newGetter(ctx, ${getterName}, "${a.name}"),`);
-      lines.push(`                            JS_UNDEFINED, 0);`);
-      lines.push(`    JS_FreeAtom(ctx, ${atomVar});`);
-    }
-    if (attrs.length > 0) lines.push('');
+    for (const iface of interfaceDefs) {
+      const name = iface.name;
+      const snake = toSnakeCase(name);
+      const classIdVar = getAttr(iface, 'class_id_var') || `${snake}_class_id`;
+      const classDefName = `${snake}_class_def`;
+      const protoVar = `${snake}Proto`;
+      const ctorVar = `${snake}Ctor`;
 
-    // Instance Methods
-    const instanceOps = iface.members.filter(m => m.type === 'OperationMember' && !m.isStatic);
-    for (const op of instanceOps) {
-      const fnName = `${snake}_${toSnakeCase(op.name)}`;
-      lines.push(`    JS_SetPropertyStr(ctx, ${protoVar}, "${op.name}",`);
-      lines.push(`        JS_NewCFunction(ctx, ${fnName}, "${op.name}", ${op.parameters.length}));`);
-    }
-    if (instanceOps.length > 0) lines.push('');
+      lines.push(`    // Register ${name} class`);
+      lines.push(`    if (${classIdVar} == 0) JS_NewClassID(rt, &${classIdVar});`);
+      lines.push(`    JS_NewClass(rt, ${classIdVar}, &${classDefName});`);
+      lines.push('');
 
-    // Class Proto
-    lines.push(`    JS_SetClassProto(ctx, ${classIdVar}, ${protoVar});`);
-    lines.push('');
-
-    // Constructor
-    const ctors = iface.members.filter(m => m.type === 'ConstructorMember');
-    const ctorFn = `js_${snake}_constructor`;
-    const ctorArgc = ctors.length > 0 ? ctors[0].parameters.length : 1;
-
-    lines.push(`    JSValue ${ctorVar} = JS_NewCFunction2(ctx, ${ctorFn}, "${name}", ${ctorArgc},`);
-    lines.push(`                                         JS_CFUNC_constructor, 0);`);
-    lines.push(`    ${protoVar} = JS_GetClassProto(ctx, ${classIdVar});`);
-    lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "prototype", JS_DupValue(ctx, ${protoVar}));`);
-    lines.push(`    JS_SetPropertyStr(ctx, ${protoVar}, "constructor", JS_DupValue(ctx, ${ctorVar}));`);
-    lines.push(`    JS_FreeValue(ctx, ${protoVar});`);
-    lines.push('');
-
-    // Static Operations
-    const staticOps = iface.members.filter(m => m.type === 'OperationMember' && m.isStatic);
-    for (const op of staticOps) {
-      const factType = getAttr(op, 'factory_type');
-      if (factType) {
-        const factoryHelper = getAttr(iface, 'factory_helper') || 'make_factory_node';
-        lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);
-        lines.push(`        JS_NewCFunction(ctx, ${factoryHelper}<${factType}>, "${op.name}", 0));`);
+      // Prototype
+      if (iface.parent) {
+        const parentClassIdVar = getAttr(interfaceDefs.find(i => i.name === iface.parent), 'class_id_var') || `${toSnakeCase(iface.parent)}_class_id`;
+        lines.push(`    JSValue parentProto = JS_GetClassProto(ctx, ${parentClassIdVar});`);
+        lines.push(`    JSValue ${protoVar} = JS_NewObjectProto(ctx, parentProto);`);
+        lines.push(`    JS_FreeValue(ctx, parentProto);`);
       } else {
+        lines.push(`    JSValue ${protoVar} = JS_NewObject(ctx);`);
+      }
+      lines.push('');
+
+      // Getters
+      const attrs = iface.members.filter(m => m.type === 'AttributeMember' && !m.isStatic);
+      for (const a of attrs) {
+        const getterName = `js_${snake}_${a.name}`;
+        const atomVar = `${snake}_${a.name}_atom`;
+        lines.push(`    JSAtom ${atomVar} = JS_NewAtom(ctx, "${a.name}");`);
+        lines.push(`    JS_DefinePropertyGetSet(ctx, ${protoVar}, ${atomVar},`);
+        lines.push(`                            newGetter(ctx, ${getterName}, "${a.name}"),`);
+        lines.push(`                            JS_UNDEFINED, 0);`);
+        lines.push(`    JS_FreeAtom(ctx, ${atomVar});`);
+      }
+      if (attrs.length > 0) lines.push('');
+
+      // Instance Methods
+      const instanceOps = iface.members.filter(m => m.type === 'OperationMember' && !m.isStatic);
+      for (const op of instanceOps) {
         const fnName = `${snake}_${toSnakeCase(op.name)}`;
-        lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);
+        lines.push(`    JS_SetPropertyStr(ctx, ${protoVar}, "${op.name}",`);
         lines.push(`        JS_NewCFunction(ctx, ${fnName}, "${op.name}", ${op.parameters.length}));`);
       }
+      if (instanceOps.length > 0) lines.push('');
+
+      // Class Proto
+      lines.push(`    JS_SetClassProto(ctx, ${classIdVar}, ${protoVar});`);
+      lines.push('');
+
+      // Constructor
+      const ctors = iface.members.filter(m => m.type === 'ConstructorMember');
+      const ctorFn = `js_${snake}_constructor`;
+      const ctorArgc = ctors.length > 0 ? ctors[0].parameters.length : 1;
+
+      lines.push(`    JSValue ${ctorVar} = JS_NewCFunction2(ctx, ${ctorFn}, "${name}", ${ctorArgc},`);
+      lines.push(`                                         JS_CFUNC_constructor, 0);`);
+      lines.push(`    ${protoVar} = JS_GetClassProto(ctx, ${classIdVar});`);
+      lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "prototype", JS_DupValue(ctx, ${protoVar}));`);
+      lines.push(`    JS_SetPropertyStr(ctx, ${protoVar}, "constructor", JS_DupValue(ctx, ${ctorVar}));`);
+      lines.push(`    JS_FreeValue(ctx, ${protoVar});`);
+      lines.push('');
+
+      // Static Operations
+      const staticOps = iface.members.filter(m => m.type === 'OperationMember' && m.isStatic);
+      for (const op of staticOps) {
+        const factType = getAttr(op, 'factory_type');
+        if (factType) {
+          const factoryHelper = getAttr(iface, 'factory_helper') || 'make_factory_node';
+          lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);
+          lines.push(`        JS_NewCFunction(ctx, ${factoryHelper}<${factType}>, "${op.name}", 0));`);
+        } else {
+          const fnName = `${snake}_${toSnakeCase(op.name)}`;
+          lines.push(`    JS_SetPropertyStr(ctx, ${ctorVar}, "${op.name}",`);
+          lines.push(`        JS_NewCFunction(ctx, ${fnName}, "${op.name}", ${op.parameters.length}));`);
+        }
+      }
+      if (staticOps.length > 0) lines.push('');
+
+      // Set Global
+      lines.push(`    JS_SetPropertyStr(ctx, global, "${name}", ${ctorVar});`);
+      lines.push('');
     }
-    if (staticOps.length > 0) lines.push('');
 
-    // Set Global
-    lines.push(`    JS_SetPropertyStr(ctx, global, "${name}", ${ctorVar});`);
-    lines.push('');
+    lines.push(`    JS_FreeValue(ctx, global);`);
   }
-
-  lines.push(`    JS_FreeValue(ctx, global);`);
   lines.push(`}`);
   lines.push('');
   lines.push(`} // namespace ${cppNamespace}`);

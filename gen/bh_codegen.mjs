@@ -74,13 +74,13 @@ export function toCamelCase(str) {
 
 /**
  * Indents each line of a multi-line string by given prefix.
- * @param {string} text
+ * @param {string} inputStr
  * @param {string} indentStr
  * @returns {string}
  */
-function indent(text, indentStr = '    ') {
-  if (!text) return '';
-  return text
+function indent(inputStr, indentStr = '    ') {
+  if (!inputStr) return '';
+  return inputStr
     .split('\n')
     .map(line => (line.trim().length > 0 ? indentStr + line : ''))
     .join('\n');

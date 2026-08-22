@@ -13,10 +13,20 @@
 
 #include "js/feature_stub.h"
 
+#include "js/gizmo_bindings.h"
 #include "js/gpu_bindings.h"
 #include "js/lm_bindings.h"
+#include "js/terrain_bindings.h"
+#include "js/text_bindings.h"
 
 namespace bro::js {
+
+// ── GIZMO ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installGizmoBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "gizmo", "BRO_WITH_3D");
+}
+#endif
 
 // ── GPU ───────────────────────────────────────────────────────────────────────
 #if !BRO_WITH_TENSOR
@@ -35,6 +45,20 @@ void installGpuBindings(JSContext* ctx) {
 #if !BRO_WITH_LM
 void installLmBindings(JSContext* ctx) {
     installUnavailableNamespace(ctx, "lm", "BRO_WITH_LM");
+}
+#endif
+
+// ── TERRAIN ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installTerrainBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "Terrain", "BRO_WITH_3D");
+}
+#endif
+
+// ── TEXT ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_TEXT_SHAPING
+void installTextBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "text", "BRO_WITH_TEXT_SHAPING");
 }
 #endif
 

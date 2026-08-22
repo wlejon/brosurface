@@ -66,6 +66,16 @@ type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob;
 // ── Dictionaries ─────────────────────────────────────────────────────────────
 
 /**
+ * Options for custom element definition (e.g. customized built-in element extension).
+ */
+interface CustomElementOptions {
+  /**
+   *  Tag name of built-in element being extended.
+   */
+  extends?: string;
+}
+
+/**
  * Initialization dictionary for creating a Blob.
  */
 interface BlobPropertyBag {
@@ -77,6 +87,96 @@ interface BlobPropertyBag {
  */
 interface FilePropertyBag extends BlobPropertyBag {
   lastModified?: number;
+}
+
+/**
+ * RGBA / Hex color configuration for gizmo axes and interaction states.
+ */
+interface GizmoColors {
+  /**
+   *  Hex color string for X axis handle (e.g. "#e74c3c").
+   */
+  x?: string;
+  /**
+   *  Hex color string for Y axis handle (e.g. "#27ae60").
+   */
+  y?: string;
+  /**
+   *  Hex color string for Z axis handle (e.g. "#3498db").
+   */
+  z?: string;
+  /**
+   *  Hex color string for hovered handle (e.g. "#ffd166").
+   */
+  hover?: string;
+  /**
+   *  Hex color string for active/dragged handle (e.g. "#ffffff").
+   */
+  active?: string;
+}
+
+/**
+ * Configuration options for gizmo sizing, styling, and rendering.
+ */
+interface GizmoConfig {
+  /**
+   *  Target pixel size on screen (default ~80).
+   */
+  size?: number;
+  /**
+   *  Axis and state color palette.
+   */
+  colors?: GizmoColors;
+  /**
+   *  Emissive intensity multiplier when idle.
+   */
+  emissive?: number;
+  /**
+   *  Emissive intensity multiplier when hovered.
+   */
+  emissiveHover?: number;
+  /**
+   *  Whether handles render over all scene geometry without depth testing.
+   */
+  alwaysOnTop?: boolean;
+}
+
+/**
+ * Event and transform handlers for gizmo interaction.
+ */
+interface GizmoHandlers {
+  /**
+   *  Callback returning pivot position [x, y, z] or {x, y, z}.
+   */
+  position?: Function;
+  /**
+   *  Callback returning orientation quaternion [x, y, z, w].
+   */
+  orientation?: Function;
+  /**
+   *  Callback fired when a drag gesture begins.
+   */
+  beginDrag?: Function;
+  /**
+   *  Callback receiving translation delta (dx, dy, dz) in world space.
+   */
+  translate?: Function;
+  /**
+   *  Callback receiving rotation delta quaternion (qx, qy, qz, qw) in world space.
+   */
+  rotate?: Function;
+  /**
+   *  Callback receiving scale delta factor (sx, sy, sz).
+   */
+  scale?: Function;
+  /**
+   *  Callback fired when a drag gesture ends.
+   */
+  endDrag?: Function;
+  /**
+   *  Callback fired when the hovered axis handle changes.
+   */
+  hoverChange?: Function;
 }
 
 /**
@@ -239,6 +339,104 @@ interface GemmaModelPair {
 }
 
 /**
+ * Options for configuring and starting live mic stream capture.
+ */
+interface MicStartOptions {
+  /**
+   *  Samples per chunk measured at targetRate (default 160 = 10ms @ 16kHz). 0 = resampler cadence.
+   */
+  chunkFrames?: number;
+  /**
+   *  Sample rate delivered to callback in Hz (default 16000). 0 = engine native rate.
+   */
+  targetRate?: number;
+  /**
+   *  Enable broaudio peak-track AGC (default false).
+   */
+  agc?: boolean;
+  /**
+   *  Open recording device (default true). Set false for offline/feed testing.
+   */
+  live?: boolean;
+  /**
+   *  Deliver raw Float32Array PCM samples in onChunk callback (default false).
+   */
+  samples?: boolean;
+  /**
+   *  Callback invoked per chunk on the main thread: (chunk: MicChunk) => void.
+   */
+  onChunk?: Function;
+  /**
+   *  AGC target peak level in [0, 1] (default 0.95).
+   */
+  targetPeak?: number;
+  /**
+   *  AGC running-peak decay half-life in seconds.
+   */
+  halfLifeSec?: number;
+  /**
+   *  AGC noise gate threshold (chunks below this do not raise running peak).
+   */
+  noiseGate?: number;
+  /**
+   *  AGC maximum gain clamp.
+   */
+  maxGain?: number;
+}
+
+/**
+ * Diagnostic statistics for the active microphone tap and chunk ring.
+ */
+interface MicStats {
+  /**
+   *  Total callback invocations / chunks delivered.
+   */
+  framesDelivered?: number;
+  /**
+   *  Total audio samples handed to callback.
+   */
+  samplesDelivered?: number;
+  /**
+   *  Rolling peak level post-AGC in range [0, 1].
+   */
+  rollingPeak?: number;
+  /**
+   *  Total chunks published to lock-free ring.
+   */
+  chunkCount?: number;
+  /**
+   *  Number of chunks dropped due to main-thread backlog.
+   */
+  dropped?: number;
+  /**
+   *  Configured frame count per chunk.
+   */
+  chunkFrames?: number;
+}
+
+/**
+ * Individual audio chunk structure delivered to onChunk callbacks.
+ */
+interface MicChunk {
+  /**
+   *  Absolute monotonic chunk sequence counter.
+   */
+  index?: number;
+  /**
+   *  Peak amplitude for this chunk in range [0, 1].
+   */
+  peak?: number;
+  /**
+   *  Root Mean Square (RMS) energy level for this chunk.
+   */
+  rms?: number;
+  /**
+   *  Raw PCM sample buffer (present when opts.samples = true).
+   */
+  samples?: Float32Array;
+}
+
+/**
  * Metadata record for a FastNoise node type.
  */
 interface FastNoiseTypeInfo {
@@ -280,7 +478,422 @@ interface FastNoiseNodeMembers {
   hybrids?: FastNoiseMemberHybrid[];
 }
 
+/**
+ * Options for action binding definitions.
+ */
+interface ActionOptions {
+  /**
+   *  Deadzone threshold for analog axis bindings (default ~0.1).
+   */
+  deadzone?: number;
+}
+
+/**
+ * Information describing a registered action and its key bindings.
+ */
+interface ActionBindingInfo {
+  /**
+   *  Action name identifier.
+   */
+  action?: string;
+  /**
+   *  Sequence of bound key and input strings.
+   */
+  keys?: string[];
+}
+
+/**
+ * Display video mode describing available fullscreen resolution and refresh rate.
+ */
+interface DisplayModeInfo {
+  /**
+   *  Horizontal width in pixels.
+   */
+  width?: number;
+  /**
+   *  Vertical height in pixels.
+   */
+  height?: number;
+  /**
+   *  Vertical refresh rate in Hz.
+   */
+  refreshRate?: number;
+}
+
+/**
+ * Fractal Brownian Motion (FBm) noise generator configuration for procedural terrain.
+ */
+interface TerrainNoiseConfig {
+  /**
+   *  Base frequency of the noise generator (default ~0.035).
+   */
+  frequency?: number;
+  /**
+   *  Number of noise octaves to blend (default 5).
+   */
+  octaves?: number;
+  /**
+   *  Octave gain multiplier (default 0.5).
+   */
+  gain?: number;
+  /**
+   *  Octave lacunarity frequency multiplier (default 2.0).
+   */
+  lacunarity?: number;
+}
+
+/**
+ * Terrain creation and generation options bag.
+ */
+interface TerrainConfig {
+  /**
+   *  Grid cells per chunk [x, y, z] (default [64, 48, 64]).
+   */
+  chunkSize?: number[];
+  /**
+   *  World units per cell (default 1.0).
+   */
+  cellSize?: number;
+  /**
+   *  Manhattan distance in chunks to load around camera (default 4).
+   */
+  loadRadius?: number;
+  /**
+   *  Manhattan distance in chunks beyond which chunks are freed (default 6).
+   */
+  unloadRadius?: number;
+  /**
+   *  Maximum chunk loads allowed per update call (default 2).
+   */
+  maxLoadsPerUpdate?: number;
+  /**
+   *  Random seed for procedural generation (default 1337).
+   */
+  seed?: number;
+  /**
+   *  Procedural noise generator settings.
+   */
+  noise?: TerrainNoiseConfig;
+  /**
+   *  Average column base height in cells (default 18).
+   */
+  baseHeight?: number;
+  /**
+   *  Peak height variation amplitude in cells (default 16).
+   */
+  heightAmplitude?: number;
+  /**
+   *  Water / sea level altitude in cells (default 14).
+   */
+  seaLevel?: number;
+  /**
+   *  Mesh generation mode (0 = smooth, 1 = flat, 2 = terraced, 3 = blocky).
+   */
+  meshMode?: number;
+  /**
+   *  Terrace step height for meshMode=2 (default 1.0).
+   */
+  terraceStep?: number;
+  /**
+   *  Continental amplitude modulation frequency (0.0 = disabled).
+   */
+  continentFrequency?: number;
+  /**
+   *  Continental height multiplier minimum (default 0.1).
+   */
+  continentMin?: number;
+  /**
+   *  Continental height multiplier maximum (default 1.5).
+   */
+  continentMax?: number;
+  /**
+   *  Large-scale mountain noise frequency (0.0 = disabled).
+   */
+  mountainFrequency?: number;
+  /**
+   *  Large-scale mountain amplitude addition (0.0 = disabled).
+   */
+  mountainAmplitude?: number;
+  /**
+   *  Octave count for mountain layer (default 3).
+   */
+  mountainOctaves?: number;
+  /**
+   *  Number of concentric LOD rings (1 = uniform, default 1).
+   */
+  lodLevels?: number;
+  /**
+   *  Scale multiplier between successive LOD rings (default 4).
+   */
+  lodScaleFactor?: number;
+  /**
+   *  Planetary curvature radius (0.0 = flat plane, 6371000 = Earth radius).
+   */
+  planetRadius?: number;
+  /**
+   *  World-space origin offset [x, y, z] for multi-planet setups.
+   */
+  origin?: number[];
+  /**
+   *  Per-material RGBA palette (4 floats per material ID; index 0 is air).
+   */
+  palette?: Float32Array;
+}
+
+/**
+ * Result structure returned by terrain raycasting queries.
+ */
+interface TerrainRaycastResult {
+  /**
+   *  Whether the ray intersected loaded terrain geometry.
+   */
+  hit?: boolean;
+  /**
+   *  Distance from ray origin to intersection point in world units.
+   */
+  distance?: number;
+  /**
+   *  World-space intersection coordinates [x, y, z].
+   */
+  position?: number[];
+  /**
+   *  Surface normal vector [nx, ny, nz] at the hit point.
+   */
+  normal?: number[];
+  /**
+   *  Coordinates of the chunk containing the hit [chunkX, chunkZ].
+   */
+  chunk?: number[];
+  /**
+   *  Local voxel coordinates within the chunk [vx, vy, vz].
+   */
+  voxel?: number[];
+  /**
+   *  Material ID at the hit location.
+   */
+  material?: number;
+}
+
+/**
+ * Text styling options for shaping and metric queries.
+ */
+interface TextOptions {
+  /**
+   *  Font family name (default "Arial").
+   */
+  family?: string;
+  /**
+   *  Font size in pixels (default 16.0).
+   */
+  size?: number;
+  /**
+   *  Font weight (e.g. 400 for normal, 700 for bold, default 400).
+   */
+  weight?: number;
+  /**
+   *  Italic style flag (default false).
+   */
+  italic?: boolean;
+  /**
+   *  Letter spacing in pixels (default 0.0).
+   */
+  letterSpacing?: number;
+  /**
+   *  Word spacing in pixels (default 0.0).
+   */
+  wordSpacing?: number;
+}
+
+/**
+ * Single shaped glyph cluster within a shaped text run.
+ */
+interface TextCluster {
+  /**
+   *  Starting byte offset in the source UTF-8 string.
+   */
+  start?: number;
+  /**
+   *  Ending byte offset in the source UTF-8 string.
+   */
+  end?: number;
+  /**
+   *  Horizontal X offset in pixels from the start of the run.
+   */
+  x?: number;
+  /**
+   *  Horizontal advance width of this cluster in pixels.
+   */
+  advance?: number;
+  /**
+   *  Number of glyphs representing this cluster.
+   */
+  glyphs?: number;
+  /**
+   *  Right-to-left flag for this cluster.
+   */
+  rtl?: boolean;
+}
+
+/**
+ * Result of shaping a text string.
+ */
+interface ShapedText {
+  /**
+   *  Original text string.
+   */
+  text?: string;
+  /**
+   *  Total number of glyphs in the shaped run.
+   */
+  glyphCount?: number;
+  /**
+   *  Total advance width in pixels.
+   */
+  width?: number;
+  /**
+   *  Array of shaped glyph clusters.
+   */
+  clusters?: TextCluster[];
+}
+
+/**
+ * Caret position descriptor.
+ */
+interface Caret {
+  /**
+   *  Horizontal X position in pixels.
+   */
+  x?: number;
+  /**
+   *  Whether caret is on the leading edge of the glyph.
+   */
+  isLeadingEdge?: boolean;
+}
+
+/**
+ * Primary and optional secondary caret position at direction boundaries.
+ */
+interface CaretPosition {
+  /**
+   *  Primary caret horizontal position in pixels.
+   */
+  x?: number;
+  /**
+   *  Whether primary caret is on leading edge.
+   */
+  isLeadingEdge?: boolean;
+  /**
+   *  Secondary caret position at direction boundary (if present).
+   */
+  secondary?: Caret;
+}
+
+/**
+ * Byte range of a cluster.
+ */
+interface ClusterRange {
+  /**
+   *  Starting byte offset.
+   */
+  start?: number;
+  /**
+   *  Ending byte offset.
+   */
+  end?: number;
+}
+
+/**
+ * Text shaper cache hit and miss statistics.
+ */
+interface TextCacheStats {
+  /**
+   *  Number of cache hits.
+   */
+  hits?: number;
+  /**
+   *  Number of cache misses.
+   */
+  misses?: number;
+}
+
+/**
+ * Single bidirectional text run.
+ */
+interface BidiRun {
+  /**
+   *  Starting character index.
+   */
+  start?: number;
+  /**
+   *  Ending character index.
+   */
+  end?: number;
+  /**
+   *  Resolved embedding level.
+   */
+  level?: number;
+}
+
+/**
+ * Paragraph-level bidirectional resolution result.
+ */
+interface BidiParagraph {
+  /**
+   *  Resolved paragraph embedding level (0 = LTR, 1 = RTL).
+   */
+  paragraphLevel?: number;
+  /**
+   *  Whether the entire paragraph has uniform directionality.
+   */
+  uniform?: boolean;
+  /**
+   *  Resolved embedding level per codepoint.
+   */
+  levels?: number[];
+  /**
+   *  Sequence of resolved directional runs.
+   */
+  runs?: BidiRun[];
+}
+
 // ── Global Classes & Interfaces ──────────────────────────────────────────────
+
+/**
+ * Custom element registry for registering and querying custom element definitions.
+ */
+declare class CustomElementRegistry {
+  /**
+   * Register a new custom element definition.
+   *
+   * @param name Custom element tag name (must contain a hyphen)
+   * @param constructor Class constructor extending HTMLElement
+   * @param options Optional customization options
+   */
+  define(name: string, constructor: Function, options?: CustomElementOptions): void;
+  /**
+   * Retrieve constructor for a registered custom element.
+   *
+   * @param name Custom element tag name
+   * @returns Constructor function or undefined
+   */
+  get(name: string): Function | null;
+  /**
+   * Return a promise that resolves when the named custom element is defined.
+   *
+   * @param name Custom element tag name
+   */
+  whenDefined(name: string): Promise<void>;
+}
+
+/**
+ * Base class for all HTML elements, extended by custom web components.
+ */
+declare class HTMLElement {
+  /**
+   * Creates a new HTMLElement instance.
+   */
+  constructor();
+}
 
 /**
  * Represents immutable raw binary data held in native memory.
@@ -1149,9 +1762,176 @@ declare class FastNoise {
   genTileable2D(xSize: number, ySize: number, frequency: number, seed: number): Float32Array;
 }
 
+/**
+ * Chunked procedural and heightmap terrain manager instance.
+ */
+declare class Terrain {
+  /**
+   *  Total number of currently loaded and active chunks.
+   */
+  readonly chunkCount: number;
+  /**
+   *  Total triangle count across all loaded terrain meshes.
+   */
+  readonly triangleCount: number;
+  /**
+   *  Total vertex count across all loaded terrain meshes.
+   */
+  readonly vertexCount: number;
+  /**
+   *  Effective maximum rendering distance in world units (derived from unloadRadius).
+   */
+  readonly farDistance: number;
+  /**
+   *  Planetary curvature radius in world units (0.0 = flat plane).
+   */
+  readonly planetRadius: number;
+  /**
+   *  World-space origin offset [x, y, z] of this terrain manager.
+   */
+  readonly origin: number[] | null;
+  /**
+   * Stream and generate terrain chunks around camera position (x, y, z) in world space.
+   *
+   * @param x Camera world X coordinate
+   * @param y Camera world Y coordinate
+   * @param z Camera world Z coordinate
+   * @returns Number of newly loaded chunks
+   */
+  update(x: number, y: number, z: number): number;
+  /**
+   * Perform a raycast query against loaded LOD-0 terrain geometry.
+   *
+   * @param origin Ray start position [x, y, z]
+   * @param direction Ray direction vector [dx, dy, basis z]
+   * @param maxDist Maximum raycast distance in world units
+   * @returns Raycast intersection result or null
+   */
+  raycast(origin: number[], direction: number[], maxDist?: number): TerrainRaycastResult | null;
+  /**
+   * Raise or lower the terrain height column at world coordinates (wx, wz).
+   *
+   * @param wx World X position
+   * @param wy World Y position (altitude)
+   * @param wz World Z position
+   * @param material Material / sign index (0 = lower column, >0 = raise column)
+   * @returns Whether the column was successfully modified
+   */
+  setVoxel(wx: number, wy: number, wz: number, material: number): boolean;
+  /**
+   * Test column solidity at world coordinates (wx, wy, wz).
+   *
+   * @param wx World X position
+   * @param wy World Y position
+   * @param wz World Z position
+   * @returns 1 if solid (at or below surface height), 0 if air
+   */
+  getVoxel(wx: number, wy: number, wz: number): number;
+  /**
+   * Re-mesh dirty chunks modified by setVoxel edits.
+   */
+  rebuild(): void;
+  /**
+   * Reconfigure procedural generation parameters, noise settings, and mesh modes.
+   *
+   * @param config New terrain configuration options
+   */
+  configure(config: TerrainConfig): void;
+  /**
+   * Invalidate chunks overlapping a world-space bounding rectangle [x0, z0, x1, z1].
+   *
+   * @param x0 Minimum world X coordinate
+   * @param z0 Minimum world Z coordinate
+   * @param x1 Maximum world X coordinate
+   * @param z1 Maximum world Z coordinate
+   */
+  invalidateRegion(x0: number, z0: number, x1: number, z1: number): void;
+  /**
+   * Install custom height provider callback function in place of built-in noise.
+   *
+   * @param fn Height source callback or null to restore procedural generator
+   */
+  setHeightSource(fn: Function | null): void;
+  /**
+   * Release all terrain meshes, destroy chunk structures, and detach from scene graph.
+   */
+  destroy(): void;
+}
+
 // ── Global 'bro' Namespace ───────────────────────────────────────────────────
 
 declare namespace bro {
+  /**
+   * Engine-level 3D transform gizmo namespace.
+   */
+  namespace gizmo {
+    /**
+     * Whether the gizmo is currently visible.
+     */
+    const visible: boolean;
+    /**
+     * Whether a transform handle is currently being dragged.
+     */
+    const dragging: boolean;
+    /**
+     * The handle currently under the cursor ('x' | 'y' | 'z' | 'xy' | 'yz' | 'xz' | 'view' | 'center' | null).
+     */
+    const hovered: string | null;
+    /**
+     * Make the transform gizmo visible (no-op if already visible).
+     */
+    function show(): void;
+    /**
+     * Hide the transform gizmo and disable hit-testing and picking.
+     */
+    function hide(): void;
+    /**
+     * Set the transform interaction mode ('translate' | 'rotate' | 'scale').
+     *
+     * @param mode Transform mode string
+     */
+    function setMode(mode: string): void;
+    /**
+     * Set the coordinate reference space ('world' | 'local').
+     *
+     * @param space Coordinate space string
+     */
+    function setSpace(space: string): void;
+    /**
+     * Set explicit pivot position in world space (overridden if position callback is attached).
+     *
+     * @param x World X coordinate
+     * @param y World Y coordinate
+     * @param z World Z coordinate
+     */
+    function setPosition(x: number, y: number, z: number): void;
+    /**
+     * Set explicit handle orientation quaternion in local space.
+     *
+     * @param x Quaternion X component
+     * @param y Quaternion Y component
+     * @param z Quaternion Z component
+     * @param w Quaternion W component
+     */
+    function setOrientation(x: number, y: number, z: number, w: number): void;
+    /**
+     * Configure gizmo visuals, size, and handle colors.
+     *
+     * @param config Gizmo appearance and dimension configuration
+     */
+    function configure(config: GizmoConfig): void;
+    /**
+     * Subscribe to engine-driven transform interactions and attach event callbacks.
+     *
+     * @param handlers Interaction and delta callback handlers
+     */
+    function attach(handlers: GizmoHandlers): void;
+    /**
+     * Detach all interaction handlers, clear callbacks, and hide the gizmo.
+     */
+    function detach(): void;
+  }
+
   /**
    * Runtime GPU-backend probe and device memory introspection namespace.
    */
@@ -1344,6 +2124,239 @@ declare namespace bro {
   }
 
   /**
+   * Real-time microphone audio capture and fixed-size chunk streaming namespace.
+   */
+  namespace mic {
+    /**
+     * Register a microphone tap and start chunk delivery.
+     *
+     * @param opts Capture configuration options
+     */
+    function start(opts?: MicStartOptions): void;
+    /**
+     * Stop active microphone capture tap and free callback references.
+     */
+    function stop(): void;
+    /**
+     * Check whether a microphone capture tap is currently registered and active.
+     *
+     * @returns Whether capture is active
+     */
+    function isActive(): boolean;
+    /**
+     * Query the engine's native microphone sample rate in Hz.
+     *
+     * @returns Native sample rate
+     */
+    function engineRate(): number;
+    /**
+     * Query diagnostic snapshot of tap statistics and ring buffers.
+     *
+     * @returns Tap statistics snapshot or null if inactive
+     */
+    function stats(): MicStats | null;
+    /**
+     * Get array of recent peak amplitude levels for meter rendering.
+     *
+     * @param maxCount Maximum number of recent level samples to return
+     * @returns Array of floating-point peak levels
+     */
+    function levels(maxCount?: number): number[];
+    /**
+     * Feed synthetic microphone audio samples for offline and headless testing.
+     *
+     * @param samples Float32Array PCM samples at engine rate
+     * @param sampleRate Optional expected sample rate (must match engine rate)
+     */
+    function feed(samples: Float32Array, sampleRate?: number): void;
+  }
+
+  /**
+   * Persistent layered settings and action binding management namespace.
+   */
+  namespace settings {
+    /**
+     * Get a single typed setting value (boolean, number, or string).
+     *
+     * @param key Setting key (e.g. 'graphics.vsync', 'audio.masterVolume')
+     * @returns Typed setting value or undefined
+     */
+    function get(key: string): any;
+    /**
+     * Get all settings as a nested object or for a specific category.
+     *
+     * @param category Optional category name ('graphics', 'audio', 'input', 'appearance')
+     * @returns Settings dictionary object
+     */
+    function getAll(category?: string): object;
+    /**
+     * Set a user-level setting override (persisted across sessions).
+     *
+     * @param key Setting key
+     * @param value New setting value
+     */
+    function set(key: string, value: any): void;
+    /**
+     * Set an app-level default setting value (not persisted).
+     *
+     * @param key Setting key
+     * @param value Default setting value
+     */
+    function setDefault(key: string, value: any): void;
+    /**
+     * Reset user overrides for a category or for all settings to defaults.
+     *
+     * @param category Optional category name to reset
+     */
+    function reset(category?: string): void;
+    /**
+     * Define an action with default input bindings (app-level).
+     *
+     * @param name Action name identifier
+     * @param keys Sequence of key and input binding strings
+     * @param options Optional binding options such as axis deadzone
+     */
+    function defineAction(name: string, keys: string[], options?: ActionOptions): void;
+    /**
+     * Rebind an action at the user level (persisted across sessions).
+     *
+     * @param name Action name identifier
+     * @param keys New sequence of key and input binding strings
+     */
+    function rebindAction(name: string, keys: string[]): void;
+    /**
+     * Reset user-level rebind for a single action to its default bindings.
+     *
+     * @param name Action name identifier
+     */
+    function resetAction(name: string): void;
+    /**
+     * Reset all user-level action rebinds to default bindings.
+     */
+    function resetAllActions(): void;
+    /**
+     * Get current active key bindings for an action.
+     *
+     * @param name Action name identifier
+     * @returns Array of bound input strings
+     */
+    function getActionKeys(name: string): string[];
+    /**
+     * Reverse lookup the action bound to a given input key or button.
+     *
+     * @param key Input key string
+     * @returns Bound action name or null
+     */
+    function getKeyAction(key: string): string | null;
+    /**
+     * Polled analog strength of an action in range [0, 1].
+     *
+     * @param name Action name identifier
+     * @returns Action analog strength
+     */
+    function getActionStrength(name: string): number;
+    /**
+     * Polled boolean press state of an action.
+     *
+     * @param name Action name identifier
+     * @returns Whether the action is currently pressed
+     */
+    function isActionPressed(name: string): boolean;
+    /**
+     * Get all defined actions (engine and app level).
+     *
+     * @returns Sequence of action descriptors
+     */
+    function getActions(): ActionBindingInfo[];
+    /**
+     * Get actions declared specifically by the current app.
+     *
+     * @returns Sequence of app action descriptors
+     */
+    function getAppActions(): ActionBindingInfo[];
+    /**
+     * Enumerate supported fullscreen video display modes and refresh rates.
+     *
+     * @returns Array of available display modes
+     */
+    function getDisplayModes(): DisplayModeInfo[];
+    /**
+     * Get app and engine default settings ignoring user overrides.
+     *
+     * @param category Optional category filter
+     * @returns Default settings object
+     */
+    function getDefaults(category?: string): object;
+  }
+
+  /**
+   * Diagnostic window onto text shaping, cluster mapping, and bidi resolution.
+   */
+  namespace text {
+    /**
+     * Whether the UAX #9 Bidirectional algorithm engine is compiled in and available.
+     */
+    const bidiAvailable: boolean;
+    /**
+     * Shape a text string with font and spacing options.
+     *
+     * @param text UTF-8 text string to shape
+     * @param options Font styling and spacing options
+     * @returns Shaped text result with glyph count, width, and cluster array
+     */
+    function shape(text: string, options?: TextOptions): ShapedText | null;
+    /**
+     * Map a UTF-8 byte offset to a horizontal caret X coordinate.
+     *
+     * @param text UTF-8 text string
+     * @param options Font styling options
+     * @param byteOffset Zero-based byte offset into text
+     * @returns Caret position object
+     */
+    function byteOffsetToX(text: string, options?: TextOptions, byteOffset?: number): CaretPosition | null;
+    /**
+     * Map a horizontal X coordinate to the nearest UTF-8 byte offset.
+     *
+     * @param text UTF-8 text string
+     * @param options Font styling options
+     * @param x Horizontal pixel position
+     * @returns Nearest byte offset
+     */
+    function xToByteOffset(text: string, options?: TextOptions, x?: number): number;
+    /**
+     * Query the byte span [start, end) of the cluster covering a byte offset.
+     *
+     * @param text UTF-8 text string
+     * @param options Font styling options
+     * @param byteOffset Zero-based byte offset
+     * @returns Cluster byte range
+     */
+    function clusterRange(text: string, options?: TextOptions, byteOffset?: number): ClusterRange | null;
+    /**
+     * Query text shaping cache statistics.
+     *
+     * @returns Cache hit and miss counters
+     */
+    function cacheStats(): TextCacheStats;
+    /**
+     * Resolve paragraph directionality and character embedding levels under UAX #9.
+     *
+     * @param text UTF-8 text string
+     * @param base Base direction ('auto', 'ltr', or 'rtl')
+     * @param override Whether directional override is enabled
+     * @returns Resolved paragraph structure
+     */
+    function bidi(text: string, base?: string, override?: boolean): BidiParagraph | null;
+    /**
+     * Reorder character levels to visual indices (UAX #9 Rule L2).
+     *
+     * @param levels Sequence of resolved embedding levels per character
+     * @returns Logical index for each visual slot
+     */
+    function bidiReorder(levels: number[]): number[];
+  }
+
+  /**
    * Global engine time and timescale control namespace.
    */
   namespace time {
@@ -1370,3 +2383,5 @@ declare namespace bro {
    */
   const noise: typeof FastNoise;
 }
+
+declare const customElements: CustomElementRegistry;

@@ -1,0 +1,247 @@
+/**
+ * =============================================================================
+ * bro.gizmo — engine-level 3D transform gizmo
+ * =============================================================================
+ *
+ * Renders standardized translate / rotate / scale handles inside the scene's
+ * 3D pipeline, hit-tests against them, and drives the default drag
+ * interaction. Apps hook in via callbacks, position/orientation read the
+ * pivot each frame, translate/rotate/scale receive the per-frame delta to
+ * apply to whatever the app considers "selected".
+ *
+ * Handles:
+ *   - translate: 3 axis arrows + 3 plane quads (XY / YZ / XZ)
+ *   - rotate:    3 axis rings + an outer screen-facing ring
+ *   - scale:     3 axis boxes + center uniform cube
+ *
+ * A plane quad drags in the plane it spans, keeping the grabbed point under
+ * the cursor and leaving the third axis untouched. The screen-facing ring
+ * rotates about the view axis, the one rotation the three world rings
+ * cannot express comfortably. There is still no translate center (free-move)
+ * handle, so `hovered` is 'center' in scale mode only.
+ *
+ * `hovered` values: 'x' | 'y' | 'z' | 'xy' | 'yz' | 'xz' | 'view' | 'center'
+ * | null. Plane and view handles report through the same `translate` and
+ * `rotate` callbacks as the axis handles, an app that only reads the delta
+ * needs no changes to support them.
+ *
+ * Visuals stay at ~80px regardless of camera zoom or projection mode
+ * (configurable via configure({size})). Depth test is disabled so handles
+ * always win over scene geometry, grabbable even when inside meshes.
+ *
+ * Picking ranks candidates by distance to the cursor, not by depth, so the
+ * handle you are pointing at is the one you get even where several overlap
+ * near the pivot.
+ *
+ * Rotation is measured entirely in screen pixels, against the camera as it
+ * stood when the handle was grabbed. So an app that moves the camera in
+ * response to `rotate` (a view gizmo that orbits) does not feed its own motion
+ * back in and change the drag's speed mid-gesture.
+ *
+ * The grabbed ring's tangent sets the DIRECTION the cursor must travel to turn
+ * it forwards; the rate is fixed for the whole drag at the ring's face-on pixel
+ * radius. So equal travel turns any ring by the same amount however
+ * foreshortened it looks, a ring behaves like a wheel (its near and far edges
+ * turn opposite ways), and motion across the ring rather than along it
+ * correctly rotates nothing. On a steeply foreshortened ring the grabbed point
+ * no longer stays exactly under the cursor, the usual trade for a rate that
+ * does not swing.
+ *
+ * @example
+ *   // Basic display and mode
+ *   bro.gizmo.show();
+ *   bro.gizmo.setMode("translate");
+ *   bro.gizmo.setPosition(0, 5, 0);
+ *
+ * @example
+ *   // Attach interactive transform handlers
+ *   let target = { x: 0, y: 0, z: 0 };
+ *   bro.gizmo.attach({
+ *     position: () => [target.x, target.y, target.z],
+ *     translate: (dx, dy, dz) => {
+ *       target.x += dx; target.y += dy; target.z += dz;
+ *     },
+ *   });
+ *
+ * @example
+ *   // Configure appearance
+ *   bro.gizmo.configure({
+ *     size: 100,
+ *     colors: { x: "#ff0000", y: "#00ff00", z: "#0000ff", hover: "#ffff00", active: "#ffffff" },
+ *   });
+ */
+
+/**
+ * RGBA / Hex color configuration for gizmo axes and interaction states.
+ */
+dictionary GizmoColors {
+  /** Hex color string for X axis handle (e.g. "#e74c3c"). */
+  DOMString x;
+
+  /** Hex color string for Y axis handle (e.g. "#27ae60"). */
+  DOMString y;
+
+  /** Hex color string for Z axis handle (e.g. "#3498db"). */
+  DOMString z;
+
+  /** Hex color string for hovered handle (e.g. "#ffd166"). */
+  DOMString hover;
+
+  /** Hex color string for active/dragged handle (e.g. "#ffffff"). */
+  DOMString active;
+};
+
+/**
+ * Configuration options for gizmo sizing, styling, and rendering.
+ */
+dictionary GizmoConfig {
+  /** Target pixel size on screen (default ~80). */
+  unrestricted double size;
+
+  /** Axis and state color palette. */
+  GizmoColors colors;
+
+  /** Emissive intensity multiplier when idle. */
+  unrestricted double emissive;
+
+  /** Emissive intensity multiplier when hovered. */
+  unrestricted double emissiveHover;
+
+  /** Whether handles render over all scene geometry without depth testing. */
+  boolean alwaysOnTop;
+};
+
+/**
+ * Event and transform handlers for gizmo interaction.
+ */
+dictionary GizmoHandlers {
+  /** Callback returning pivot position [x, y, z] or {x, y, z}. */
+  Function position;
+
+  /** Callback returning orientation quaternion [x, y, z, w]. */
+  Function orientation;
+
+  /** Callback fired when a drag gesture begins. */
+  Function beginDrag;
+
+  /** Callback receiving translation delta (dx, dy, dz) in world space. */
+  Function translate;
+
+  /** Callback receiving rotation delta quaternion (qx, qy, qz, qw) in world space. */
+  Function rotate;
+
+  /** Callback receiving scale delta factor (sx, sy, sz). */
+  Function scale;
+
+  /** Callback fired when a drag gesture ends. */
+  Function endDrag;
+
+  /** Callback fired when the hovered axis handle changes. */
+  Function hoverChange;
+};
+
+/**
+ * Engine-level 3D transform gizmo namespace.
+ */
+[
+  cpp_file="gizmo_bindings.cpp",
+  cpp_header="js/gizmo_bindings.h",
+  cpp_includes="\"engine/engine.h\"\n\"engine/gizmo.h\"\n\"scene/scene_graph.h\"\n\"scene/scene_node.h\"\n<cstring>",
+  cpp_namespace="bro::js",
+  cpp_install="GizmoBindings::install",
+  cpp_guard="BRO_WITH_3D",
+  gate="BRO_WITH_3D",
+  engine_stashed,
+  prefix="bro.",
+  cpp_prologue="namespace {\nstatic int slotFromName(const char* name) {\n    if (!name) return -1;\n    if (!strcmp(name, \"position\"))     return engine::GizmoManager::CB_Position;\n    if (!strcmp(name, \"orientation\"))  return engine::GizmoManager::CB_Orientation;\n    if (!strcmp(name, \"beginDrag\"))    return engine::GizmoManager::CB_BeginDrag;\n    if (!strcmp(name, \"translate\"))    return engine::GizmoManager::CB_Translate;\n    if (!strcmp(name, \"rotate\"))       return engine::GizmoManager::CB_Rotate;\n    if (!strcmp(name, \"scale\"))        return engine::GizmoManager::CB_Scale;\n    if (!strcmp(name, \"endDrag\"))      return engine::GizmoManager::CB_EndDrag;\n    if (!strcmp(name, \"hoverChange\"))  return engine::GizmoManager::CB_HoverChange;\n    return -1;\n}\n} // namespace"
+]
+namespace gizmo {
+  /**
+   * Whether the gizmo is currently visible.
+   */
+  [getter_body="auto* e = getEngine(ctx);\nreturn JS_NewBool(ctx, e ? e->gizmo().visible() : 0);"]
+  readonly attribute boolean visible;
+
+  /**
+   * Whether a transform handle is currently being dragged.
+   */
+  [getter_body="auto* e = getEngine(ctx);\nreturn JS_NewBool(ctx, e ? e->gizmo().isDragging() : 0);"]
+  readonly attribute boolean dragging;
+
+  /**
+   * The handle currently under the cursor ('x' | 'y' | 'z' | 'xy' | 'yz' | 'xz' | 'view' | 'center' | null).
+   */
+  [getter_body="auto* e = getEngine(ctx);\nif (!e) return JS_NULL;\nconst char* s = nullptr;\nswitch (e->gizmo().hovered()) {\ncase engine::GizmoAxis::X: s = \"x\"; break;\ncase engine::GizmoAxis::Y: s = \"y\"; break;\ncase engine::GizmoAxis::Z: s = \"z\"; break;\ncase engine::GizmoAxis::XY: s = \"xy\"; break;\ncase engine::GizmoAxis::YZ: s = \"yz\"; break;\ncase engine::GizmoAxis::XZ: s = \"xz\"; break;\ncase engine::GizmoAxis::View: s = \"view\"; break;\ncase engine::GizmoAxis::Center: s = \"center\"; break;\ndefault: return JS_NULL;\n}\nreturn JS_NewString(ctx, s);"]
+  readonly attribute DOMString? hovered;
+
+  /**
+   * Make the transform gizmo visible (no-op if already visible).
+   */
+  [cpp_body="if (auto* e = getEngine(ctx)) e->gizmo().show();\nreturn JS_UNDEFINED;"]
+  void show();
+
+  /**
+   * Hide the transform gizmo and disable hit-testing and picking.
+   */
+  [cpp_body="if (auto* e = getEngine(ctx)) e->gizmo().hide();\nreturn JS_UNDEFINED;"]
+  void hide();
+
+  /**
+   * Set the transform interaction mode ('translate' | 'rotate' | 'scale').
+   *
+   * @param mode Transform mode string
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e || argc < 1 || !JS_IsString(argv[0])) return JS_UNDEFINED;\nconst char* s = JS_ToCString(ctx, argv[0]);\nif (s) {\n    if (strcmp(s, \"translate\") == 0)   e->gizmo().setMode(engine::GizmoMode::Translate);\n    else if (strcmp(s, \"rotate\") == 0) e->gizmo().setMode(engine::GizmoMode::Rotate);\n    else if (strcmp(s, \"scale\") == 0)  e->gizmo().setMode(engine::GizmoMode::Scale);\n    JS_FreeCString(ctx, s);\n}\nreturn JS_UNDEFINED;"]
+  void setMode(DOMString mode);
+
+  /**
+   * Set the coordinate reference space ('world' | 'local').
+   *
+   * @param space Coordinate space string
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e || argc < 1 || !JS_IsString(argv[0])) return JS_UNDEFINED;\nconst char* s = JS_ToCString(ctx, argv[0]);\nif (s) {\n    if (strcmp(s, \"local\") == 0) e->gizmo().setSpace(engine::GizmoSpace::Local);\n    else                         e->gizmo().setSpace(engine::GizmoSpace::World);\n    JS_FreeCString(ctx, s);\n}\nreturn JS_UNDEFINED;"]
+  void setSpace(DOMString space);
+
+  /**
+   * Set explicit pivot position in world space (overridden if position callback is attached).
+   *
+   * @param x World X coordinate
+   * @param y World Y coordinate
+   * @param z World Z coordinate
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e || argc < 3) return JS_UNDEFINED;\ndouble x = 0, y = 0, z = 0;\nJS_ToFloat64(ctx, &x, argv[0]);\nJS_ToFloat64(ctx, &y, argv[1]);\nJS_ToFloat64(ctx, &z, argv[2]);\ne->gizmo().setPosition(static_cast<float>(x),\n                       static_cast<float>(y),\n                       static_cast<float>(z));\nreturn JS_UNDEFINED;"]
+  void setPosition(unrestricted double x, unrestricted double y, unrestricted double z);
+
+  /**
+   * Set explicit handle orientation quaternion in local space.
+   *
+   * @param x Quaternion X component
+   * @param y Quaternion Y component
+   * @param z Quaternion Z component
+   * @param w Quaternion W component
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e || argc < 4) return JS_UNDEFINED;\ndouble x = 0, y = 0, z = 0, w = 1;\nJS_ToFloat64(ctx, &x, argv[0]);\nJS_ToFloat64(ctx, &y, argv[1]);\nJS_ToFloat64(ctx, &z, argv[2]);\nJS_ToFloat64(ctx, &w, argv[3]);\ne->gizmo().setOrientation(bromath::Quat(static_cast<float>(x),\n                                      static_cast<float>(y),\n                                      static_cast<float>(z),\n                                      static_cast<float>(w)));\nreturn JS_UNDEFINED;"]
+  void setOrientation(unrestricted double x, unrestricted double y, unrestricted double z, unrestricted double w);
+
+  /**
+   * Configure gizmo visuals, size, and handle colors.
+   *
+   * @param config Gizmo appearance and dimension configuration
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e) return JS_UNDEFINED;\nif (argc < 1 || !JS_IsObject(argv[0]))\n    return JS_ThrowTypeError(ctx, \"gizmo.configure() requires an options object\");\nauto& cfg = e->gizmo().config();\n\nauto readFloat = [&](const char* name, float& out) {\n    JSValue v = JS_GetPropertyStr(ctx, argv[0], name);\n    if (JS_IsNumber(v)) { double d; JS_ToFloat64(ctx, &d, v); out = static_cast<float>(d); }\n    JS_FreeValue(ctx, v);\n};\nreadFloat(\"size\", cfg.targetPixelSize);\nreadFloat(\"emissive\", cfg.emissive);\nreadFloat(\"emissiveHover\", cfg.emissiveHover);\n\nJSValue aot = JS_GetPropertyStr(ctx, argv[0], \"alwaysOnTop\");\nif (JS_IsBool(aot)) cfg.alwaysOnTop = JS_ToBool(ctx, aot);\nJS_FreeValue(ctx, aot);\n\nJSValue colors = JS_GetPropertyStr(ctx, argv[0], \"colors\");\nif (JS_IsObject(colors)) {\n    JSValue xv = JS_GetPropertyStr(ctx, colors, \"x\");\n    JSValue yv = JS_GetPropertyStr(ctx, colors, \"y\");\n    JSValue zv = JS_GetPropertyStr(ctx, colors, \"z\");\n    JSValue hv = JS_GetPropertyStr(ctx, colors, \"hover\");\n    JSValue av = JS_GetPropertyStr(ctx, colors, \"active\");\n    auto apply = [&](JSValue v, float (&out)[4]) {\n        if (JS_IsString(v)) {\n            const char* s = JS_ToCString(ctx, v);\n            if (s && s[0] == '#') {\n                size_t len = strlen(s);\n                unsigned long val = strtoul(s + 1, nullptr, 16);\n                if (len == 7) {\n                    out[0] = ((val >> 16) & 0xFF) / 255.0f;\n                    out[1] = ((val >>  8) & 0xFF) / 255.0f;\n                    out[2] = (val & 0xFF) / 255.0f;\n                    out[3] = 1.0f;\n                } else if (len == 9) {\n                    out[0] = ((val >> 24) & 0xFF) / 255.0f;\n                    out[1] = ((val >> 16) & 0xFF) / 255.0f;\n                    out[2] = ((val >>  8) & 0xFF) / 255.0f;\n                    out[3] = (val & 0xFF) / 255.0f;\n                }\n            }\n            if (s) JS_FreeCString(ctx, s);\n        }\n    };\n    apply(xv, cfg.colorX);\n    apply(yv, cfg.colorY);\n    apply(zv, cfg.colorZ);\n    apply(hv, cfg.colorHover);\n    apply(av, cfg.colorActive);\n    JS_FreeValue(ctx, xv); JS_FreeValue(ctx, yv); JS_FreeValue(ctx, zv);\n    JS_FreeValue(ctx, hv); JS_FreeValue(ctx, av);\n}\nJS_FreeValue(ctx, colors);\nreturn JS_UNDEFINED;"]
+  void configure(GizmoConfig config);
+
+  /**
+   * Subscribe to engine-driven transform interactions and attach event callbacks.
+   *
+   * @param handlers Interaction and delta callback handlers
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e) return JS_UNDEFINED;\nif (argc < 1 || !JS_IsObject(argv[0]))\n    return JS_ThrowTypeError(ctx, \"gizmo.attach() requires an object\");\n\ne->gizmo().setJSContext(ctx);\nconst char* keys[] = {\n    \"position\", \"orientation\", \"beginDrag\", \"translate\",\n    \"rotate\", \"scale\", \"endDrag\", \"hoverChange\"\n};\nfor (const char* k : keys) {\n    JSValue v = JS_GetPropertyStr(ctx, argv[0], k);\n    int slot = slotFromName(k);\n    if (slot >= 0) {\n        if (JS_IsFunction(ctx, v)) {\n            e->gizmo().setCallback(slot, v);\n        } else if (!JS_IsUndefined(v)) {\n            e->gizmo().setCallback(slot, JS_UNDEFINED);\n        }\n    }\n    JS_FreeValue(ctx, v);\n}\ne->gizmo().show();\nreturn JS_UNDEFINED;"]
+  void attach(GizmoHandlers handlers);
+
+  /**
+   * Detach all interaction handlers, clear callbacks, and hide the gizmo.
+   */
+  [cpp_body="auto* e = getEngine(ctx);\nif (!e) return JS_UNDEFINED;\nfor (int i = 0; i < engine::GizmoManager::CB_COUNT; ++i) {\n    e->gizmo().setCallback(i, JS_UNDEFINED);\n}\ne->gizmo().hide();\nreturn JS_UNDEFINED;"]
+  void detach();
+};

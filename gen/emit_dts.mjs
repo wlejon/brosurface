@@ -418,6 +418,14 @@ function getAttr(node, name) {
 
   chunks.push(`}\n`);
 
+  // Global variable declarations via [global_var="..."] or [js_global="..."] or non-bro [js_alias="..."]
+  for (const iface of interfaces) {
+    const gVar = getAttr(iface, 'global_var') || getAttr(iface, 'js_global') || (getAttr(iface, 'js_alias') && !getAttr(iface, 'js_alias').startsWith('bro.') ? getAttr(iface, 'js_alias') : null);
+    if (gVar && typeof gVar === 'string') {
+      chunks.push(`\ndeclare const ${gVar}: ${iface.name};\n`);
+    }
+  }
+
   return chunks.join('');
 }
 

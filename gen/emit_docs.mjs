@@ -1,6 +1,6 @@
 // gen/emit_docs.mjs - Generic AST-Driven Documentation Page Emitter for brosurface
 // Consumes validated AST from schema/parser.mjs and emits out/docs/<name>-api.js
-// Zero per-namespace hardcoded text or conditionals.
+// Zero per-namespace hardcoded strings or conditionals.
 
 import fs from 'fs';
 import path from 'path';
@@ -143,7 +143,7 @@ export function typeToDoc(typeNode) {
  *   params: Map<string, string>,
  *   returns: string,
  *   examples: string[],
- *   tags: Array<{tag: string, text: string}>
+ *   tags: Array<{tag: string, content: string}>
  * }}
  */
 export function parseDocTags(rawDoc) {
@@ -181,7 +181,7 @@ export function parseDocTags(rawDoc) {
     } else if (currentTag === 'example') {
       result.examples.push(currentTagText.trim());
     } else {
-      result.tags.push({ tag: currentTag, text: currentTagText.trim() });
+      result.tags.push({ tag: currentTag, content: currentTagText.trim() });
     }
     currentTag = null;
     currentTagText = '';
@@ -267,7 +267,7 @@ export function formatMemberDoc(rawDoc, parameters = [], returnType = null, opti
 
   // Other tags
   for (const t of parsed.tags) {
-    lines.push(`@${t.tag} ${t.text}`);
+    lines.push(`@${t.tag} ${t.content}`);
   }
 
   // @example tags

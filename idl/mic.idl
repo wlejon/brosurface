@@ -1,0 +1,187 @@
+/**
+ * =============================================================================
+ * bro.mic — live mic chunk consumer (fixed-size frames)
+ * =============================================================================
+ *
+ * A general-purpose live-microphone consumer built on broaudio's multi-consumer
+ * mic-tap dispatch. Where bro.wake feeds a model that does its own internal
+ * framing, bro.mic asks broaudio for FIXED-SIZE frames (chunkFrames) and hands
+ * each one to JS at a steady cadence: the worked example of broaudio's
+ * chunkFrames feature. A 16 kHz / 160-frame tap yields exactly one onChunk per
+ * 10 ms of audio (100 chunks/sec).
+ *
+ * broaudio owns the whole capture-side DSP: the polyphase resampler (mic rate →
+ * targetRate), the AGC, and the fixed-size chunk slicing. The tap callback runs
+ * on the audio thread and only summarises each frame (peak + RMS) into a
+ * lock-free ring; onChunk is drained on the JS main thread once per engine
+ * frame, so you can safely touch the DOM from it.
+ *
+ * Multiple mic consumers coexist: bro.mic and bro.wake each register their own
+ * tap and both fan out from the same captured audio, so there are no
+ * last-writer-wins races over the mic.
+ *
+ * @example
+ *   // Start live mic capture delivering 10ms chunks
+ *   bro.mic.start({
+ *     chunkFrames: 160,
+ *     targetRate: 16000,
+ *     agc: false,
+ *     onChunk: (c) => console.log("Chunk index: " + c.index + " peak: " + c.peak),
+ *   });
+ *
+ * @example
+ *   // Headless / synthetic feed
+ *   bro.mic.start({ chunkFrames: 160, targetRate: 16000, live: false });
+ *   const synth = new Float32Array(16000);
+ *   bro.mic.feed(synth, bro.mic.engineRate());
+ *   const s = bro.mic.stats();
+ *   if (s) console.log("Total chunks: " + s.chunkCount);
+ */
+
+/**
+ * Options for configuring and starting live mic stream capture.
+ */
+dictionary MicStartOptions {
+  /** Samples per chunk measured at targetRate (default 160 = 10ms @ 16kHz). 0 = resampler cadence. */
+  long chunkFrames;
+
+  /** Sample rate delivered to callback in Hz (default 16000). 0 = engine native rate. */
+  long targetRate;
+
+  /** Enable broaudio peak-track AGC (default false). */
+  boolean agc;
+
+  /** Open recording device (default true). Set false for offline/feed testing. */
+  boolean live;
+
+  /** Deliver raw Float32Array PCM samples in onChunk callback (default false). */
+  boolean samples;
+
+  /** Callback invoked per chunk on the main thread: (chunk: MicChunk) => void. */
+  Function onChunk;
+
+  /** AGC target peak level in [0, 1] (default 0.95). */
+  unrestricted double targetPeak;
+
+  /** AGC running-peak decay half-life in seconds. */
+  unrestricted double halfLifeSec;
+
+  /** AGC noise gate threshold (chunks below this do not raise running peak). */
+  unrestricted double noiseGate;
+
+  /** AGC maximum gain clamp. */
+  unrestricted double maxGain;
+};
+
+/**
+ * Diagnostic statistics for the active microphone tap and chunk ring.
+ */
+dictionary MicStats {
+  /** Total callback invocations / chunks delivered. */
+  long long framesDelivered;
+
+  /** Total audio samples handed to callback. */
+  long long samplesDelivered;
+
+  /** Rolling peak level post-AGC in range [0, 1]. */
+  unrestricted double rollingPeak;
+
+  /** Total chunks published to lock-free ring. */
+  long long chunkCount;
+
+  /** Number of chunks dropped due to main-thread backlog. */
+  long long dropped;
+
+  /** Configured frame count per chunk. */
+  long chunkFrames;
+};
+
+/**
+ * Individual audio chunk structure delivered to onChunk callbacks.
+ */
+dictionary MicChunk {
+  /** Absolute monotonic chunk sequence counter. */
+  long long index;
+
+  /** Peak amplitude for this chunk in range [0, 1]. */
+  unrestricted double peak;
+
+  /** Root Mean Square (RMS) energy level for this chunk. */
+  unrestricted double rms;
+
+  /** Raw PCM sample buffer (present when opts.samples = true). */
+  Float32Array samples;
+};
+
+/**
+ * Real-time microphone audio capture and fixed-size chunk streaming namespace.
+ */
+[
+  cpp_file="mic_bindings.cpp",
+  cpp_header="js/mic_bindings.h",
+  cpp_includes="<broaudio/engine.h>\n<broaudio/mic_tap.h>\n<qjsbind/qjsbind.h>\n<quickjs.h>\n<atomic>\n<cmath>\n<cstdint>\n<cstdio>\n<cstring>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="installMicBindings",
+  install_signature="void installMicBindings(JSContext* ctx, broaudio::Engine* audioEngine)",
+  install_prologue="g_mic.audioEngine = audioEngine;\ng_mic.ctx         = ctx;",
+  prefix="bro.",
+  cpp_prologue="namespace {\n\nconstexpr int kMicRing = 4096;\n\nstruct MicState {\n    broaudio::Engine* audioEngine = nullptr;\n    JSContext*        ctx         = nullptr;\n\n    JSValue            onChunk = JS_UNDEFINED;\n    broaudio::MicTapId tapId   = broaudio::kInvalidMicTapId;\n    int                chunkFrames = 0;\n\n    std::atomic<int>      peakRingX10000[kMicRing];\n    std::atomic<int>      rmsRingX10000[kMicRing];\n    std::atomic<uint64_t> writeCount{0};\n    std::atomic<uint64_t> dropped{0};\n\n    bool               wantSamples = false;\n    std::vector<float> sampleRing;\n\n    uint64_t lastFired = 0;\n\n    bool active = false;\n};\n\nMicState g_mic;\n\nvoid shutdownActiveMic() {\n    if (!g_mic.active) return;\n    if (g_mic.audioEngine && g_mic.tapId != broaudio::kInvalidMicTapId) {\n        g_mic.audioEngine->removeMicTap(g_mic.tapId);\n    }\n    g_mic.tapId = broaudio::kInvalidMicTapId;\n    if (g_mic.ctx && !JS_IsUndefined(g_mic.onChunk)) {\n        JS_FreeValue(g_mic.ctx, g_mic.onChunk);\n        g_mic.onChunk = JS_UNDEFINED;\n    }\n    g_mic.writeCount.store(0, std::memory_order_relaxed);\n    g_mic.dropped.store(0, std::memory_order_relaxed);\n    g_mic.lastFired = 0;\n    g_mic.chunkFrames = 0;\n    g_mic.wantSamples = false;\n    g_mic.sampleRing.clear();\n    g_mic.active = false;\n}\n\nbool getNum(JSContext* ctx, JSValueConst obj, const char* key, double& dst) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool ok = false;\n    if (JS_IsNumber(v)) { JS_ToFloat64(ctx, &dst, v); ok = true; }\n    JS_FreeValue(ctx, v);\n    return ok;\n}\n\nbool getInt(JSContext* ctx, JSValueConst obj, const char* key, int& dst) {\n    double d = dst;\n    if (getNum(ctx, obj, key, d)) { dst = static_cast<int>(d); return true; }\n    return false;\n}\n\nbool getBool(JSContext* ctx, JSValueConst obj, const char* key, bool& dst) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool ok = false;\n    if (JS_IsBool(v)) { dst = JS_ToBool(ctx, v) != 0; ok = true; }\n    JS_FreeValue(ctx, v);\n    return ok;\n}\n\n} // namespace",
+  cpp_epilogue="void tickMic(JSContext* ctx) {\n    if (!g_mic.active) return;\n    const uint64_t w = g_mic.writeCount.load(std::memory_order_acquire);\n    if (w == g_mic.lastFired) return;\n    if (JS_IsUndefined(g_mic.onChunk)) { g_mic.lastFired = w; return; }\n\n    uint64_t start = g_mic.lastFired;\n    if (w - start > static_cast<uint64_t>(kMicRing)) {\n        g_mic.dropped.fetch_add(w - start - kMicRing, std::memory_order_relaxed);\n        start = w - kMicRing;\n    }\n    for (uint64_t i = start; i < w; ++i) {\n        const int slot = static_cast<int>(i % kMicRing);\n        const int pk  = g_mic.peakRingX10000[slot].load(std::memory_order_relaxed);\n        const int rms = g_mic.rmsRingX10000[slot].load(std::memory_order_relaxed);\n        JSValue o = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, o, \"index\", JS_NewInt64(ctx, static_cast<int64_t>(i)));\n        JS_SetPropertyStr(ctx, o, \"peak\",  JS_NewFloat64(ctx, pk / 10000.0));\n        JS_SetPropertyStr(ctx, o, \"rms\",   JS_NewFloat64(ctx, rms / 10000.0));\n        if (g_mic.wantSamples) {\n            const float* src = g_mic.sampleRing.data()\n                + static_cast<size_t>(slot) * static_cast<size_t>(g_mic.chunkFrames);\n            JS_SetPropertyStr(ctx, o, \"samples\",\n                qjsbind::make_float32_array(ctx, src,\n                    static_cast<size_t>(g_mic.chunkFrames)));\n        }\n        JSValue argv[1] = { o };\n        JSValue r = JS_Call(ctx, g_mic.onChunk, JS_UNDEFINED, 1, argv);\n        if (JS_IsException(r)) {\n            JSValue exc = JS_GetException(ctx);\n            const char* s = JS_ToCString(ctx, exc);\n            std::fprintf(stderr, \"[ERROR] [mic] onChunk threw: %s\\n\", s ? s : \"?\");\n            if (s) JS_FreeCString(ctx, s);\n            JS_FreeValue(ctx, exc);\n        }\n        JS_FreeValue(ctx, r);\n        JS_FreeValue(ctx, o);\n    }\n    g_mic.lastFired = w;\n}\n\nvoid cleanupMicBindings(JSContext* /*ctx*/) {\n    shutdownActiveMic();\n    g_mic.audioEngine = nullptr;\n    g_mic.ctx         = nullptr;\n}"
+]
+namespace mic {
+  /**
+   * Register a microphone tap and start chunk delivery.
+   *
+   * @param opts Capture configuration options
+   */
+  [cpp_body="if (!g_mic.audioEngine) {\n    return JS_ThrowInternalError(ctx, \"bro.mic.start: audio engine not available\");\n}\nJSValueConst opts = (argc >= 1 && JS_IsObject(argv[0])) ? argv[0] : JS_UNDEFINED;\nint  chunkFrames = 160;\nint  targetRate  = 16000;\nbool agc         = false;\nbool live        = true;\nbool samples     = false;\nbroaudio::AgcConfig agcCfg;\nJSValue onChunkVal = JS_UNDEFINED;\nif (!JS_IsUndefined(opts)) {\n    getInt(ctx, opts, \"chunkFrames\", chunkFrames);\n    getInt(ctx, opts, \"targetRate\", targetRate);\n    getBool(ctx, opts, \"agc\", agc);\n    getBool(ctx, opts, \"live\", live);\n    getBool(ctx, opts, \"samples\", samples);\n    double d;\n    if (getNum(ctx, opts, \"targetPeak\",  d)) agcCfg.targetPeak  = static_cast<float>(d);\n    if (getNum(ctx, opts, \"halfLifeSec\", d)) agcCfg.halfLifeSec = static_cast<float>(d);\n    if (getNum(ctx, opts, \"noiseGate\",   d)) agcCfg.noiseGate   = static_cast<float>(d);\n    if (getNum(ctx, opts, \"maxGain\",     d)) agcCfg.maxGain     = static_cast<float>(d);\n    onChunkVal = JS_GetPropertyStr(ctx, opts, \"onChunk\");\n    if (!JS_IsUndefined(onChunkVal) && !JS_IsFunction(ctx, onChunkVal)) {\n        JS_FreeValue(ctx, onChunkVal);\n        return JS_ThrowTypeError(ctx, \"bro.mic.start: opts.onChunk must be a function\");\n    }\n}\nif (chunkFrames < 0 || targetRate < 0) {\n    JS_FreeValue(ctx, onChunkVal);\n    return JS_ThrowRangeError(ctx, \"bro.mic.start: chunkFrames and targetRate must be >= 0\");\n}\nif (samples && chunkFrames <= 0) {\n    JS_FreeValue(ctx, onChunkVal);\n    return JS_ThrowRangeError(ctx, \"bro.mic.start: opts.samples needs a fixed chunkFrames (> 0)\");\n}\nshutdownActiveMic();\nbroaudio::MicTapConfig cfg;\ncfg.targetRate  = targetRate;\ncfg.chunkFrames = chunkFrames;\ncfg.agc         = agc;\ncfg.agcCfg      = agcCfg;\ng_mic.ctx         = ctx;\ng_mic.chunkFrames = chunkFrames;\ng_mic.onChunk     = JS_IsFunction(ctx, onChunkVal) ? JS_DupValue(ctx, onChunkVal) : JS_UNDEFINED;\nJS_FreeValue(ctx, onChunkVal);\ng_mic.wantSamples = samples;\nif (samples) {\n    g_mic.sampleRing.assign(static_cast<size_t>(kMicRing) * static_cast<size_t>(chunkFrames), 0.0f);\n}\ng_mic.writeCount.store(0, std::memory_order_relaxed);\ng_mic.dropped.store(0, std::memory_order_relaxed);\ng_mic.lastFired = 0;\ng_mic.tapId = g_mic.audioEngine->addMicTap(cfg, [](const float* samples, int n) {\n    if (n <= 0) return;\n    float peak = 0.0f, sumSq = 0.0f;\n    for (int i = 0; i < n; ++i) {\n        const float a = std::fabs(samples[i]);\n        if (a > peak) peak = a;\n        sumSq += samples[i] * samples[i];\n    }\n    const float rms = std::sqrt(sumSq / static_cast<float>(n));\n    const uint64_t idx = g_mic.writeCount.load(std::memory_order_relaxed);\n    const int slot = static_cast<int>(idx % kMicRing);\n    g_mic.peakRingX10000[slot].store(static_cast<int>(peak * 10000.0f), std::memory_order_relaxed);\n    g_mic.rmsRingX10000[slot].store(static_cast<int>(rms * 10000.0f), std::memory_order_relaxed);\n    if (g_mic.wantSamples) {\n        const int cf = g_mic.chunkFrames;\n        const int m  = n < cf ? n : cf;\n        float* dst = g_mic.sampleRing.data() + static_cast<size_t>(slot) * static_cast<size_t>(cf);\n        std::memcpy(dst, samples, static_cast<size_t>(m) * sizeof(float));\n        if (m < cf) std::memset(dst + m, 0, static_cast<size_t>(cf - m) * sizeof(float));\n    }\n    g_mic.writeCount.store(idx + 1, std::memory_order_release);\n});\nif (g_mic.tapId == broaudio::kInvalidMicTapId) {\n    shutdownActiveMic();\n    return JS_ThrowInternalError(ctx, \"bro.mic.start: addMicTap failed\");\n}\nif (live && !g_mic.audioEngine->isMicCapturing()) {\n    g_mic.audioEngine->startMicCapture();\n}\ng_mic.active = true;\nreturn JS_UNDEFINED;"]
+  void start(optional MicStartOptions opts);
+
+  /**
+   * Stop active microphone capture tap and free callback references.
+   */
+  [cpp_body="shutdownActiveMic();\nreturn JS_UNDEFINED;"]
+  void stop();
+
+  /**
+   * Check whether a microphone capture tap is currently registered and active.
+   *
+   * @returns Whether capture is active
+   */
+  [cpp_body="return JS_NewBool(ctx, g_mic.active);"]
+  boolean isActive();
+
+  /**
+   * Query the engine's native microphone sample rate in Hz.
+   *
+   * @returns Native sample rate
+   */
+  [cpp_body="return JS_NewInt32(ctx, g_mic.audioEngine ? g_mic.audioEngine->sampleRate() : 0);"]
+  long engineRate();
+
+  /**
+   * Query diagnostic snapshot of tap statistics and ring buffers.
+   *
+   * @returns Tap statistics snapshot or null if inactive
+   */
+  [cpp_body="if (!g_mic.active || !g_mic.audioEngine || g_mic.tapId == broaudio::kInvalidMicTapId) return JS_NULL;\nauto s = g_mic.audioEngine->getMicTapStats(g_mic.tapId);\nJSValue o = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, o, \"framesDelivered\", JS_NewInt64(ctx, static_cast<int64_t>(s.framesDelivered)));\nJS_SetPropertyStr(ctx, o, \"samplesDelivered\", JS_NewInt64(ctx, static_cast<int64_t>(s.samplesDelivered)));\nJS_SetPropertyStr(ctx, o, \"rollingPeak\", JS_NewFloat64(ctx, s.rollingPeak));\nJS_SetPropertyStr(ctx, o, \"chunkCount\", JS_NewInt64(ctx, static_cast<int64_t>(g_mic.writeCount.load(std::memory_order_acquire))));\nJS_SetPropertyStr(ctx, o, \"dropped\", JS_NewInt64(ctx, static_cast<int64_t>(g_mic.dropped.load(std::memory_order_relaxed))));\nJS_SetPropertyStr(ctx, o, \"chunkFrames\", JS_NewInt32(ctx, g_mic.chunkFrames));\nreturn o;"]
+  MicStats? stats();
+
+  /**
+   * Get array of recent peak amplitude levels for meter rendering.
+   *
+   * @param maxCount Maximum number of recent level samples to return
+   * @returns Array of floating-point peak levels
+   */
+  [cpp_body="int maxCount = kMicRing;\nif (argc >= 1 && JS_IsNumber(argv[0])) {\n    int32_t r = 0; JS_ToInt32(ctx, &r, argv[0]);\n    if (r >= 0 && r < maxCount) maxCount = r;\n}\nconst uint64_t w = g_mic.writeCount.load(std::memory_order_acquire);\nint avail = static_cast<int>(w < static_cast<uint64_t>(kMicRing) ? w : static_cast<uint64_t>(kMicRing));\nint count = avail < maxCount ? avail : maxCount;\nJSValue arr = JS_NewArray(ctx);\nfor (int k = 0; k < count; ++k) {\n    const uint64_t i = w - static_cast<uint64_t>(count) + static_cast<uint64_t>(k);\n    const int pk = g_mic.peakRingX10000[i % kMicRing].load(std::memory_order_relaxed);\n    JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(k), JS_NewFloat64(ctx, pk / 10000.0));\n}\nreturn arr;"]
+  sequence<unrestricted double> levels(optional long maxCount);
+
+  /**
+   * Feed synthetic microphone audio samples for offline and headless testing.
+   *
+   * @param samples Float32Array PCM samples at engine rate
+   * @param sampleRate Optional expected sample rate (must match engine rate)
+   */
+  [cpp_body="if (!g_mic.active) return JS_ThrowInternalError(ctx, \"bro.mic.feed: not started\");\nif (!g_mic.audioEngine) return JS_ThrowInternalError(ctx, \"bro.mic.feed: audio engine not available\");\nif (g_mic.audioEngine->isMicCapturing()) return JS_ThrowInternalError(ctx, \"bro.mic.feed: cannot feed while live mic capture is active\");\nif (argc < 1) return JS_ThrowTypeError(ctx, \"bro.mic.feed(Float32Array, sampleRate?)\");\nsize_t byteOff = 0, viewLen = 0, bpe = 0;\nJSValue abuf = JS_GetTypedArrayBuffer(ctx, argv[0], &byteOff, &viewLen, &bpe);\nif (JS_IsException(abuf)) return JS_EXCEPTION;\nsize_t abufLen = 0;\nuint8_t* p = JS_GetArrayBuffer(ctx, &abufLen, abuf);\nJS_FreeValue(ctx, abuf);\nif (!p || bpe != sizeof(float)) return JS_ThrowTypeError(ctx, \"bro.mic.feed: argument must be a Float32Array\");\nconst int n = static_cast<int>(viewLen / sizeof(float));\nconst int engineRate = g_mic.audioEngine->sampleRate();\nif (argc >= 2 && JS_IsNumber(argv[1])) {\n    int32_t r = 0; JS_ToInt32(ctx, &r, argv[1]);\n    if (r > 0 && r != engineRate) return JS_ThrowTypeError(ctx, \"bro.mic.feed: sampleRate=%d must equal engine mic rate=%d\", r, engineRate);\n}\ng_mic.audioEngine->injectMicSamples(reinterpret_cast<const float*>(p + byteOff), n);\nreturn JS_UNDEFINED;"]
+  void feed(Float32Array samples, optional long sampleRate);
+};

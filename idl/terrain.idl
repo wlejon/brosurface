@@ -1,0 +1,275 @@
+/**
+ * =============================================================================
+ * bro Terrain API — Chunked Noise & Heightfield Terrain System
+ * =============================================================================
+ *
+ * Chunked terrain manager: noise-driven height fields with optional LOD
+ * rings. All heavy lifting (noise, heightmaps, meshing, chunk lifecycle)
+ * runs in C++ via TerrainManager. JS configures, drives the camera-following
+ * update, edits the surface, and reads picks.
+ *
+ * Storage is one float height per grid column, not a 3D occupancy grid:
+ *   - No overhangs, caves, arches, or floating geometry.
+ *   - raycast() tests LOD-0 chunks only.
+ *
+ * Created via the scene graph:
+ *   const scene = canvas.getContext("scene");
+ *   const terrain = scene.createTerrain(opts);
+ *
+ * Call terrain.update(camX, camY, camZ) each frame to stream chunks around the camera.
+ *
+ * @example
+ *   // Create and initialize terrain in scene
+ *   const terrain = scene.createTerrain({
+ *     chunkSize: [64, 48, 64],
+ *     cellSize: 1.0,
+ *     loadRadius: 4,
+ *     unloadRadius: 6,
+ *     noise: { frequency: 0.035, octaves: 5, gain: 0.5, lacunarity: 2.0 },
+ *     baseHeight: 18,
+ *     heightAmplitude: 16,
+ *     seaLevel: 14,
+ *   });
+ *
+ * @example
+ *   // Per-frame camera update
+ *   function onFrame(camPos) {
+ *     const loadedCount = terrain.update(camPos.x, camPos.y, camPos.z);
+ *     if (loadedCount > 0) terrain.rebuild();
+ *   }
+ *
+ * @example
+ *   // Raycasting and surface editing
+ *   const hit = terrain.raycast([0, 50, 0], [0, -1, 0], 100);
+ *   if (hit) {
+ *     terrain.setVoxel(hit.position[0], hit.position[1], hit.position[2], 0);
+ *     terrain.rebuild();
+ *   }
+ */
+
+/**
+ * Fractal Brownian Motion (FBm) noise generator configuration for procedural terrain.
+ */
+dictionary TerrainNoiseConfig {
+  /** Base frequency of the noise generator (default ~0.035). */
+  unrestricted double frequency;
+
+  /** Number of noise octaves to blend (default 5). */
+  long octaves;
+
+  /** Octave gain multiplier (default 0.5). */
+  unrestricted double gain;
+
+  /** Octave lacunarity frequency multiplier (default 2.0). */
+  unrestricted double lacunarity;
+};
+
+/**
+ * Terrain creation and generation options bag.
+ */
+dictionary TerrainConfig {
+  /** Grid cells per chunk [x, y, z] (default [64, 48, 64]). */
+  sequence<long> chunkSize;
+
+  /** World units per cell (default 1.0). */
+  unrestricted double cellSize;
+
+  /** Manhattan distance in chunks to load around camera (default 4). */
+  long loadRadius;
+
+  /** Manhattan distance in chunks beyond which chunks are freed (default 6). */
+  long unloadRadius;
+
+  /** Maximum chunk loads allowed per update call (default 2). */
+  long maxLoadsPerUpdate;
+
+  /** Random seed for procedural generation (default 1337). */
+  long seed;
+
+  /** Procedural noise generator settings. */
+  TerrainNoiseConfig noise;
+
+  /** Average column base height in cells (default 18). */
+  long baseHeight;
+
+  /** Peak height variation amplitude in cells (default 16). */
+  long heightAmplitude;
+
+  /** Water / sea level altitude in cells (default 14). */
+  long seaLevel;
+
+  /** Mesh generation mode (0 = smooth, 1 = flat, 2 = terraced, 3 = blocky). */
+  long meshMode;
+
+  /** Terrace step height for meshMode=2 (default 1.0). */
+  unrestricted double terraceStep;
+
+  /** Continental amplitude modulation frequency (0.0 = disabled). */
+  unrestricted double continentFrequency;
+
+  /** Continental height multiplier minimum (default 0.1). */
+  unrestricted double continentMin;
+
+  /** Continental height multiplier maximum (default 1.5). */
+  unrestricted double continentMax;
+
+  /** Large-scale mountain noise frequency (0.0 = disabled). */
+  unrestricted double mountainFrequency;
+
+  /** Large-scale mountain amplitude addition (0.0 = disabled). */
+  unrestricted double mountainAmplitude;
+
+  /** Octave count for mountain layer (default 3). */
+  long mountainOctaves;
+
+  /** Number of concentric LOD rings (1 = uniform, default 1). */
+  long lodLevels;
+
+  /** Scale multiplier between successive LOD rings (default 4). */
+  long lodScaleFactor;
+
+  /** Planetary curvature radius (0.0 = flat plane, 6371000 = Earth radius). */
+  unrestricted double planetRadius;
+
+  /** World-space origin offset [x, y, z] for multi-planet setups. */
+  sequence<unrestricted double> origin;
+
+  /** Per-material RGBA palette (4 floats per material ID; index 0 is air). */
+  Float32Array palette;
+};
+
+/**
+ * Result structure returned by terrain raycasting queries.
+ */
+dictionary TerrainRaycastResult {
+  /** Whether the ray intersected loaded terrain geometry. */
+  boolean hit;
+
+  /** Distance from ray origin to intersection point in world units. */
+  unrestricted double distance;
+
+  /** World-space intersection coordinates [x, y, z]. */
+  sequence<unrestricted double> position;
+
+  /** Surface normal vector [nx, ny, nz] at the hit point. */
+  sequence<unrestricted double> normal;
+
+  /** Coordinates of the chunk containing the hit [chunkX, chunkZ]. */
+  sequence<long> chunk;
+
+  /** Local voxel coordinates within the chunk [vx, vy, vz]. */
+  sequence<long> voxel;
+
+  /** Material ID at the hit location. */
+  long material;
+};
+
+/**
+ * Chunked procedural and heightmap terrain manager instance.
+ */
+[
+  cpp_file="terrain_bindings.cpp",
+  cpp_header="js/terrain_bindings.h",
+  cpp_includes="<qjsbind/qjsbind.h>\n\"scene/terrain_manager.h\"\n\"scene/scene_graph.h\"\n\"js/scene_bindings.h\"\n\"util/log.h\"\n<cstring>\n<string>\n<unordered_set>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="TerrainBindings::install",
+  cpp_guard="BRO_WITH_3D",
+  gate="BRO_WITH_3D",
+  cpp_prologue="struct TerrainWrapper {\n    std::unique_ptr<scene::TerrainManager> manager;\n    JSContext* cbCtx = nullptr;\n    JSValue    heightSource = JS_UNDEFINED;\n    bool       hasHeightSource = false;\n\n    explicit TerrainWrapper(std::unique_ptr<scene::TerrainManager> mgr)\n        : manager(std::move(mgr)) { allInstances().insert(this); }\n    ~TerrainWrapper() {\n        if (hasHeightSource && cbCtx) JS_FreeValue(cbCtx, heightSource);\n        allInstances().erase(this);\n    }\n\n    static std::unordered_set<TerrainWrapper*>& allInstances() {\n        static std::unordered_set<TerrainWrapper*> s;\n        return s;\n    }\n};\n\nusing TW = TerrainWrapper;\n\nstatic scene::TerrainConfig parseConfig(JSContext* ctx, JSValueConst opts) {\n    scene::TerrainConfig cfg;\n    JSValue cs = JS_GetPropertyStr(ctx, opts, \"chunkSize\");\n    if (JS_IsArray(cs)) {\n        JSValue cx = JS_GetPropertyUint32(ctx, cs, 0);\n        JSValue cy = JS_GetPropertyUint32(ctx, cs, 1);\n        JSValue cz = JS_GetPropertyUint32(ctx, cs, 2);\n        double vx = 64, vy = 48, vz = 64;\n        JS_ToFloat64(ctx, &vx, cx); JS_ToFloat64(ctx, &vy, cy); JS_ToFloat64(ctx, &vz, cz);\n        cfg.chunkSizeX = (int)vx; cfg.chunkSizeY = (int)vy; cfg.chunkSizeZ = (int)vz;\n        JS_FreeValue(ctx, cx); JS_FreeValue(ctx, cy); JS_FreeValue(ctx, cz);\n    }\n    JS_FreeValue(ctx, cs);\n    cfg.cellSize = (float)qjsbind::get_prop_number(ctx, opts, \"cellSize\", cfg.cellSize);\n    cfg.loadRadius = qjsbind::get_prop_int(ctx, opts, \"loadRadius\", cfg.loadRadius);\n    cfg.unloadRadius = qjsbind::get_prop_int(ctx, opts, \"unloadRadius\", cfg.unloadRadius);\n    cfg.maxLoadsPerUpdate = qjsbind::get_prop_int(ctx, opts, \"maxLoadsPerUpdate\", cfg.maxLoadsPerUpdate);\n    cfg.seed = qjsbind::get_prop_int(ctx, opts, \"seed\", cfg.seed);\n    cfg.baseHeight = qjsbind::get_prop_int(ctx, opts, \"baseHeight\", cfg.baseHeight);\n    cfg.heightAmplitude = qjsbind::get_prop_int(ctx, opts, \"heightAmplitude\", cfg.heightAmplitude);\n    cfg.seaLevel = qjsbind::get_prop_int(ctx, opts, \"seaLevel\", cfg.seaLevel);\n    cfg.meshMode = qjsbind::get_prop_int(ctx, opts, \"meshMode\", cfg.meshMode);\n    cfg.terraceStep = (float)qjsbind::get_prop_number(ctx, opts, \"terraceStep\", cfg.terraceStep);\n    cfg.continentFrequency = (float)qjsbind::get_prop_number(ctx, opts, \"continentFrequency\", cfg.continentFrequency);\n    cfg.continentMin = (float)qjsbind::get_prop_number(ctx, opts, \"continentMin\", cfg.continentMin);\n    cfg.continentMax = (float)qjsbind::get_prop_number(ctx, opts, \"continentMax\", cfg.continentMax);\n    cfg.mountainFrequency = (float)qjsbind::get_prop_number(ctx, opts, \"mountainFrequency\", cfg.mountainFrequency);\n    cfg.mountainAmplitude = (float)qjsbind::get_prop_number(ctx, opts, \"mountainAmplitude\", cfg.mountainAmplitude);\n    cfg.mountainOctaves = qjsbind::get_prop_int(ctx, opts, \"mountainOctaves\", cfg.mountainOctaves);\n    cfg.lodLevelCount = qjsbind::get_prop_int(ctx, opts, \"lodLevels\", cfg.lodLevelCount);\n    cfg.lodScaleFactor = qjsbind::get_prop_int(ctx, opts, \"lodScaleFactor\", cfg.lodScaleFactor);\n    cfg.planetRadius = (float)qjsbind::get_prop_number(ctx, opts, \"planetRadius\", cfg.planetRadius);\n    JSValue orig = JS_GetPropertyStr(ctx, opts, \"origin\");\n    if (JS_IsArray(orig)) {\n        JSValue ox = JS_GetPropertyUint32(ctx, orig, 0);\n        JSValue oy = JS_GetPropertyUint32(ctx, orig, 1);\n        JSValue oz = JS_GetPropertyUint32(ctx, orig, 2);\n        double vx = 0, vy = 0, vz = 0;\n        JS_ToFloat64(ctx, &vx, ox); JS_ToFloat64(ctx, &vy, oy); JS_ToFloat64(ctx, &vz, oz);\n        cfg.origin = {(float)vx, (float)vy, (float)vz};\n        JS_FreeValue(ctx, ox); JS_FreeValue(ctx, oy); JS_FreeValue(ctx, oz);\n    }\n    JS_FreeValue(ctx, orig);\n    JSValue noise = JS_GetPropertyStr(ctx, opts, \"noise\");\n    if (JS_IsObject(noise)) {\n        cfg.noiseFrequency = (float)qjsbind::get_prop_number(ctx, noise, \"frequency\", cfg.noiseFrequency);\n        cfg.noiseOctaves = qjsbind::get_prop_int(ctx, noise, \"octaves\", cfg.noiseOctaves);\n        cfg.noiseGain = (float)qjsbind::get_prop_number(ctx, noise, \"gain\", cfg.noiseGain);\n        cfg.noiseLacunarity = (float)qjsbind::get_prop_number(ctx, noise, \"lacunarity\", cfg.noiseLacunarity);\n    }\n    JS_FreeValue(ctx, noise);\n    JSValue pal = JS_GetPropertyStr(ctx, opts, \"palette\");\n    if (!JS_IsUndefined(pal)) {\n        size_t offset = 0, byteLen = 0, bpe = 0;\n        JSValue abuf = JS_GetTypedArrayBuffer(ctx, pal, &offset, &byteLen, &bpe);\n        if (!JS_IsException(abuf)) {\n            size_t abufLen = 0;\n            uint8_t* raw = JS_GetArrayBuffer(ctx, &abufLen, abuf);\n            if (raw && byteLen > 0) {\n                size_t count = byteLen / sizeof(float);\n                const float* fp = reinterpret_cast<const float*>(raw + offset);\n                cfg.palette.assign(fp, fp + count);\n            }\n            JS_FreeValue(ctx, abuf);\n        } else {\n            JS_FreeValue(ctx, abuf);\n            JSValue lenVal = JS_GetPropertyStr(ctx, pal, \"length\");\n            int32_t len = 0; JS_ToInt32(ctx, &len, lenVal); JS_FreeValue(ctx, lenVal);\n            if (len > 0) {\n                cfg.palette.resize(len);\n                for (int32_t i = 0; i < len; i++) {\n                    JSValue el = JS_GetPropertyUint32(ctx, pal, i);\n                    double v = 0; JS_ToFloat64(ctx, &v, el);\n                    cfg.palette[i] = (float)v;\n                    JS_FreeValue(ctx, el);\n                }\n            }\n        }\n    }\n    JS_FreeValue(ctx, pal);\n    return cfg;\n}\n\nstatic JSValue js_terrain_raycast(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* self = qjsbind::unwrap<TW>(ctx, this_val);\n    if (!self || !self->manager || argc < 2) return JS_NULL;\n    bromath::Vec3 origin, dir;\n    JSValue o = argv[0], d = argv[1];\n    if (JS_IsArray(o)) {\n        JSValue x = JS_GetPropertyUint32(ctx, o, 0), y = JS_GetPropertyUint32(ctx, o, 1), z = JS_GetPropertyUint32(ctx, o, 2);\n        double vx = 0, vy = 0, vz = 0;\n        JS_ToFloat64(ctx, &vx, x); JS_ToFloat64(ctx, &vy, y); JS_ToFloat64(ctx, &vz, z);\n        origin = {(float)vx, (float)vy, (float)vz};\n        JS_FreeValue(ctx, x); JS_FreeValue(ctx, y); JS_FreeValue(ctx, z);\n    }\n    if (JS_IsArray(d)) {\n        JSValue x = JS_GetPropertyUint32(ctx, d, 0), y = JS_GetPropertyUint32(ctx, d, 1), z = JS_GetPropertyUint32(ctx, d, 2);\n        double vx = 0, vy = 0, vz = 0;\n        JS_ToFloat64(ctx, &vx, x); JS_ToFloat64(ctx, &vy, y); JS_ToFloat64(ctx, &vz, z);\n        dir = {(float)vx, (float)vy, (float)vz};\n        JS_FreeValue(ctx, x); JS_FreeValue(ctx, y); JS_FreeValue(ctx, z);\n    }\n    float maxDist = argc > 2 ? (float)qjsbind::Convert<double>::from_js(ctx, argv[2]) : 1000.0f;\n    auto hit = self->manager->raycast(origin, dir, maxDist);\n    if (!hit.hit) return JS_NULL;\n    JSValue res = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, res, \"hit\", JS_NewBool(ctx, true));\n    JS_SetPropertyStr(ctx, res, \"distance\", JS_NewFloat64(ctx, hit.distance));\n    JSValue pos = JS_NewArray(ctx);\n    JS_SetPropertyUint32(ctx, pos, 0, JS_NewFloat64(ctx, hit.worldPos[0]));\n    JS_SetPropertyUint32(ctx, pos, 1, JS_NewFloat64(ctx, hit.worldPos[1]));\n    JS_SetPropertyUint32(ctx, pos, 2, JS_NewFloat64(ctx, hit.worldPos[2]));\n    JS_SetPropertyStr(ctx, res, \"position\", pos);\n    JSValue norm = JS_NewArray(ctx);\n    JS_SetPropertyUint32(ctx, norm, 0, JS_NewFloat64(ctx, hit.normal[0]));\n    JS_SetPropertyUint32(ctx, norm, 1, JS_NewFloat64(ctx, hit.normal[1]));\n    JS_SetPropertyUint32(ctx, norm, 2, JS_NewFloat64(ctx, hit.normal[2]));\n    JS_SetPropertyStr(ctx, res, \"normal\", norm);\n    JSValue chunk = JS_NewArray(ctx);\n    JS_SetPropertyUint32(ctx, chunk, 0, JS_NewInt32(ctx, hit.chunk.x));\n    JS_SetPropertyUint32(ctx, chunk, 1, JS_NewInt32(ctx, hit.chunk.z));\n    JS_SetPropertyStr(ctx, res, \"chunk\", chunk);\n    JSValue vox = JS_NewArray(ctx);\n    JS_SetPropertyUint32(ctx, vox, 0, JS_NewInt32(ctx, hit.localX));\n    JS_SetPropertyUint32(ctx, vox, 1, JS_NewInt32(ctx, hit.localY));\n    JS_SetPropertyUint32(ctx, vox, 2, JS_NewInt32(ctx, hit.localZ));\n    JS_SetPropertyStr(ctx, res, \"voxel\", vox);\n    JS_SetPropertyStr(ctx, res, \"material\", JS_NewInt32(ctx, hit.material));\n    return res;\n}\n\nstatic JSValue js_terrain_configure(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* self = qjsbind::unwrap<TW>(ctx, this_val);\n    if (!self || !self->manager || argc < 1 || !JS_IsObject(argv[0])) return JS_UNDEFINED;\n    self->manager->configure(parseConfig(ctx, argv[0]));\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_terrain_invalidateRegion(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* self = qjsbind::unwrap<TW>(ctx, this_val);\n    if (!self || !self->manager) return JS_UNDEFINED;\n    if (argc < 4) return JS_ThrowTypeError(ctx, \"invalidateRegion(x0, z0, x1, z1) needs 4 numbers\");\n    double v[4];\n    for (int i = 0; i < 4; i++) {\n        if (JS_ToFloat64(ctx, &v[i], argv[i]) < 0) return JS_EXCEPTION;\n    }\n    self->manager->invalidateRegion(static_cast<float>(v[0]), static_cast<float>(v[1]),\n                                    static_cast<float>(v[2]), static_cast<float>(v[3]));\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_terrain_setHeightSource(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* self = qjsbind::unwrap<TW>(ctx, this_val);\n    if (!self || !self->manager) return JS_UNDEFINED;\n    if (self->hasHeightSource) {\n        JS_FreeValue(self->cbCtx, self->heightSource);\n        self->hasHeightSource = false;\n        self->heightSource = JS_UNDEFINED;\n    }\n    if (argc < 1 || !JS_IsFunction(ctx, argv[0])) {\n        self->manager->setHeightSource(nullptr);\n        return JS_UNDEFINED;\n    }\n    self->cbCtx = ctx;\n    self->heightSource = JS_DupValue(ctx, argv[0]);\n    self->hasHeightSource = true;\n    self->manager->setHeightSource(\n        [self](int cx, int cz, int lod, float* padded, int paddedW, int paddedH,\n               float cellSize, float worldX0, float worldZ0) -> bool {\n            JSContext* c = self->cbCtx;\n            JSValue args[8] = {\n                JS_NewInt32(c, cx),          JS_NewInt32(c, cz),\n                JS_NewInt32(c, lod),         JS_NewInt32(c, paddedW),\n                JS_NewInt32(c, paddedH),     JS_NewFloat64(c, cellSize),\n                JS_NewFloat64(c, worldX0),   JS_NewFloat64(c, worldZ0),\n            };\n            JSValue r = JS_Call(c, self->heightSource, JS_UNDEFINED, 8, args);\n            for (JSValue& a : args) JS_FreeValue(c, a);\n            if (JS_IsException(r)) {\n                JSValue e = JS_GetException(c);\n                const char* msg = JS_ToCString(c, e);\n                if (msg) {\n                    LOG_ERROR(\"terrain heightSource threw: %s\", msg);\n                    JS_FreeCString(c, msg);\n                }\n                JS_FreeValue(c, e);\n                JS_FreeValue(c, r);\n                return false;\n            }\n            if (!JS_IsObject(r)) { JS_FreeValue(c, r); return false; }\n            size_t byteOff = 0, viewLen = 0;\n            JSValue abuf = JS_GetTypedArrayBuffer(c, r, &byteOff, &viewLen, nullptr);\n            if (JS_IsException(abuf)) {\n                JS_FreeValue(c, JS_GetException(c));\n                JS_FreeValue(c, r);\n                return false;\n            }\n            size_t abufLen = 0;\n            uint8_t* ptr = JS_GetArrayBuffer(c, &abufLen, abuf);\n            const size_t want = static_cast<size_t>(paddedW) * paddedH * sizeof(float);\n            bool ok = ptr && viewLen >= want;\n            if (ok) {\n                std::memcpy(padded, ptr + byteOff, want);\n            } else if (ptr) {\n                LOG_ERROR(\"terrain heightSource returned %zu bytes, expected %zu \"\n                          \"(%dx%d padded floats) - falling back to noise\",\n                          viewLen, want, paddedW, paddedH);\n            }\n            JS_FreeValue(c, abuf);\n            JS_FreeValue(c, r);\n            return ok;\n        });\n    return JS_UNDEFINED;\n}\n\nJSValue createTerrainJS(JSContext* ctx, scene::SceneGraph* graph, JSValueConst opts) {\n    if (!graph) return JS_NULL;\n    auto mgr = std::make_unique<scene::TerrainManager>(*graph);\n    mgr->configure(parseConfig(ctx, opts));\n    auto* tw = new TerrainWrapper(std::move(mgr));\n    return qjsbind::wrap<TW>(ctx, tw);\n}\n\nvoid* terrainHandleFromJS(JSContext* ctx, JSValueConst v) {\n    auto* tw = qjsbind::unwrap<TW>(ctx, v);\n    return static_cast<void*>(tw);\n}\n\nbool terrainSampleHeight(void* handle, float x, float z,\n                         float rayStartY, float rayLength, float& outY) {\n    if (!handle) return false;\n    auto* tw = static_cast<TerrainWrapper*>(handle);\n    if (TerrainWrapper::allInstances().find(tw) == TerrainWrapper::allInstances().end() || !tw->manager) {\n        return false;\n    }\n    const bromath::Vec3 origin{x, rayStartY, z};\n    const bromath::Vec3 dir{0.0f, -1.0f, 0.0f};\n    auto hit = tw->manager->raycast(origin, dir, rayLength);\n    if (!hit.hit) return false;\n    outY = hit.worldPos[1];\n    return true;\n}",
+  install_body="qjsbind::Class<TW>(ctx, \"Terrain\")\n    .method(\"update\", [](TW* self, JSContext*, double x, double y, double z) -> int {\n        if (!self->manager) return 0;\n        return self->manager->update((float)x, (float)y, (float)z);\n    })\n    .method_raw(\"raycast\", js_terrain_raycast, 2)\n    .method(\"setVoxel\", [](TW* self, double wx, double wy, double wz, int mat) -> bool {\n        if (!self->manager) return false;\n        return self->manager->setVoxel((float)wx, (float)wy, (float)wz, (uint8_t)mat);\n    })\n    .method(\"getVoxel\", [](TW* self, double wx, double wy, double wz) -> int {\n        if (!self->manager) return 0;\n        return (int)self->manager->getVoxel((float)wx, (float)wy, (float)wz);\n    })\n    .method(\"rebuild\", [](TW* self) {\n        if (self->manager) self->manager->rebuildDirty();\n    })\n    .method_raw(\"configure\", js_terrain_configure, 1)\n    .method_raw(\"setHeightSource\", js_terrain_setHeightSource, 1)\n    .method_raw(\"invalidateRegion\", js_terrain_invalidateRegion, 4)\n    .method(\"destroy\", [](TW* self) {\n        if (self->manager) {\n            self->manager->clear();\n            self->manager.reset();\n        }\n    })\n    .get(\"chunkCount\", [](TW* self) -> int {\n        return self->manager ? self->manager->chunkCount() : 0;\n    })\n    .get(\"triangleCount\", [](TW* self) -> int {\n        return self->manager ? self->manager->totalTriangles() : 0;\n    })\n    .get(\"vertexCount\", [](TW* self) -> int {\n        return self->manager ? self->manager->totalVertices() : 0;\n    })\n    .get(\"farDistance\", [](TW* self) -> double {\n        return self->manager ? self->manager->farDistance() : 1000.0;\n    })\n    .get(\"planetRadius\", [](TW* self) -> double {\n        return self->manager ? (double)self->manager->config().planetRadius : 0.0;\n    })\n    .get(\"origin\", [](TW* self, JSContext* ctx) -> JSValue {\n        if (!self->manager) return JS_NULL;\n        auto& o = self->manager->config().origin;\n        JSValue arr = JS_NewArray(ctx);\n        JS_SetPropertyUint32(ctx, arr, 0, JS_NewFloat64(ctx, o.x));\n        JS_SetPropertyUint32(ctx, arr, 1, JS_NewFloat64(ctx, o.y));\n        JS_SetPropertyUint32(ctx, arr, 2, JS_NewFloat64(ctx, o.z));\n        return arr;\n    });",
+  cpp_epilogue="void TerrainBindings::cleanup(JSContext*) {\n    for (auto* tw : TW::allInstances()) {\n        if (tw->manager) {\n            tw->manager->clear();\n            tw->manager.reset();\n        }\n    }\n}"
+]
+interface Terrain {
+  /** Total number of currently loaded and active chunks. */
+  readonly attribute long chunkCount;
+
+  /** Total triangle count across all loaded terrain meshes. */
+  readonly attribute long triangleCount;
+
+  /** Total vertex count across all loaded terrain meshes. */
+  readonly attribute long vertexCount;
+
+  /** Effective maximum rendering distance in world units (derived from unloadRadius). */
+  readonly attribute unrestricted double farDistance;
+
+  /** Planetary curvature radius in world units (0.0 = flat plane). */
+  readonly attribute unrestricted double planetRadius;
+
+  /** World-space origin offset [x, y, z] of this terrain manager. */
+  readonly attribute sequence<unrestricted double>? origin;
+
+  /**
+   * Stream and generate terrain chunks around camera position (x, y, z) in world space.
+   *
+   * @param x Camera world X coordinate
+   * @param y Camera world Y coordinate
+   * @param z Camera world Z coordinate
+   * @returns Number of newly loaded chunks
+   */
+  long update(unrestricted double x, unrestricted double y, unrestricted double z);
+
+  /**
+   * Perform a raycast query against loaded LOD-0 terrain geometry.
+   *
+   * @param origin Ray start position [x, y, z]
+   * @param direction Ray direction vector [dx, dy, basis z]
+   * @param maxDist Maximum raycast distance in world units
+   * @returns Raycast intersection result or null
+   */
+  TerrainRaycastResult? raycast(sequence<unrestricted double> origin, sequence<unrestricted double> direction, optional unrestricted double maxDist);
+
+  /**
+   * Raise or lower the terrain height column at world coordinates (wx, wz).
+   *
+   * @param wx World X position
+   * @param wy World Y position (altitude)
+   * @param wz World Z position
+   * @param material Material / sign index (0 = lower column, >0 = raise column)
+   * @returns Whether the column was successfully modified
+   */
+  boolean setVoxel(unrestricted double wx, unrestricted double wy, unrestricted double wz, long material);
+
+  /**
+   * Test column solidity at world coordinates (wx, wy, wz).
+   *
+   * @param wx World X position
+   * @param wy World Y position
+   * @param wz World Z position
+   * @returns 1 if solid (at or below surface height), 0 if air
+   */
+  long getVoxel(unrestricted double wx, unrestricted double wy, unrestricted double wz);
+
+  /**
+   * Re-mesh dirty chunks modified by setVoxel edits.
+   */
+  void rebuild();
+
+  /**
+   * Reconfigure procedural generation parameters, noise settings, and mesh modes.
+   *
+   * @param config New terrain configuration options
+   */
+  void configure(TerrainConfig config);
+
+  /**
+   * Invalidate chunks overlapping a world-space bounding rectangle [x0, z0, x1, z1].
+   *
+   * @param x0 Minimum world X coordinate
+   * @param z0 Minimum world Z coordinate
+   * @param x1 Maximum world X coordinate
+   * @param z1 Maximum world Z coordinate
+   */
+  void invalidateRegion(unrestricted double x0, unrestricted double z0, unrestricted double x1, unrestricted double z1);
+
+  /**
+   * Install custom height provider callback function in place of built-in noise.
+   *
+   * @param fn Height source callback or null to restore procedural generator
+   */
+  void setHeightSource(Function? fn);
+
+  /**
+   * Release all terrain meshes, destroy chunk structures, and detach from scene graph.
+   */
+  void destroy();
+};

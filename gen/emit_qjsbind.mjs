@@ -1,7 +1,7 @@
 // gen/emit_qjsbind.mjs - QuickJS C++ Binding Emitter for brosurface
 // 100% generic, AST-driven emitter consuming validated IDL AST from schema/parser.mjs.
 // Emits drop-in C++ replacement translation units into out/qjs/
-// Zero per-namespace conditionals or hardcoded text.
+// Zero per-namespace conditionals or hardcoded strings.
 
 import fs from 'fs';
 import path from 'path';
@@ -44,7 +44,7 @@ export function calculateCustomLoc(def) {
   let customLines = 0;
 
   // 1. Definition-level custom code attributes
-  const defAttrs = ['cpp_prologue', 'cpp_epilogue', 'wrapper_member', 'data_member', 'getter_body', 'getter_cpp', 'setter_body', 'setter_cpp', 'cpp_body', 'cpp_call', 'stub_body'];
+  const defAttrs = ['cpp_prologue', 'cpp_epilogue', 'install_body', 'cpp_install_body', 'install_prologue', 'cpp_install_prologue', 'wrapper_member', 'data_member', 'getter_body', 'getter_cpp', 'setter_body', 'setter_cpp', 'cpp_body', 'cpp_call', 'stub_body'];
   for (const attrName of defAttrs) {
     const val = getAttr(def, attrName);
     if (typeof val === 'string' && val.trim().length > 0) {

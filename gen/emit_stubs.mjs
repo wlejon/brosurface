@@ -54,7 +54,7 @@ function getAttribute(node, attrName) {
 }
 
 /**
- * Generates the availability-stub C++ source text from a list of IDL ASTs.
+ * Generates the availability-stub C++ source code from a list of IDL ASTs.
  * @param {Array<Object>} astList - List of IDLFile AST nodes
  * @returns {{ code: string, stubCount: number, gatedSymbols: string[] }}
  */

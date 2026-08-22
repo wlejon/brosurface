@@ -160,6 +160,9 @@ declare function advanceTime(ms: number): void;
 
 declare var window: any;
 declare var document: any;
+declare var canvas: any;
+declare var scene: any;
+declare var terrain: any;
 declare var THREE: any;
 declare var useTexture: (file: any) => void;
 declare var myButton: any;

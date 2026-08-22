@@ -1,7 +1,7 @@
 // gen/emit_bronze_host.mjs - Bronze Host C++ Binding and Manifest Emitter for brosurface
 // 100% generic, AST-driven emitter consuming validated IDL AST from schema/parser.mjs.
 // Emits drop-in C++ replacement translation units into out/bronze_host/
-// Zero per-namespace conditionals or hardcoded text.
+// Zero per-namespace conditionals or hardcoded strings.
 
 import fs from 'fs';
 import path from 'path';
