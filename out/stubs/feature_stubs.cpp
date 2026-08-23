@@ -13,15 +13,36 @@
 
 #include "js/feature_stub.h"
 
+#include "js/tween_bindings.h"
+#include "js/clipmapterrain_bindings.h"
 #include "js/gizmo_bindings.h"
 #include "js/gpu_bindings.h"
+#include "js/lightnode_bindings.h"
 #include "js/lm_bindings.h"
+#include "js/mesh_bindings.h"
 #include "js/motion_bindings.h"
 #include "js/rave_bindings.h"
+#include "js/skindata_bindings.h"
+#include "js/scenegraph_bindings.h"
 #include "js/terrain_bindings.h"
 #include "js/text_bindings.h"
+#include "js/tileworld_bindings.h"
 
 namespace bro::js {
+
+// ── TWEEN ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installTweenBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "Tween", "BRO_WITH_3D");
+}
+#endif
+
+// ── CLIPMAPTERRAIN ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installClipmapTerrainBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "ClipmapTerrain", "BRO_WITH_3D");
+}
+#endif
 
 // ── GIZMO ───────────────────────────────────────────────────────────────────────
 #if !BRO_WITH_3D
@@ -43,10 +64,24 @@ void installGpuBindings(JSContext* ctx) {
 }
 #endif
 
+// ── LIGHTNODE ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installLightNodeBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "LightNode", "BRO_WITH_3D");
+}
+#endif
+
 // ── LM ───────────────────────────────────────────────────────────────────────
 #if !BRO_WITH_LM
 void installLmBindings(JSContext* ctx) {
     installUnavailableNamespace(ctx, "lm", "BRO_WITH_LM");
+}
+#endif
+
+// ── MESH ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installMeshBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "Mesh", "BRO_WITH_3D");
 }
 #endif
 
@@ -64,6 +99,20 @@ void installRaveBindings(JSContext* ctx) {
 }
 #endif
 
+// ── SKINDATA ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installSkinDataBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "SkinData", "BRO_WITH_3D");
+}
+#endif
+
+// ── SCENEGRAPH ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installSceneGraphBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "SceneGraph", "BRO_WITH_3D");
+}
+#endif
+
 // ── TERRAIN ───────────────────────────────────────────────────────────────────────
 #if !BRO_WITH_3D
 void installTerrainBindings(JSContext* ctx) {
@@ -75,6 +124,13 @@ void installTerrainBindings(JSContext* ctx) {
 #if !BRO_WITH_TEXT_SHAPING
 void installTextBindings(JSContext* ctx) {
     installUnavailableNamespace(ctx, "text", "BRO_WITH_TEXT_SHAPING");
+}
+#endif
+
+// ── TILEWORLD ───────────────────────────────────────────────────────────────────────
+#if !BRO_WITH_3D
+void installTileWorldBindings(JSContext* ctx) {
+    installUnavailableNamespace(ctx, "TileWorld", "BRO_WITH_3D");
 }
 #endif
 
