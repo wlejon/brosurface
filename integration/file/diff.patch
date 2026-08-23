@@ -1,0 +1,2458 @@
+diff --git a/third_party/brokit/src/api/blob.cpp b/third_party/brokit/src/api/blob.cpp
+index 77b2816..e04e2b4 100644
+--- a/third_party/brokit/src/api/blob.cpp
++++ b/third_party/brokit/src/api/blob.cpp
+@@ -1,62 +1,62 @@
+ #include "api/api.h"
+ #include "runtime/runtime.h"
+-
+ #include <cstring>
+ #include <string>
+ #include <vector>
+ 
+ namespace brokit::api {
+ 
+-// Blob data is stored as an opaque pointer in the JS object.
+-// Each Blob holds a contiguous byte buffer + MIME type string.
++static thread_local JSClassID blob_class_id = 0;
+ 
+ struct BlobData {
+     std::vector<uint8_t> bytes;
+     std::string type;
+ };
+ 
+-// thread_local: each thread (main + each worker) has its own JSRuntime,
+-// so each must allocate its own class ID from that runtime's counter.
+-// Sharing across threads causes ID collisions with other classes.
+-static thread_local JSClassID blobClassId = 0;
+-static thread_local JSClassID fileClassId = 0;
++static void blob_finalizer(JSRuntime*, JSValue val)
++{
++    auto* w = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
++    delete w;
++}
++
++static JSClassDef blob_class_def = { "Blob", blob_finalizer };
++
++static thread_local JSClassID file_class_id = 0;
+ 
+-// File extends Blob — FileData embeds BlobData as its first member so methods
+-// on Blob.prototype can retrieve the underlying bytes from a File instance.
+ struct FileData {
+     BlobData blob;
+     std::string name;
+-    double lastModified;
++    double lastModified = 0;
+ };
+ 
+-static void blobFinalizer(JSRuntime*, JSValue val)
++static void file_finalizer(JSRuntime*, JSValue val)
+ {
+-    auto* data = static_cast<BlobData*>(JS_GetOpaque(val, blobClassId));
+-    delete data;
++    auto* w = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));
++    delete w;
+ }
+ 
+-static JSClassDef blobClassDef = {
+-    "Blob",
+-    blobFinalizer,
+-    nullptr, nullptr, nullptr
+-};
++static JSClassDef file_class_def = { "File", file_finalizer };
++
++static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
++                          const char* name)
++{
++    JSCFunctionType ft;
++    ft.getter = fn;
++    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
++}
+ 
+-// Helper: extract bytes from a Blob or File JS object. File extends Blob,
+-// so methods on Blob.prototype must accept File instances too.
+ static BlobData* getBlobData(JSContext* ctx, JSValueConst val)
+ {
+-    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blobClassId));
++    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
+     if (bdata) return bdata;
+-    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, fileClassId));
++    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));
+     if (fdata) return &fdata->blob;
+     JS_ThrowTypeError(ctx, "not a Blob");
+     return nullptr;
+ }
+ 
+-// Helper: flatten a single "part" (string, ArrayBuffer, TypedArray, or Blob) into bytes
+ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>& out)
+ {
+-    // String?
+     if (JS_IsString(part)) {
+         const char* str = JS_ToCString(ctx, part);
+         if (!str) return false;
+@@ -67,11 +67,9 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
+         return true;
+     }
+ 
+-    // Blob?
+-    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(part, blobClassId));
++    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(part, blob_class_id));
+     if (!bdata) {
+-        // File? (File extends Blob)
+-        auto* fdata = static_cast<FileData*>(JS_GetOpaque(part, fileClassId));
++        auto* fdata = static_cast<FileData*>(JS_GetOpaque(part, file_class_id));
+         if (fdata) bdata = &fdata->blob;
+     }
+     if (bdata) {
+@@ -79,7 +77,6 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
+         return true;
+     }
+ 
+-    // TypedArray?
+     size_t byte_offset = 0, byte_len = 0, bpe = 0;
+     JSValue buf = JS_GetTypedArrayBuffer(ctx, part, &byte_offset, &byte_len, &bpe);
+     if (!JS_IsException(buf)) {
+@@ -91,10 +88,8 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
+         JS_FreeValue(ctx, buf);
+         return true;
+     }
+-    // Clear the TypedArray exception
+     JS_FreeValue(ctx, JS_GetException(ctx));
+ 
+-    // ArrayBuffer?
+     size_t abLen = 0;
+     uint8_t* ptr = JS_GetArrayBuffer(ctx, &abLen, part);
+     if (ptr) {
+@@ -102,7 +97,6 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
+         return true;
+     }
+ 
+-    // Unknown — convert to string
+     const char* str = JS_ToCString(ctx, part);
+     if (!str) return false;
+     size_t len = strlen(str);
+@@ -112,418 +106,376 @@ static bool flattenPart(JSContext* ctx, JSValueConst part, std::vector<uint8_t>&
+     return true;
+ }
+ 
+-// new Blob(parts?, options?)
+-static JSValue js_blob_constructor(JSContext* ctx, JSValueConst new_target,
++static JSValue blob_slice(JSContext* ctx, JSValueConst this_val,
+                                     int argc, JSValueConst* argv)
+-{
+-    auto* data = new BlobData();
+-
+-    // Process parts array
+-    if (argc >= 1 && !JS_IsUndefined(argv[0]) && !JS_IsNull(argv[0])) {
+-        JSValue lengthVal = JS_GetPropertyStr(ctx, argv[0], "length");
+-        if (JS_IsException(lengthVal)) {
+-            delete data;
+-            return lengthVal;
+-        }
+-        uint32_t len = 0;
+-        JS_ToUint32(ctx, &len, lengthVal);
+-        JS_FreeValue(ctx, lengthVal);
+-
+-        for (uint32_t i = 0; i < len; i++) {
+-            JSValue item = JS_GetPropertyUint32(ctx, argv[0], i);
+-            if (JS_IsException(item)) {
+-                delete data;
+-                return item;
+-            }
+-            bool ok = flattenPart(ctx, item, data->bytes);
+-            JS_FreeValue(ctx, item);
+-            if (!ok) {
+-                delete data;
+-                return JS_EXCEPTION;
+-            }
+-        }
+-    }
+-
+-    // Process options
+-    if (argc >= 2 && JS_IsObject(argv[1])) {
+-        JSValue typeVal = JS_GetPropertyStr(ctx, argv[1], "type");
+-        if (JS_IsString(typeVal)) {
+-            const char* t = JS_ToCString(ctx, typeVal);
+-            if (t) {
+-                data->type = t;
+-                // Normalize to lowercase per spec
+-                for (auto& c : data->type) c = static_cast<char>(tolower(c));
+-                JS_FreeCString(ctx, t);
+-            }
+-        }
+-        JS_FreeValue(ctx, typeVal);
+-    }
+-
+-    // Create the JS object using the prototype from new.target
+-    JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+-    if (JS_IsException(proto)) {
+-        delete data;
+-        return proto;
+-    }
+-    JSValue obj = JS_NewObjectProtoClass(ctx, proto, blobClassId);
+-    JS_FreeValue(ctx, proto);
+-    if (JS_IsException(obj)) {
+-        delete data;
+-        return obj;
+-    }
+-    JS_SetOpaque(obj, data);
+-    return obj;
+-}
+-
+-// Helper to create a getter JSValue from a 2-arg getter function
+-static JSValue newGetter(JSContext* ctx, JSValue (*fn)(JSContext*, JSValueConst),
+-                          const char* name)
+-{
+-    JSCFunctionType ft;
+-    ft.getter = fn;
+-    return JS_NewCFunction2(ctx, ft.generic, name, 0, JS_CFUNC_getter, 0);
+-}
+-
+-// Blob.prototype.size
+-static JSValue js_blob_size(JSContext* ctx, JSValueConst this_val)
+-{
+-    auto* data = getBlobData(ctx, this_val);
+-    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
+-    return JS_NewFloat64(ctx, static_cast<double>(data->bytes.size()));
+-}
+-
+-// Blob.prototype.type
+-static JSValue js_blob_type(JSContext* ctx, JSValueConst this_val)
+ {
+     auto* data = getBlobData(ctx, this_val);
+-    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
+-    return JS_NewString(ctx, data->type.c_str());
+-}
+-
+-// Blob.prototype.slice(start?, end?, contentType?)
+-static JSValue js_blob_slice(JSContext* ctx, JSValueConst this_val,
+-                              int argc, JSValueConst* argv)
+-{
+-    auto* data = getBlobData(ctx, this_val);
+-    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
+-
++    if (!data) return JS_EXCEPTION;
++    
+     int64_t size = static_cast<int64_t>(data->bytes.size());
+-    int64_t start = 0, end = size;
+-
+-    if (argc >= 1 && !JS_IsUndefined(argv[0])) {
++    int64_t start = 0;
++    int64_t end = size;
++    
++    if (argc > 0 && !JS_IsUndefined(argv[0])) {
+         JS_ToInt64(ctx, &start, argv[0]);
+-        if (start < 0) start = std::max<int64_t>(size + start, 0);
+-        else start = std::min(start, size);
++        if (start < 0) start = std::max<int64_t>(0, size + start);
++        else start = std::min<int64_t>(size, start);
+     }
+-    if (argc >= 2 && !JS_IsUndefined(argv[1])) {
++    if (argc > 1 && !JS_IsUndefined(argv[1])) {
+         JS_ToInt64(ctx, &end, argv[1]);
+-        if (end < 0) end = std::max<int64_t>(size + end, 0);
+-        else end = std::min(end, size);
++        if (end < 0) end = std::max<int64_t>(0, size + end);
++        else end = std::min<int64_t>(size, end);
+     }
+-
++    
+     std::string contentType;
+-    if (argc >= 3 && JS_IsString(argv[2])) {
+-        const char* ct = JS_ToCString(ctx, argv[2]);
+-        if (ct) {
+-            contentType = ct;
++    if (argc > 2 && !JS_IsUndefined(argv[2])) {
++        const char* ctStr = JS_ToCString(ctx, argv[2]);
++        if (ctStr) {
++            contentType = ctStr;
+             for (auto& c : contentType) c = static_cast<char>(tolower(c));
+-            JS_FreeCString(ctx, ct);
++            JS_FreeCString(ctx, ctStr);
+         }
+     }
+-
+-    int64_t span = std::max<int64_t>(end - start, 0);
+-
+-    // Create new Blob with sliced data
+-    auto* sliced = new BlobData();
+-    if (span > 0) {
+-        sliced->bytes.assign(data->bytes.begin() + start, data->bytes.begin() + start + span);
++    
++    auto* newData = new BlobData();
++    newData->type = contentType;
++    if (start < end) {
++        newData->bytes.assign(data->bytes.begin() + start, data->bytes.begin() + end);
+     }
+-    sliced->type = contentType;
+-
+-    // Get the Blob constructor's prototype
+-    JSValue global = JS_GetGlobalObject(ctx);
+-    JSValue blobCtor = JS_GetPropertyStr(ctx, global, "Blob");
+-    JSValue proto = JS_GetPropertyStr(ctx, blobCtor, "prototype");
+-    JSValue obj = JS_NewObjectProtoClass(ctx, proto, blobClassId);
++    
++    JSValue proto = JS_GetClassProto(ctx, blob_class_id);
++    JSValue obj = JS_NewObjectProtoClass(ctx, proto, blob_class_id);
+     JS_FreeValue(ctx, proto);
+-    JS_FreeValue(ctx, blobCtor);
+-    JS_FreeValue(ctx, global);
+-
+     if (JS_IsException(obj)) {
+-        delete sliced;
++        delete newData;
+         return obj;
+     }
+-    JS_SetOpaque(obj, sliced);
++    JS_SetOpaque(obj, newData);
+     return obj;
+ }
+ 
+-// Blob.prototype.arrayBuffer() — returns a Promise that resolves with an ArrayBuffer
+-static JSValue js_blob_arrayBuffer(JSContext* ctx, JSValueConst this_val,
+-                                    int, JSValueConst*)
++static JSValue blob_text(JSContext* ctx, JSValueConst this_val,
++                                    int argc, JSValueConst* argv)
+ {
+     auto* data = getBlobData(ctx, this_val);
+-    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
+-
+-    JSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(),
+-                                        data->bytes.size());
+-    if (JS_IsException(ab)) return ab;
+-
+-    // Wrap in resolved promise
+-    JSValue resolving[2];
+-    JSValue promise = JS_NewPromiseCapability(ctx, resolving);
+-    if (JS_IsException(promise)) {
+-        JS_FreeValue(ctx, ab);
+-        return promise;
+-    }
+-    JSValue ret = JS_Call(ctx, resolving[0], JS_UNDEFINED, 1, &ab);
++    if (!data) return JS_EXCEPTION;
++    
++    JSValue resolving_funcs[2];
++    JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
++    if (JS_IsException(promise)) return promise;
++    
++    JSValue str = JS_NewStringLen(ctx, reinterpret_cast<const char*>(data->bytes.data()), data->bytes.size());
++    JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &str);
++    JS_FreeValue(ctx, str);
+     JS_FreeValue(ctx, ret);
+-    JS_FreeValue(ctx, ab);
+-    JS_FreeValue(ctx, resolving[0]);
+-    JS_FreeValue(ctx, resolving[1]);
++    JS_FreeValue(ctx, resolving_funcs[0]);
++    JS_FreeValue(ctx, resolving_funcs[1]);
+     return promise;
+ }
+ 
+-// Blob.prototype.text() — returns a Promise that resolves with a string
+-static JSValue js_blob_text(JSContext* ctx, JSValueConst this_val,
+-                             int, JSValueConst*)
++static JSValue blob_array_buffer(JSContext* ctx, JSValueConst this_val,
++                                    int argc, JSValueConst* argv)
+ {
+     auto* data = getBlobData(ctx, this_val);
+-    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
+-
+-    JSValue str = JS_NewStringLen(ctx, reinterpret_cast<const char*>(data->bytes.data()),
+-                                  data->bytes.size());
+-    if (JS_IsException(str)) return str;
++    if (!data) return JS_EXCEPTION;
++    
++    JSValue resolving_funcs[2];
++    JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
++    if (JS_IsException(promise)) return promise;
++    
++    JSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());
++    JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &ab);
++    JS_FreeValue(ctx, ab);
++    JS_FreeValue(ctx, ret);
++    JS_FreeValue(ctx, resolving_funcs[0]);
++    JS_FreeValue(ctx, resolving_funcs[1]);
++    return promise;
++}
+ 
+-    JSValue resolving[2];
+-    JSValue promise = JS_NewPromiseCapability(ctx, resolving);
+-    if (JS_IsException(promise)) {
+-        JS_FreeValue(ctx, str);
+-        return promise;
+-    }
+-    JSValue ret = JS_Call(ctx, resolving[0], JS_UNDEFINED, 1, &str);
++static JSValue blob_bytes(JSContext* ctx, JSValueConst this_val,
++                                    int argc, JSValueConst* argv)
++{
++    auto* data = getBlobData(ctx, this_val);
++    if (!data) return JS_EXCEPTION;
++    
++    JSValue resolving_funcs[2];
++    JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
++    if (JS_IsException(promise)) return promise;
++    
++    JSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());
++    JSValue global = JS_GetGlobalObject(ctx);
++    JSValue u8ctor = JS_GetPropertyStr(ctx, global, "Uint8Array");
++    JSValue u8arr = JS_CallConstructor(ctx, u8ctor, 1, &ab);
++    JS_FreeValue(ctx, u8ctor);
++    JS_FreeValue(ctx, global);
++    JS_FreeValue(ctx, ab);
++    
++    JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &u8arr);
++    JS_FreeValue(ctx, u8arr);
+     JS_FreeValue(ctx, ret);
+-    JS_FreeValue(ctx, str);
+-    JS_FreeValue(ctx, resolving[0]);
+-    JS_FreeValue(ctx, resolving[1]);
++    JS_FreeValue(ctx, resolving_funcs[0]);
++    JS_FreeValue(ctx, resolving_funcs[1]);
+     return promise;
+ }
+ 
+-// File extends Blob — FileData is declared at top of file so getBlobData() can
+-// unwrap File instances. fileClassId is also declared up top.
+-static void fileFinalizer(JSRuntime*, JSValue val)
++static JSValue js_blob_size(JSContext* ctx, JSValueConst this_val)
+ {
+-    auto* data = static_cast<FileData*>(JS_GetOpaque(val, fileClassId));
+-    delete data;
++    auto* data = getBlobData(ctx, this_val);
++    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
++    return JS_NewFloat64(ctx, static_cast<double>(data->bytes.size()));
+ }
+ 
+-static JSClassDef fileClassDef = {
+-    "File",
+-    fileFinalizer,
+-    nullptr, nullptr, nullptr
+-};
++static JSValue js_blob_type(JSContext* ctx, JSValueConst this_val)
++{
++    auto* data = getBlobData(ctx, this_val);
++    if (!data) return JS_ThrowTypeError(ctx, "not a Blob");
++    return JS_NewString(ctx, data->type.c_str());
++}
+ 
+-// new File(parts, name, options?)
+-static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
++static JSValue js_blob_constructor(JSContext* ctx, JSValueConst new_target,
+                                     int argc, JSValueConst* argv)
+ {
+-    if (argc < 2) return JS_ThrowTypeError(ctx, "File requires at least 2 arguments");
+-
+-    auto* data = new FileData();
+-
+-    // Process parts array (same as Blob)
+-    if (!JS_IsUndefined(argv[0]) && !JS_IsNull(argv[0])) {
+-        JSValue lengthVal = JS_GetPropertyStr(ctx, argv[0], "length");
+-        if (JS_IsException(lengthVal)) { delete data; return lengthVal; }
++    auto* data = new BlobData();
++    
++    if (argc > 0 && !JS_IsUndefined(argv[0])) {
++        if (!JS_IsArray(ctx, argv[0])) {
++            delete data;
++            return JS_ThrowTypeError(ctx, "Blob parts must be an sequence/array");
++        }
++        JSValue lenVal = JS_GetPropertyStr(ctx, argv[0], "length");
+         uint32_t len = 0;
+-        JS_ToUint32(ctx, &len, lengthVal);
+-        JS_FreeValue(ctx, lengthVal);
+-
++        JS_ToUint32(ctx, &len, lenVal);
++        JS_FreeValue(ctx, lenVal);
+         for (uint32_t i = 0; i < len; i++) {
+-            JSValue item = JS_GetPropertyUint32(ctx, argv[0], i);
+-            if (JS_IsException(item)) { delete data; return item; }
+-            bool ok = flattenPart(ctx, item, data->blob.bytes);
+-            JS_FreeValue(ctx, item);
+-            if (!ok) { delete data; return JS_EXCEPTION; }
++            JSValue part = JS_GetPropertyUint32(ctx, argv[0], i);
++            bool ok = flattenPart(ctx, part, data->bytes);
++            JS_FreeValue(ctx, part);
++            if (!ok) {
++                delete data;
++                return JS_EXCEPTION;
++            }
+         }
+     }
+-
+-    // Name
+-    const char* name = JS_ToCString(ctx, argv[1]);
+-    if (!name) { delete data; return JS_EXCEPTION; }
+-    data->name = name;
+-    JS_FreeCString(ctx, name);
+-
+-    // Default lastModified to now
+-    data->lastModified = 0; // Will set via JS Date.now() below if not provided
+-
+-    // Options
+-    if (argc >= 3 && JS_IsObject(argv[2])) {
+-        JSValue typeVal = JS_GetPropertyStr(ctx, argv[2], "type");
++    
++    if (argc > 1 && !JS_IsUndefined(argv[1]) && JS_IsObject(argv[1])) {
++        JSValue typeVal = JS_GetPropertyStr(ctx, argv[1], "type");
+         if (JS_IsString(typeVal)) {
+-            const char* t = JS_ToCString(ctx, typeVal);
+-            if (t) {
+-                data->blob.type = t;
+-                for (auto& c : data->blob.type) c = static_cast<char>(tolower(c));
+-                JS_FreeCString(ctx, t);
++            const char* typeStr = JS_ToCString(ctx, typeVal);
++            if (typeStr) {
++                data->type = typeStr;
++                for (auto& c : data->type) c = static_cast<char>(tolower(c));
++                JS_FreeCString(ctx, typeStr);
+             }
+         }
+         JS_FreeValue(ctx, typeVal);
+-
+-        JSValue lmVal = JS_GetPropertyStr(ctx, argv[2], "lastModified");
+-        if (!JS_IsUndefined(lmVal)) {
+-            double lm = 0;
+-            JS_ToFloat64(ctx, &lm, lmVal);
+-            data->lastModified = lm;
+-        }
+-        JS_FreeValue(ctx, lmVal);
+     }
+-
++    
+     JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
+-    if (JS_IsException(proto)) { delete data; return proto; }
+-    JSValue obj = JS_NewObjectProtoClass(ctx, proto, fileClassId);
++    if (JS_IsException(proto)) {
++        delete data;
++        return proto;
++    }
++    JSValue obj = JS_NewObjectProtoClass(ctx, proto, blob_class_id);
+     JS_FreeValue(ctx, proto);
+-    if (JS_IsException(obj)) { delete data; return obj; }
++    if (JS_IsException(obj)) {
++        delete data;
++        return obj;
++    }
+     JS_SetOpaque(obj, data);
+     return obj;
+ }
+ 
+ static JSValue js_file_name(JSContext* ctx, JSValueConst this_val)
+ {
+-    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, fileClassId));
++    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, file_class_id));
+     if (!data) return JS_ThrowTypeError(ctx, "not a File");
+     return JS_NewString(ctx, data->name.c_str());
+ }
+ 
+ static JSValue js_file_lastModified(JSContext* ctx, JSValueConst this_val)
+ {
+-    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, fileClassId));
++    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, file_class_id));
+     if (!data) return JS_ThrowTypeError(ctx, "not a File");
+     return JS_NewFloat64(ctx, data->lastModified);
+ }
+ 
+-static JSValue js_file_size(JSContext* ctx, JSValueConst this_val)
++static JSValue js_file_webkitRelativePath(JSContext* ctx, JSValueConst this_val)
+ {
+-    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, fileClassId));
++    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, file_class_id));
+     if (!data) return JS_ThrowTypeError(ctx, "not a File");
+-    return JS_NewFloat64(ctx, static_cast<double>(data->blob.bytes.size()));
++    return JS_NewString(ctx, "");
+ }
+ 
+-static JSValue js_file_type(JSContext* ctx, JSValueConst this_val)
++static JSValue js_file_path(JSContext* ctx, JSValueConst this_val)
+ {
+-    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, fileClassId));
++    auto* data = static_cast<FileData*>(JS_GetOpaque2(ctx, this_val, file_class_id));
+     if (!data) return JS_ThrowTypeError(ctx, "not a File");
+-    return JS_NewString(ctx, data->blob.type.c_str());
++    return JS_NewString(ctx, "");
++}
++
++static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
++                                    int argc, JSValueConst* argv)
++{
++    if (argc < 2) return JS_ThrowTypeError(ctx, "File constructor requires at least 2 arguments (bits, name)");
++    if (!JS_IsArray(ctx, argv[0])) return JS_ThrowTypeError(ctx, "File bits must be a sequence/array");
++    
++    const char* nameStr = JS_ToCString(ctx, argv[1]);
++    if (!nameStr) return JS_EXCEPTION;
++    
++    auto* data = new FileData();
++    data->name = nameStr;
++    JS_FreeCString(ctx, nameStr);
++    
++    JSValue lenVal = JS_GetPropertyStr(ctx, argv[0], "length");
++    uint32_t len = 0;
++    JS_ToUint32(ctx, &len, lenVal);
++    JS_FreeValue(ctx, lenVal);
++    for (uint32_t i = 0; i < len; i++) {
++        JSValue part = JS_GetPropertyUint32(ctx, argv[0], i);
++        bool ok = flattenPart(ctx, part, data->blob.bytes);
++        JS_FreeValue(ctx, part);
++        if (!ok) {
++            delete data;
++            return JS_EXCEPTION;
++        }
++    }
++    
++    data->lastModified = 0;
++    if (argc > 2 && !JS_IsUndefined(argv[2]) && JS_IsObject(argv[2])) {
++        JSValue typeVal = JS_GetPropertyStr(ctx, argv[2], "type");
++        if (JS_IsString(typeVal)) {
++            const char* typeStr = JS_ToCString(ctx, typeVal);
++            if (typeStr) {
++                data->blob.type = typeStr;
++                for (auto& c : data->blob.type) c = static_cast<char>(tolower(c));
++                JS_FreeCString(ctx, typeStr);
++            }
++        }
++        JS_FreeValue(ctx, typeVal);
++    
++        JSValue lmVal = JS_GetPropertyStr(ctx, argv[2], "lastModified");
++        if (JS_IsNumber(lmVal)) {
++            JS_ToFloat64(ctx, &data->lastModified, lmVal);
++        }
++        JS_FreeValue(ctx, lmVal);
++    }
++    
++    JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
++    if (JS_IsException(proto)) {
++        delete data;
++        return proto;
++    }
++    JSValue obj = JS_NewObjectProtoClass(ctx, proto, file_class_id);
++    JS_FreeValue(ctx, proto);
++    if (JS_IsException(obj)) {
++        delete data;
++        return obj;
++    }
++    JS_SetOpaque(obj, data);
++    return obj;
+ }
+ 
+-// See api.h. A host-side view of a Blob's bytes, so a native consumer can
+-// resolve an object URL at the moment it is created rather than a microtask
+-// later, when whatever asked for it has already given up.
+-bool blobBytes(JSContext* ctx, JSValueConst val, const uint8_t** data,
+-               size_t* len, std::string* type)
++bool blobBytes(JSContext* ctx, JSValueConst val, const uint8_t** data, size_t* len, std::string* type)
+ {
+-    if (data) *data = nullptr;
+-    if (len) *len = 0;
+-    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blobClassId));
+-    if (!bdata) {
+-        auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, fileClassId));
+-        if (fdata) bdata = &fdata->blob;
++    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
++    if (bdata) {
++        *data = bdata->bytes.data();
++        *len = bdata->bytes.size();
++        if (type) *type = bdata->type;
++        return true;
+     }
+-    if (!bdata) return false;   // not a Blob; no exception, the caller asked
+-    (void)ctx;
+-    if (data) *data = bdata->bytes.data();
+-    if (len) *len = bdata->bytes.size();
+-    if (type) *type = bdata->type;
+-    return true;
++    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));
++    if (fdata) {
++        *data = fdata->blob.bytes.data();
++        *len = fdata->blob.bytes.size();
++        if (type) *type = fdata->blob.type;
++        return true;
++    }
++    return false;
+ }
+ 
+ void installBlob(JSContext* ctx)
+ {
+-    // Register Blob class
+     JSRuntime* rt = JS_GetRuntime(ctx);
+-    if (blobClassId == 0) JS_NewClassID(rt, &blobClassId);
+-    JS_NewClass(rt, blobClassId, &blobClassDef);
++    JSValue global = JS_GetGlobalObject(ctx);
++
++    // Register Blob class
++    if (blob_class_id == 0) JS_NewClassID(rt, &blob_class_id);
++    JS_NewClass(rt, blob_class_id, &blob_class_def);
+ 
+-    // Blob constructor
+     JSValue blobProto = JS_NewObject(ctx);
+ 
+-    // Getters
+-    JSAtom sizeAtom = JS_NewAtom(ctx, "size");
+-    JS_DefinePropertyGetSet(ctx, blobProto, sizeAtom,
++    JSAtom blob_size_atom = JS_NewAtom(ctx, "size");
++    JS_DefinePropertyGetSet(ctx, blobProto, blob_size_atom,
+                             newGetter(ctx, js_blob_size, "size"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, sizeAtom);
+-
+-    JSAtom typeAtom = JS_NewAtom(ctx, "type");
+-    JS_DefinePropertyGetSet(ctx, blobProto, typeAtom,
++    JS_FreeAtom(ctx, blob_size_atom);
++    JSAtom blob_type_atom = JS_NewAtom(ctx, "type");
++    JS_DefinePropertyGetSet(ctx, blobProto, blob_type_atom,
+                             newGetter(ctx, js_blob_type, "type"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, typeAtom);
++    JS_FreeAtom(ctx, blob_type_atom);
+ 
+-    // Methods
+     JS_SetPropertyStr(ctx, blobProto, "slice",
+-                      JS_NewCFunction(ctx, js_blob_slice, "slice", 3));
+-    JS_SetPropertyStr(ctx, blobProto, "arrayBuffer",
+-                      JS_NewCFunction(ctx, js_blob_arrayBuffer, "arrayBuffer", 0));
++        JS_NewCFunction(ctx, blob_slice, "slice", 3));
+     JS_SetPropertyStr(ctx, blobProto, "text",
+-                      JS_NewCFunction(ctx, js_blob_text, "text", 0));
++        JS_NewCFunction(ctx, blob_text, "text", 0));
++    JS_SetPropertyStr(ctx, blobProto, "arrayBuffer",
++        JS_NewCFunction(ctx, blob_array_buffer, "arrayBuffer", 0));
++    JS_SetPropertyStr(ctx, blobProto, "bytes",
++        JS_NewCFunction(ctx, blob_bytes, "bytes", 0));
+ 
+-    JS_SetClassProto(ctx, blobClassId, blobProto);
++    JS_SetClassProto(ctx, blob_class_id, blobProto);
+ 
+     JSValue blobCtor = JS_NewCFunction2(ctx, js_blob_constructor, "Blob", 2,
+                                          JS_CFUNC_constructor, 0);
+-    // Re-get proto since SetClassProto consumed our ref
+-    blobProto = JS_GetClassProto(ctx, blobClassId);
++    blobProto = JS_GetClassProto(ctx, blob_class_id);
+     JS_SetPropertyStr(ctx, blobCtor, "prototype", JS_DupValue(ctx, blobProto));
+     JS_SetPropertyStr(ctx, blobProto, "constructor", JS_DupValue(ctx, blobCtor));
+     JS_FreeValue(ctx, blobProto);
+ 
+-    JSValue global = JS_GetGlobalObject(ctx);
+     JS_SetPropertyStr(ctx, global, "Blob", blobCtor);
+ 
+     // Register File class
+-    if (fileClassId == 0) JS_NewClassID(rt, &fileClassId);
+-    JS_NewClass(rt, fileClassId, &fileClassDef);
++    if (file_class_id == 0) JS_NewClassID(rt, &file_class_id);
++    JS_NewClass(rt, file_class_id, &file_class_def);
+ 
+-    // File prototype inherits from Blob prototype (File extends Blob)
+-    blobProto = JS_GetClassProto(ctx, blobClassId);
+-    JSValue fileProto = JS_NewObjectProto(ctx, blobProto);
+-    JS_FreeValue(ctx, blobProto);
++    JSValue parentProto = JS_GetClassProto(ctx, blob_class_id);
++    JSValue fileProto = JS_NewObjectProto(ctx, parentProto);
++    JS_FreeValue(ctx, parentProto);
+ 
+-    // File getters: name, lastModified, size, type
+-    JSAtom nameAtom = JS_NewAtom(ctx, "name");
+-    JS_DefinePropertyGetSet(ctx, fileProto, nameAtom,
++    JSAtom file_name_atom = JS_NewAtom(ctx, "name");
++    JS_DefinePropertyGetSet(ctx, fileProto, file_name_atom,
+                             newGetter(ctx, js_file_name, "name"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, nameAtom);
+-
+-    JSAtom lmAtom = JS_NewAtom(ctx, "lastModified");
+-    JS_DefinePropertyGetSet(ctx, fileProto, lmAtom,
++    JS_FreeAtom(ctx, file_name_atom);
++    JSAtom file_lastModified_atom = JS_NewAtom(ctx, "lastModified");
++    JS_DefinePropertyGetSet(ctx, fileProto, file_lastModified_atom,
+                             newGetter(ctx, js_file_lastModified, "lastModified"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, lmAtom);
+-
+-    JSAtom fSizeAtom = JS_NewAtom(ctx, "size");
+-    JS_DefinePropertyGetSet(ctx, fileProto, fSizeAtom,
+-                            newGetter(ctx, js_file_size, "size"),
++    JS_FreeAtom(ctx, file_lastModified_atom);
++    JSAtom file_webkitRelativePath_atom = JS_NewAtom(ctx, "webkitRelativePath");
++    JS_DefinePropertyGetSet(ctx, fileProto, file_webkitRelativePath_atom,
++                            newGetter(ctx, js_file_webkitRelativePath, "webkitRelativePath"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, fSizeAtom);
+-
+-    JSAtom fTypeAtom = JS_NewAtom(ctx, "type");
+-    JS_DefinePropertyGetSet(ctx, fileProto, fTypeAtom,
+-                            newGetter(ctx, js_file_type, "type"),
++    JS_FreeAtom(ctx, file_webkitRelativePath_atom);
++    JSAtom file_path_atom = JS_NewAtom(ctx, "path");
++    JS_DefinePropertyGetSet(ctx, fileProto, file_path_atom,
++                            newGetter(ctx, js_file_path, "path"),
+                             JS_UNDEFINED, 0);
+-    JS_FreeAtom(ctx, fTypeAtom);
++    JS_FreeAtom(ctx, file_path_atom);
+ 
+-    JS_SetClassProto(ctx, fileClassId, fileProto);
++    JS_SetClassProto(ctx, file_class_id, fileProto);
+ 
+     JSValue fileCtor = JS_NewCFunction2(ctx, js_file_constructor, "File", 3,
+                                          JS_CFUNC_constructor, 0);
+-    fileProto = JS_GetClassProto(ctx, fileClassId);
++    fileProto = JS_GetClassProto(ctx, file_class_id);
+     JS_SetPropertyStr(ctx, fileCtor, "prototype", JS_DupValue(ctx, fileProto));
+     JS_SetPropertyStr(ctx, fileProto, "constructor", JS_DupValue(ctx, fileCtor));
+-
+     JS_FreeValue(ctx, fileProto);
++
+     JS_SetPropertyStr(ctx, global, "File", fileCtor);
++
+     JS_FreeValue(ctx, global);
+ }
+ 
+diff --git a/src/bronze_host/host_file.cpp b/src/bronze_host/host_file.cpp
+index 5e06d450..abc40b95 100644
+--- a/src/bronze_host/host_file.cpp
++++ b/src/bronze_host/host_file.cpp
+@@ -1,5 +1,4 @@
+-// Blob, File, FileReader, and URL — bytes an app holds, and the names it gives
+-// them.
++// Blob, File, FileReader, URL — bronze_host translation unit.
+ 
+ #include "bronze_host/bronze_host.h"
+ #include "bronze_host/gl_internal.h"
+@@ -7,7 +6,6 @@
+ 
+ #include "util/log.h"
+ #include "util/object_url.h"
+-
+ #include <algorithm>
+ #include <atomic>
+ #include <cstdint>
+@@ -137,80 +135,75 @@ Value bytesToArrayBuffer(const std::vector<uint8_t>& bytes) {
+ Value bytesToUint8Array(const std::vector<uint8_t>& bytes) {
+     ev::Persistent view(ev::createTypedArray(ev::elements::Uint8,
+                                              static_cast<uint32_t>(bytes.size())));
+-    // fillTypedArray does NOT allocate, so the view cannot have moved between
+-    // the two calls — but it is read back through the Persistent anyway,
+-    // because that invariant belongs to embed and not to this file.
+     ev::fillTypedArray(view.get(), std::span<const uint8_t>(bytes.data(), bytes.size()));
+     return view.get();
+ }
+ 
+-// The per-instance STATE of a Blob. Everything else a Blob can do is the same
+-// for every Blob and lives on the prototype below.
+ void installBlobState(ObjectBuilder& b, const HostBlob* blob) {
+     b.set("size", ev::fromDouble(static_cast<double>(blob->bytes.size())));
+     b.set("type", ev::fromUtf8(blob->type));
+ }
+ 
+-// The Blob METHODS, decorated once onto Blob.prototype. Each unwraps its
+-// RECEIVER rather than closing over a HostBlob* — which is not only tidier: a
+-// closure holding the raw payload of a cell it does not root is a dangling
+-// read the moment a detached method outlives its object, and every one of
+-// these used to be written that way.
+-void decorateBlobProto(ObjectBuilder& b) {
+-    b.def("slice", 3, [](Value self, std::span<const Value> a) {
+-        const HostBlob* blob = mutableHostBlob(self);
+-        if (!blob) return ev::throwTypeError("Blob.slice: the receiver is not a Blob");
+-        const double n = static_cast<double>(blob->bytes.size());
+-        // Negative offsets count from the end, as Array.prototype.slice does
+-        // and as the Blob spec spells out.
+-        auto clamp = [n](Value v, double dflt) {
+-            if (ev::isUndefined(v)) return dflt;
+-            double x = ev::toDouble(v);
+-            if (!(x == x)) return 0.0;  // NaN
+-            if (x < 0) x = n + x;
+-            return x < 0 ? 0.0 : (x > n ? n : x);
+-        };
+-        const double start = clamp(argAt(a, 0), 0.0);
+-        const double end = clamp(argAt(a, 1), n);
+-        Value typeV = argAt(a, 2);
+-        std::string type =
+-            (ev::isUndefined(typeV) || ev::isObject(typeV)) ? "" : ev::toUtf8(typeV);
+-        std::vector<uint8_t> cut;
+-        if (end > start) {
+-            cut.assign(blob->bytes.begin() + static_cast<ptrdiff_t>(start),
+-                       blob->bytes.begin() + static_cast<ptrdiff_t>(end));
+-        }
+-        return makeBlobValue(std::move(cut), std::move(type));
+-    });
+-
+-    b.def("text", 0, [](Value self, std::span<const Value>) {
+-        const HostBlob* blob = mutableHostBlob(self);
+-        if (!blob) return ev::throwTypeError("Blob.text: the receiver is not a Blob");
+-        return resolvedPromise(ev::fromUtf8(
+-            std::string(blob->bytes.begin(), blob->bytes.end())));
+-    });
+-    b.def("arrayBuffer", 0, [](Value self, std::span<const Value>) {
+-        const HostBlob* blob = mutableHostBlob(self);
+-        if (!blob) {
+-            return ev::throwTypeError("Blob.arrayBuffer: the receiver is not a Blob");
+-        }
+-        return resolvedPromise(bytesToArrayBuffer(blob->bytes));
+-    });
+-    b.def("bytes", 0, [](Value self, std::span<const Value>) {
+-        const HostBlob* blob = mutableHostBlob(self);
+-        if (!blob) return ev::throwTypeError("Blob.bytes: the receiver is not a Blob");
+-        return resolvedPromise(bytesToUint8Array(blob->bytes));
+-    });
++Value sliceBlob(const HostBlob* blob, Value startV, Value endV, Value typeV) {
++    const double n = static_cast<double>(blob->bytes.size());
++    auto clamp = [n](Value v, double dflt) {
++        if (ev::isUndefined(v)) return dflt;
++        double x = ev::toDouble(v);
++        if (!(x == x)) return 0.0;
++        if (x < 0) x = n + x;
++        return x < 0 ? 0.0 : (x > n ? n : x);
++    };
++    const double start = clamp(startV, 0.0);
++    const double end = clamp(endV, n);
++    std::string type =
++        (ev::isUndefined(typeV) || ev::isObject(typeV)) ? "" : ev::toUtf8(typeV);
++    std::vector<uint8_t> cut;
++    if (end > start) {
++        cut.assign(blob->bytes.begin() + static_cast<ptrdiff_t>(start),
++                   blob->bytes.begin() + static_cast<ptrdiff_t>(end));
++    }
++    return makeBlobValue(std::move(cut), std::move(type));
+ }
+ 
+-// The three classes this file installs. File EXTENDS Blob, as on the web.
+-HostClass g_blobClass;
+-HostClass g_fileClass;
+-HostClass g_readerClass;
++Value makeFileFromParts(Value partsV, Value nameV, Value optionsV) {
++    auto* blob = new HostBlob();
++    blob->bytes = collectParts(partsV);
++    blob->isFile = true;
++    blob->name = (ev::isObject(nameV) || ev::isUndefined(nameV)) ? "" : ev::toUtf8(nameV);
++    blob->type = optionType(optionsV);
++    if (ev::isObject(optionsV)) {
++        Value lm = ev::getProperty(optionsV, "lastModified");
++        if (!ev::isUndefined(lm)) blob->lastModified = ev::toDouble(lm);
++    }
++    ObjectBuilder b(g_fileClass.make(blob, hostBlobDtor));
++    installBlobState(b, blob);
++    b.set("name", ev::fromUtf8(blob->name));
++    b.set("lastModified", ev::fromDouble(blob->lastModified));
++    b.set("webkitRelativePath", ev::fromUtf8(""));
++    return b.get();
++}
+ 
+-// ---------------------------------------------------------------------------
+-// FileReader
+-// ---------------------------------------------------------------------------
++std::string mimeForName(const std::string& name) {
++    const size_t dot = name.rfind('.');
++    if (dot == std::string::npos || dot + 1 >= name.size()) return "";
++    std::string ext = name.substr(dot + 1);
++    for (char& c : ext) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
++    static const std::pair<const char*, const char*> kTable[] = {
++        {"png", "image/png"},    {"jpg", "image/jpeg"},  {"jpeg", "image/jpeg"},
++        {"gif", "image/gif"},    {"webp", "image/webp"}, {"bmp", "image/bmp"},
++        {"svg", "image/svg+xml"},
++        {"json", "application/json"}, {"js", "text/javascript"},
++        {"mjs", "text/javascript"},   {"css", "text/css"},
++        {"html", "text/html"},   {"txt", "text/plain"},  {"md", "text/plain"},
++        {"wav", "audio/wav"},    {"mp3", "audio/mpeg"},  {"ogg", "audio/ogg"},
++        {"webm", "video/webm"},  {"mp4", "video/mp4"},
++        {"glb", "model/gltf-binary"}, {"gltf", "model/gltf+json"},
++        {"zip", "application/zip"},   {"wasm", "application/wasm"},
++    };
++    for (const auto& [k, v] : kTable)
++        if (ext == k) return v;
++    return "";
++}
+ 
+ struct HostReader {
+     uint32_t tag = kHostReaderTag;  // must be first
+@@ -296,81 +289,49 @@ Value makeFileReaderValue() {
+     return b.get();
+ }
+ 
+-// Everything a FileReader can DO, decorated once onto FileReader.prototype.
+-void decorateReaderProto(ObjectBuilder& b) {
+-    // The readyState constants sit on the prototype AND on the constructor,
+-    // which is where the web has them (`reader.DONE` and `FileReader.DONE`
+-    // both work); they are the same for every reader, so neither copy is
+-    // per-instance state.
+-    b.set("EMPTY", ev::fromDouble(0));
+-    b.set("LOADING", ev::fromDouble(1));
+-    b.set("DONE", ev::fromDouble(2));
+-
+-    b.def("readAsText", 2, [](Value self, std::span<const Value> a) {
+-        // The encoding argument is accepted and ignored: the bytes a Blob holds
+-        // in this runtime came from UTF-8 sources, and a real transcoder here
+-        // would be a second, worse copy of the one brokit already has.
+-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
+-            return ev::fromUtf8(std::string(bytes.begin(), bytes.end()));
+-        });
+-        return ev::undefined();
+-    });
+-    b.def("readAsArrayBuffer", 1, [](Value self, std::span<const Value> a) {
+-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
+-            return bytesToArrayBuffer(bytes);
+-        });
+-        return ev::undefined();
+-    });
+-    b.def("readAsBinaryString", 1, [](Value self, std::span<const Value> a) {
+-        startRead(self, argAt(a, 0), [](const std::vector<uint8_t>& bytes) {
+-            // One character per BYTE, which is what the legacy method means —
+-            // not a UTF-8 decode.
+-            std::string s;
+-            s.reserve(bytes.size());
+-            for (uint8_t c : bytes) s += static_cast<char>(c);
+-            return ev::fromUtf8(s);
+-        });
+-        return ev::undefined();
+-    });
+-    b.def("readAsDataURL", 1, [](Value self, std::span<const Value> a) {
+-        const HostBlob* blob = hostBlobOf(argAt(a, 0));
+-        std::string mime = blob && !blob->type.empty() ? blob->type
+-                                                       : "application/octet-stream";
+-        startRead(self, argAt(a, 0),
+-                  [mime](const std::vector<uint8_t>& bytes) {
+-                      return ev::fromUtf8("data:" + mime + ";base64," +
+-                                          base64Encode(bytes));
+-                  });
+-        return ev::undefined();
++Value doReadText(Value self, Value blobValue) {
++    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
++        return ev::fromUtf8(std::string(bytes.begin(), bytes.end()));
+     });
+-    b.def("abort", 0, [](Value self, std::span<const Value>) {
+-        HostReader* r = readerOf(self);
+-        if (!r) return ev::undefined();
+-        // Bumping the generation is the abort: the queued task finds a number
+-        // that is not its own and publishes nothing.
+-        ++r->generation;
+-        ev::Persistent target(self);
+-        setOn(target, "readyState", ev::fromDouble(2));
+-        setOn(target, "result", ev::null());
+-        dispatchHostEvent(ev::Persistent(target.get()), "abort");
+-        dispatchHostEvent(ev::Persistent(target.get()), "loadend");
+-        return ev::undefined();
++    return ev::undefined();
++}
++
++Value doReadArrayBuffer(Value self, Value blobValue) {
++    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
++        return bytesToArrayBuffer(bytes);
+     });
++    return ev::undefined();
++}
+ 
+-    b.def("addEventListener", 2, [](Value thisValue, std::span<const Value> a) {
+-        ev::Persistent self(thisValue);
+-        Value typeV = argAt(a, 0);
+-        if (ev::isObject(typeV)) return ev::undefined();
+-        addHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
+-        return ev::undefined();
++Value doReadBinaryString(Value self, Value blobValue) {
++    startRead(self, blobValue, [](const std::vector<uint8_t>& bytes) {
++        std::string s;
++        s.reserve(bytes.size());
++        for (uint8_t c : bytes) s += static_cast<char>(c);
++        return ev::fromUtf8(s);
+     });
+-    b.def("removeEventListener", 2, [](Value thisValue, std::span<const Value> a) {
+-        ev::Persistent self(thisValue);
+-        Value typeV = argAt(a, 0);
+-        if (ev::isObject(typeV)) return ev::undefined();
+-        removeHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
+-        return ev::undefined();
++    return ev::undefined();
++}
++
++Value doReadDataURL(Value self, Value blobValue) {
++    const HostBlob* blob = hostBlobOf(blobValue);
++    std::string mime = blob && !blob->type.empty() ? blob->type : "application/octet-stream";
++    startRead(self, blobValue, [mime](const std::vector<uint8_t>& bytes) {
++        return ev::fromUtf8("data:" + mime + ";base64," + base64Encode(bytes));
+     });
++    return ev::undefined();
++}
++
++Value doAbort(Value self) {
++    HostReader* r = readerOf(self);
++    if (!r) return ev::undefined();
++    ++r->generation;
++    ev::Persistent target(self);
++    setOn(target, "readyState", ev::fromDouble(2));
++    setOn(target, "result", ev::null());
++    dispatchHostEvent(ev::Persistent(target.get()), "abort");
++    dispatchHostEvent(ev::Persistent(target.get()), "loadend");
++    return ev::undefined();
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -384,10 +345,6 @@ Value makeCreateObjectURL() {
+             if (!blob)
+                 return ev::throwTypeError(
+                     "URL.createObjectURL: argument is not a Blob");
+-            // Minted here rather than by the engine, and numbered from a
+-            // counter of its own, because bro's JS half mints from its own
+-            // counter into the SAME table — two counters, one namespace, so
+-            // the prefix has to differ or the two would collide.
+             static std::atomic<uint64_t> counter{1};
+             const std::string url =
+                 "blob:bro/bronze-" +
+@@ -409,23 +366,12 @@ Value makeRevokeObjectURL() {
+         1);
+ }
+ 
+-// The URL parser: enough of RFC 3986 to answer the components libraries read.
+-// Not a validator — an input with no scheme resolves against `base` when one is
+-// given and is reported as-is when it is not, which is where three.js's
+-// LoaderUtils and every "is this absolute" test land.
+ struct ParsedURL {
+     std::string href, protocol, hostname, port, pathname, search, hash;
+ };
+ 
+ inline constexpr uint32_t kHostUrlTag = 0x55524C20u;  // 'URL '
+ 
+-// The parse is SHARED, not owned. `url.searchParams` hands out an object whose
+-// methods read and write this state, and that object can outlive the URL it
+-// came from (`const p = new URL(s).searchParams`) — with a raw back-pointer
+-// that is a use-after-free the moment the finalizer runs. A shared_ptr costs
+-// one allocation per URL and makes the detached case merely useless rather
+-// than fatal. It cannot be an ev::Persistent on the URL object for the reason
+-// at the top of host_internal.h: hostUrlDtor is a handle finalizer.
+ struct HostUrl {
+     uint32_t tag = kHostUrlTag;
+     std::shared_ptr<ParsedURL> parsed = std::make_shared<ParsedURL>();
+@@ -483,10 +429,6 @@ bool splitAbsolute(const std::string& in, ParsedURL& out) {
+     return true;
+ }
+ 
+-// The relative-reference merge, in the one form apps actually use: an absolute
+-// path replaces the base's path, anything else is appended to the base's
+-// directory. `..` and `.` segments are then removed, because a resolved URL
+-// with them in it is not equal to the one every other implementation produces.
+ std::string normalizePath(const std::string& path) {
+     std::vector<std::string> parts;
+     size_t i = 0;
+@@ -507,8 +449,6 @@ std::string normalizePath(const std::string& path) {
+         out += parts[k];
+         if (k + 1 < parts.size()) out += '/';
+     }
+-    // A trailing slash in the input survives normalisation, which matters for
+-    // a base URL naming a directory.
+     if (!path.empty() && path.back() == '/' && !out.empty() && out.back() != '/')
+         out += '/';
+     return out;
+@@ -562,14 +502,6 @@ bool parseURL(const std::string& input, const std::string& base, ParsedURL& out)
+     return true;
+ }
+ 
+-// The query string is application/x-www-form-urlencoded, and the two halves of
+-// that are NOT optional decoration: a value carrying `&` or `=` re-parses as
+-// extra pairs if it is written raw, so a program that puts a user string into a
+-// query would silently build a different URL than it asked for. Reading is the
+-// mirror — `?q=a%20b` is the byte string "a b", and the caller wants the bytes.
+-// Byte-oriented on purpose: the payload is UTF-8 and each byte encodes on its
+-// own, which is what the URL standard's percent-encoder does.
+-
+ int hexNibble(char c) {
+     if (c >= '0' && c <= '9') return c - '0';
+     if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+@@ -591,8 +523,6 @@ std::string formUrlDecode(const std::string& in) {
+                 out += static_cast<char>((hi << 4) | lo);
+                 i += 2;
+             } else {
+-                // Not a valid escape. The URL standard keeps the bytes rather
+-                // than failing, so `%zz` round-trips as itself.
+                 out += c;
+             }
+         } else {
+@@ -622,8 +552,6 @@ std::string formUrlEncode(const std::string& in) {
+     return out;
+ }
+ 
+-// Decoded pairs. `search` is the raw `?...` slice off the URL, so everything
+-// coming out of here is the byte string the program means, not the wire form.
+ std::vector<std::pair<std::string, std::string>> parseQueryParams(const std::string& search) {
+     std::vector<std::pair<std::string, std::string>> pairs;
+     if (search.size() > 1 && search[0] == '?') {
+@@ -647,8 +575,6 @@ std::vector<std::pair<std::string, std::string>> parseQueryParams(const std::str
+     return pairs;
+ }
+ 
+-// The `=` is written even for an empty value: the standard's serializer always
+-// emits it, so `?a=` round-trips instead of decaying to `?a`.
+ std::string serializeQueryParams(const std::vector<std::pair<std::string, std::string>>& pairs) {
+     if (pairs.empty()) return "";
+     std::string out;
+@@ -661,13 +587,6 @@ std::string serializeQueryParams(const std::vector<std::pair<std::string, std::s
+     return out;
+ }
+ 
+-HostClass g_urlClass;
+-
+-// Bound to the PARSE, not to the URL object. `url.searchParams` is reachable
+-// on its own — a program may keep it and drop the URL — and the closures below
+-// would then be reading a HostUrl the finalizer has freed. Holding the
+-// shared_ptr keeps that case coherent: the detached view still reads and writes
+-// the same query it was made from.
+ Value makeSearchParamsObject(const std::shared_ptr<ParsedURL>& parsed) {
+     ObjectBuilder sp;
+     sp.def("get", 1, [parsed](Value, std::span<const Value> a) {
+@@ -750,218 +669,248 @@ Value makeURLValue(const ParsedURL& u) {
+     return g_urlClass.make(url, hostUrlDtor);
+ }
+ 
+-void decorateUrlProto(ObjectBuilder& b) {
++void setUrlHref(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    ParsedURL p;
++    if (parseURL(ev::toUtf8(v), "", p)) *u->parsed = p;
++}
++
++void setUrlProtocol(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    std::string s = ev::toUtf8(v);
++    if (!s.empty()) {
++        if (s.back() != ':') s += ':';
++        u->parsed->protocol = s;
++        rebuildUrlHref(*u->parsed);
++    }
++}
++
++void setUrlHost(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    std::string s = ev::toUtf8(v);
++    size_t colon = s.find(':');
++    if (colon != std::string::npos) {
++        u->parsed->hostname = s.substr(0, colon);
++        u->parsed->port = s.substr(colon + 1);
++    } else {
++        u->parsed->hostname = s;
++        u->parsed->port.clear();
++    }
++    rebuildUrlHref(*u->parsed);
++}
++
++void setUrlHostname(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    u->parsed->hostname = ev::toUtf8(v);
++    rebuildUrlHref(*u->parsed);
++}
++
++void setUrlPort(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    u->parsed->port = ev::toUtf8(v);
++    rebuildUrlHref(*u->parsed);
++}
++
++void setUrlPathname(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    std::string p = ev::toUtf8(v);
++    if (p.empty() || p[0] != '/') p = "/" + p;
++    u->parsed->pathname = normalizePath(p);
++    rebuildUrlHref(*u->parsed);
++}
++
++void setUrlSearch(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    std::string s = ev::toUtf8(v);
++    if (!s.empty() && s[0] != '?') s = "?" + s;
++    u->parsed->search = s;
++    rebuildUrlHref(*u->parsed);
++}
++
++void setUrlHash(HostUrl* u, Value v) {
++    if (!u || ev::isObject(v) || ev::isUndefined(v)) return;
++    std::string h = ev::toUtf8(v);
++    if (!h.empty() && h[0] != '#') h = "#" + h;
++    u->parsed->hash = h;
++    rebuildUrlHref(*u->parsed);
++}
++
++HostClass g_blobClass;
++HostClass g_fileClass;
++HostClass g_readerClass;
++HostClass g_urlClass;
++
++void decorateBlobProto(ObjectBuilder& b) {
++    b.def("slice", 3, [](Value self, std::span<const Value> a) {
++        const HostBlob* blob = mutableHostBlob(self);
++        if (!blob) return ev::throwTypeError("Blob.slice: the receiver is not a Blob");
++        return sliceBlob(blob, argAt(a, 0), argAt(a, 1), argAt(a, 2));
++    });
++    b.def("text", 0, [](Value self, std::span<const Value> a) {
++        const HostBlob* blob = mutableHostBlob(self);
++        if (!blob) return ev::throwTypeError("Blob.text: the receiver is not a Blob");
++        return resolvedPromise(ev::fromUtf8(
++            std::string(blob->bytes.begin(), blob->bytes.end())));
++    });
++    b.def("arrayBuffer", 0, [](Value self, std::span<const Value> a) {
++        const HostBlob* blob = mutableHostBlob(self);
++        if (!blob) {
++            return ev::throwTypeError("Blob.arrayBuffer: the receiver is not a Blob");
++        }
++        return resolvedPromise(bytesToArrayBuffer(blob->bytes));
++    });
++    b.def("bytes", 0, [](Value self, std::span<const Value> a) {
++        const HostBlob* blob = mutableHostBlob(self);
++        if (!blob) return ev::throwTypeError("Blob.bytes: the receiver is not a Blob");
++        return resolvedPromise(bytesToUint8Array(blob->bytes));
++    });
++}
++
++void decorateFileReaderProto(ObjectBuilder& b) {
++    b.set("EMPTY", ev::fromDouble(0));
++    b.set("LOADING", ev::fromDouble(1));
++    b.set("DONE", ev::fromDouble(2));
++
++    b.def("readAsArrayBuffer", 1, [](Value self, std::span<const Value> a) {
++        return doReadArrayBuffer(self, argAt(a, 0));
++    });
++    b.def("readAsBinaryString", 1, [](Value self, std::span<const Value> a) {
++        return doReadBinaryString(self, argAt(a, 0));
++    });
++    b.def("readAsText", 2, [](Value self, std::span<const Value> a) {
++        return doReadText(self, argAt(a, 0));
++    });
++    b.def("readAsDataURL", 1, [](Value self, std::span<const Value> a) {
++        return doReadDataURL(self, argAt(a, 0));
++    });
++    b.def("abort", 0, [](Value self, std::span<const Value> a) {
++        return doAbort(self);
++    });
++    b.def("addEventListener", 2, [](Value self, std::span<const Value> a) {
++        ev::Persistent self(thisValue);
++        Value typeV = argAt(a, 0);
++        if (ev::isObject(typeV)) return ev::undefined();
++        addHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
++        return ev::undefined();
++    });
++    b.def("removeEventListener", 2, [](Value self, std::span<const Value> a) {
++        ev::Persistent self(thisValue);
++        Value typeV = argAt(a, 0);
++        if (ev::isObject(typeV)) return ev::undefined();
++        removeHostListener(self, ev::toUtf8(typeV), argAt(a, 1));
++        return ev::undefined();
++    });
++}
++
++void decorateURLProto(ObjectBuilder& b) {
+     b.accessor("href",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->href : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->href : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (ev::isObject(v) || ev::isUndefined(v)) return ev::undefined();
+-                   ParsedURL p;
+-                   if (parseURL(ev::toUtf8(v), "", p)) {
+-                       *u->parsed = p;
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlHref(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("origin",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u || u->parsed->hostname.empty()) return ev::fromUtf8("null");
+-                   std::string orig = u->parsed->protocol + "//" + u->parsed->hostname;
+-                   if (!u->parsed->port.empty()) orig += ":" + u->parsed->port;
+-                   return ev::fromUtf8(orig);
+-               },
++        HostUrl* u = urlOf(self);
++        if (!u || u->parsed->hostname.empty()) return ev::fromUtf8("null");
++        std::string orig = u->parsed->protocol + "//" + u->parsed->hostname;
++        if (!u->parsed->port.empty()) orig += ":" + u->parsed->port;
++        return ev::fromUtf8(orig);
++    },
+                nullptr);
+     b.accessor("protocol",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->protocol : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->protocol : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       std::string s = ev::toUtf8(v);
+-                       if (!s.empty()) {
+-                           if (s.back() != ':') s += ':';
+-                           u->parsed->protocol = s;
+-                           rebuildUrlHref(*u->parsed);
+-                       }
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlProtocol(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("host",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::fromUtf8("");
+-                   return ev::fromUtf8(u->parsed->port.empty()
+-                                           ? u->parsed->hostname
+-                                           : u->parsed->hostname + ":" + u->parsed->port);
+-               },
++        HostUrl* u = urlOf(self);
++        if (!u) return ev::fromUtf8("");
++        return ev::fromUtf8(u->parsed->port.empty()
++                                ? u->parsed->hostname
++                                : u->parsed->hostname + ":" + u->parsed->port);
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       std::string s = ev::toUtf8(v);
+-                       size_t colon = s.find(':');
+-                       if (colon != std::string::npos) {
+-                           u->parsed->hostname = s.substr(0, colon);
+-                           u->parsed->port = s.substr(colon + 1);
+-                       } else {
+-                           u->parsed->hostname = s;
+-                           u->parsed->port.clear();
+-                       }
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlHost(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("hostname",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->hostname : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->hostname : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       u->parsed->hostname = ev::toUtf8(v);
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlHostname(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("port",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->port : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->port : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       u->parsed->port = ev::toUtf8(v);
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlPort(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("pathname",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->pathname : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->pathname : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       std::string p = ev::toUtf8(v);
+-                       if (p.empty() || p[0] != '/') p = "/" + p;
+-                       u->parsed->pathname = normalizePath(p);
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
++        setUrlPathname(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("search",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->search : "");
+-               },
+-               [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       std::string s = ev::toUtf8(v);
+-                       if (!s.empty() && s[0] != '?') s = "?" + s;
+-                       u->parsed->search = s;
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
+-    b.accessor("hash",
+-               [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   return ev::fromUtf8(u ? u->parsed->hash : "");
+-               },
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->search : "");
++    },
+                [](Value self, std::span<const Value> a) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value v = argAt(a, 0);
+-                   if (!ev::isObject(v) && !ev::isUndefined(v)) {
+-                       std::string h = ev::toUtf8(v);
+-                       if (!h.empty() && h[0] != '#') h = "#" + h;
+-                       u->parsed->hash = h;
+-                       rebuildUrlHref(*u->parsed);
+-                   }
+-                   return ev::undefined();
+-               });
+-    // ONE object per URL, cached on the URL itself. The web guarantees
+-    // `u.searchParams === u.searchParams`, and libraries lean on it — a fresh
+-    // object per read makes every such check fail. It lives as an ordinary
+-    // property rather than an ev::Persistent in HostUrl for the reason at the
+-    // top of host_internal.h: hostUrlDtor is a handle finalizer.
++        setUrlSearch(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
+     b.accessor("searchParams",
+                [](Value self, std::span<const Value>) {
+-                   HostUrl* u = urlOf(self);
+-                   if (!u) return ev::undefined();
+-                   Value cached = ev::getProperty(self, "_searchParams");
+-                   if (ev::isObject(cached)) return cached;
+-                   ev::Persistent owner(self);
+-                   ev::Persistent made(makeSearchParamsObject(u->parsed));
+-                   ev::setProperty(owner.get(), "_searchParams", made.get());
+-                   return made.get();
+-               },
++        HostUrl* u = urlOf(self);
++        if (!u) return ev::undefined();
++        Value cached = ev::getProperty(self, "_searchParams");
++        if (ev::isObject(cached)) return cached;
++        ev::Persistent owner(self);
++        ev::Persistent made(makeSearchParamsObject(u->parsed));
++        ev::setProperty(owner.get(), "_searchParams", made.get());
++        return made.get();
++    },
+                nullptr);
+-
+-    b.def("toString", 0, [](Value self, std::span<const Value>) {
++    b.accessor("hash",
++               [](Value self, std::span<const Value>) {
++        HostUrl* u = urlOf(self);
++        return ev::fromUtf8(u ? u->parsed->hash : "");
++    },
++               [](Value self, std::span<const Value> a) {
++        setUrlHash(urlOf(self), argAt(a, 0));
++        return ev::undefined();
++    });
++    b.def("toJSON", 0, [](Value self, std::span<const Value> a) {
+         HostUrl* u = urlOf(self);
+         return ev::fromUtf8(u ? u->parsed->href : "");
+     });
+-    b.def("toJSON", 0, [](Value self, std::span<const Value>) {
++    b.def("toString", 0, [](Value self, std::span<const Value> a) {
+         HostUrl* u = urlOf(self);
+         return ev::fromUtf8(u ? u->parsed->href : "");
+     });
+ }
+ 
+-// The MIME type a filename implies. There is no sniffing here and no content
+-// negotiation: an extension is all a dropped path carries, and it is what the
+-// interpreted realm's `__bro_fileFromPath` uses too (src/js/js/file_polyfills.js),
+-// so a File built here and one built there describe the same file the same way.
+-std::string mimeForName(const std::string& name) {
+-    const size_t dot = name.rfind('.');
+-    if (dot == std::string::npos || dot + 1 >= name.size()) return "";
+-    std::string ext = name.substr(dot + 1);
+-    for (char& c : ext) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
+-    static const std::pair<const char*, const char*> kTable[] = {
+-        {"png", "image/png"},    {"jpg", "image/jpeg"},  {"jpeg", "image/jpeg"},
+-        {"gif", "image/gif"},    {"webp", "image/webp"}, {"bmp", "image/bmp"},
+-        {"svg", "image/svg+xml"},
+-        {"json", "application/json"}, {"js", "text/javascript"},
+-        {"mjs", "text/javascript"},   {"css", "text/css"},
+-        {"html", "text/html"},   {"txt", "text/plain"},  {"md", "text/plain"},
+-        {"wav", "audio/wav"},    {"mp3", "audio/mpeg"},  {"ogg", "audio/ogg"},
+-        {"webm", "video/webm"},  {"mp4", "video/mp4"},
+-        {"glb", "model/gltf-binary"}, {"gltf", "model/gltf+json"},
+-        {"zip", "application/zip"},   {"wasm", "application/wasm"},
+-    };
+-    for (const auto& [k, v] : kTable)
+-        if (ext == k) return v;
+-    return "";
+-}
+-
+ }  // namespace
+ 
+-// ---------------------------------------------------------------------------
+-// The pieces other files use
+-// ---------------------------------------------------------------------------
+-
+ Value makeFileFromPath(const std::string& path) {
+     std::error_code ec;
+     const std::filesystem::path fsPath(path);
+@@ -977,8 +926,6 @@ Value makeFileFromPath(const std::string& path) {
+     blob->isFile = true;
+     blob->name = fsPath.filename().string();
+     blob->type = mimeForName(blob->name);
+-    // Best effort, and zero when the clock is unreadable: `lastModified` is
+-    // metadata a drop handler may print, never something it branches on.
+     const auto mtime = std::filesystem::last_write_time(fsPath, ec);
+     if (!ec) {
+         blob->lastModified = static_cast<double>(
+@@ -991,13 +938,9 @@ Value makeFileFromPath(const std::string& path) {
+     b.set("name", ev::fromUtf8(blob->name));
+     b.set("lastModified", ev::fromDouble(blob->lastModified));
+     b.set("webkitRelativePath", ev::fromUtf8(""));
+-    // Where it came from. Not a web property, and deliberately kept: a drop is
+-    // the one moment a page is handed a real filesystem path (docs/paths-api.js),
+-    // and the interpreted realm hands one over too.
+     b.set("path", ev::fromUtf8(path));
+     return b.get();
+ }
+-// ---------------------------------------------------------------------------
+ 
+ const HostBlob* hostBlobOf(Value v) { return mutableHostBlob(v); }
+ 
+@@ -1026,57 +969,21 @@ void installFileGlobals() {
+     g_fileClass.install(
+         "File", 3,
+         [](Value, std::span<const Value> a) {
+-            auto* blob = new HostBlob();
+-            blob->bytes = collectParts(argAt(a, 0));
+-            blob->isFile = true;
+-            Value nameV = argAt(a, 1);
+-            blob->name = (ev::isObject(nameV) || ev::isUndefined(nameV))
+-                             ? "" : ev::toUtf8(nameV);
+-            Value options = argAt(a, 2);
+-            blob->type = optionType(options);
+-            if (ev::isObject(options)) {
+-                Value lm = ev::getProperty(options, "lastModified");
+-                if (!ev::isUndefined(lm)) blob->lastModified = ev::toDouble(lm);
+-            }
+-
+-            ObjectBuilder b(g_fileClass.make(blob, hostBlobDtor));
+-            installBlobState(b, blob);
+-            b.set("name", ev::fromUtf8(blob->name));
+-            b.set("lastModified", ev::fromDouble(blob->lastModified));
+-            // webkitRelativePath is empty for a File the program built, and
+-            // present because file-input code reads it unconditionally.
+-            b.set("webkitRelativePath", ev::fromUtf8(""));
+-            return b.get();
++            return makeFileFromParts(argAt(a, 0), argAt(a, 1), argAt(a, 2));
+         },
+-        // A File carries no methods of its own: it inherits Blob's, through
+-        // the chain below.
+         nullptr);
+-    // `file instanceof Blob` is true on the web, and a File really does answer
+-    // slice/text/arrayBuffer. One chain buys both.
+     g_fileClass.inherit(g_blobClass);
+ 
+     g_readerClass.install(
+         "FileReader", 0,
+-        [](Value, std::span<const Value>) { return makeFileReaderValue(); },
+-        decorateReaderProto);
+-    // The web has the constants on the constructor too.
++        [](Value, std::span<const Value> a) {
++            return makeFileReaderValue();
++        },
++        decorateFileReaderProto);
+     g_readerClass.setStatic("EMPTY", ev::fromDouble(0));
+     g_readerClass.setStatic("LOADING", ev::fromDouble(1));
+     g_readerClass.setStatic("DONE", ev::fromDouble(2));
+ 
+-    // URL IS A CONSTRUCTOR, and was a bare namespace until it could be one.
+-    // The blocker was embed::setProperty, which called fatal() on any receiver
+-    // that was not a plain object, so a callable URL had nowhere to hang
+-    // createObjectURL; the fallback (the program's own Object.assign) was a
+-    // hard runtime error rather than a catchable throw, leaving no way to probe
+-    // at startup and degrade. setProperty takes a FUNCTION receiver now, which
+-    // lands a static where a class `static` member's definition would go, so
+-    // all three shapes are available at once: `new URL(href, base)`,
+-    // `URL.createObjectURL`, and `x instanceof URL` off the real slot-backed
+-    // prototype (host_image.cpp works the same pattern end to end for `Image`).
+-    // `URL.parse` stays beside the constructor rather than behind it: it is a
+-    // real 2024 addition to the web platform, and it answers null where the
+-    // constructor throws.
+     g_urlClass.install(
+         "URL", 1,
+         [](Value, std::span<const Value> a) {
+@@ -1096,8 +1003,7 @@ void installFileGlobals() {
+             }
+             return makeURLValue(p);
+         },
+-        decorateUrlProto);
+-
++        decorateURLProto);
+     g_urlClass.setStatic("createObjectURL", makeCreateObjectURL());
+     g_urlClass.setStatic("revokeObjectURL", makeRevokeObjectURL());
+     g_urlClass.setStatic("parse", ev::makeFunction([](Value, std::span<const Value> a) {
+@@ -1110,6 +1016,7 @@ void installFileGlobals() {
+         if (!parseURL(ev::toUtf8(hrefV), base, p)) return ev::null();
+         return makeURLValue(p);
+     }, 2));
++
+ }
+ 
+ }  // namespace bro::bronze_host
+diff --git a/docs/file-api.js b/docs/file-api.js
+index a13c98fd..91b7b944 100644
+--- a/docs/file-api.js
++++ b/docs/file-api.js
+@@ -1,67 +1,27 @@
+-// =============================================================================
+-// File API Reference — Blob, File, FileReader, object URLs, dropped files
+-// =============================================================================
+-//
+-// This is the surface an app uses to take a file *in*: the user drops one on
+-// the window (or the app builds bytes itself), and something has to turn that
+-// into a texture, a model, a document. On the web that is Blob/File + either
+-// FileReader or an object URL, and both halves have to work or the import path
+-// does not exist.
+-//
+-// Where the pieces live:
+-//   - `Blob` / `File`         brokit (C++, bytes held natively)
+-//   - `FileReader`            src/js/js/file_polyfills.js
+-//   - `URL.createObjectURL`   src/js/js/file_polyfills.js + src/util/object_url.h
+-//   - dropped-file payloads   src/js/event_dispatch_populate.cpp
+-//
+-// Related: docs/imagebitmap-api.js (createImageBitmap accepts a Blob),
+-// docs/brokit-api.js (fetch, fs), docs/paths-api.js (real filesystem paths).
+-//
+-// =============================================================================
+-
+-
+-// -----------------------------------------------------------------------------
+-// Blob / File
+-// -----------------------------------------------------------------------------
+-//
+-//   new Blob(parts, { type })            parts: strings, ArrayBuffers,
+-//                                        TypedArrays, other Blobs
+-//   new File(parts, name, { type, lastModified })
+-//
+-// Both hold their bytes in C++. `blob.size`, `blob.type`, `blob.slice()`,
+-// `await blob.text()`, `await blob.arrayBuffer()` all work; `File` adds `name`
+-// and `lastModified`, and inherits the rest.
+-
+-/** @example
++/**
++ * =============================================================================
++ * File API Reference — Blob, File, FileReader, URL, Object URLs, Dropped Files
++ * =============================================================================
++ *
++ * This is the surface an app uses to take a file *in*: the user drops one on
++ * the window (or the app builds bytes itself), and something has to turn that
++ * into a texture, a model, a document. On the web that is Blob/File + either
++ * FileReader or an object URL, and both halves have to work or the import path
++ * does not exist.
++ *
++ * Where the pieces live:
++ *   - `Blob` / `File`         brokit (C++, bytes held natively)
++ *   - `FileReader`            src/js/js/file_polyfills.js & bronze_host
++ *   - `URL.createObjectURL`   src/js/js/file_polyfills.js + src/util/object_url.h
++ *   - dropped-file payloads   src/js/event_dispatch_populate.cpp
++ *
++ * @example
++ *   // --- Blob / File Example ------------------------------------------------
+  *   const blob = new Blob([bytes], { type: 'image/png' });
+  *   const png  = await blob.arrayBuffer();
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// FileReader
+-// -----------------------------------------------------------------------------
+-//
+-// The event-driven half of the File API. `blob.text()` / `blob.arrayBuffer()`
+-// are newer and simpler, but a great deal of shipped import code is written
+-// against FileReader (three.js's editor reads every model it imports this way),
+-// so it is here in full.
+-//
+-//   const reader = new FileReader();
+-//   reader.addEventListener('load', e => use(e.target.result));
+-//   reader.readAsArrayBuffer(file);
+-//
+-// Methods: readAsArrayBuffer, readAsText(blob[, encoding]), readAsDataURL,
+-// readAsBinaryString, abort().
+-// Properties: result, error, readyState (EMPTY 0 / LOADING 1 / DONE 2).
+-// Events (also available as on<name>): loadstart, progress, load, loadend,
+-// error, abort — each a ProgressEvent carrying loaded/total.
+-//
+-// A read always completes in a later turn, as on the web, so assigning the
+-// handler after calling read() is fine. Reading while a read is in flight
+-// throws.
+-
+-/** @example
++ *
++ * @example
++ *   // --- FileReader Example -------------------------------------------------
+  *   function readModel(file) {
+  *     return new Promise((resolve, reject) => {
+  *       const r = new FileReader();
+@@ -70,63 +30,18 @@
+  *       r.readAsArrayBuffer(file);
+  *     });
+  *   }
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// Object URLs
+-// -----------------------------------------------------------------------------
+-//
+-//   const url = URL.createObjectURL(blob);   // "blob:bro/17"
+-//   URL.revokeObjectURL(url);
+-//
+-// An object URL names bytes the page already holds so a URL consumer can read
+-// them. In bro they resolve everywhere a URL does:
+-//
+-//   - `<img src="blob:…">` and `new Image()` — sized and painted from the bytes
+-//   - `fetch(url)` — a 200 whose Content-Type is the Blob's type
+-//   - anything built on those, including three.js's TextureLoader/FileLoader
+-//
+-// The bytes are copied out of the Blob when the URL is created (they have to
+-// be readable from the render threads, which have no JS context), so a large
+-// blob costs its size again until the URL is revoked. Revoke when done —
+-// consumers already mid-read finish with the copy they hold.
+-
+-/** @example
++ *
++ * @example
++ *   // --- Object URLs Example ------------------------------------------------
+  *   // Resolve a model's texture that only exists in memory.
+  *   const url = URL.createObjectURL(textureFile);
+  *   new THREE.TextureLoader().load(url, tex => {
+  *     material.map = tex;
+  *     URL.revokeObjectURL(url);
+  *   });
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// Dropped files
+-// -----------------------------------------------------------------------------
+-//
+-// A file dropped on the window fires dragenter → dragover → drop, once for the
+-// whole gesture however many files it carries. `event.dataTransfer` has:
+-//
+-//   .files      an array of real `File` objects — size, type, and bytes, so
+-//               FileReader / createObjectURL / createImageBitmap all take them
+-//   .types      ['Files'] for a file drop, plus 'text/plain' for dragged text
+-//   .getData(t) the dragged text, if any
+-//
+-// Each File also carries a non-standard `.path`: the real filesystem location
+-// it came from. A drop is the one moment a page is handed one, and bro apps can
+-// use real paths (see docs/paths-api.js) — reach for it when you want to read
+-// the file with `fs` or hand it to a sidecar tool instead of copying bytes.
+-//
+-// A path that cannot be read (a dropped directory, a permission error) arrives
+-// as a plain `{ name, path }` object instead of a File, so a drop never fails
+-// outright — check `instanceof File` if it matters.
+-//
+-// In headless, `dropFiles(x, y, paths)` synthesizes the whole gesture
+-// (docs/headless.md).
+-
+-/** @example
++ *
++ * @example
++ *   // --- Dropped Files Example ----------------------------------------------
+  *   document.addEventListener('drop', async (event) => {
+  *     event.preventDefault();
+  *     if (event.dataTransfer.types[0] !== 'Files') return;
+@@ -135,78 +50,19 @@
+  *       console.log(file.name, file.size, 'from', file.path, text.length);
+  *     }
+  *   });
+- *
+  *   document.addEventListener('dragover', e => e.preventDefault());
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// <input type=file>
+-// -----------------------------------------------------------------------------
+-//
+-// The other way in. Clicking a file input — or calling `.click()` on a hidden
+-// one from your own button, which is how nearly every page does it — opens the
+-// native picker, and what the user chose reads back as `input.files`: the same
+-// real `File` objects a drop produces, `.path` included.
+-//
+-//   <input type="file" accept=".obj,.gltf" multiple>
+-//
+-//   input.addEventListener('change', () => {
+-//     for (const file of input.files) load(file);
+-//   });
+-//
+-// `accept` filters the picker (extensions, MIME types, and the `image/*`-style
+-// wildcards); `multiple` allows more than one. Cancelling selects nothing and
+-// fires no events, leaving any earlier selection in place. `input.value` reads
+-// as the browser's fake path ("C:\fakepath\model.obj") — the real one is on
+-// each File.
+-//
+-// In headless there is no picker to open: `setPickedFiles(paths)` queues what
+-// the next click will choose, and the click consumes it (docs/headless.md).
+-
+-/** @example
++ *
++ * @example
++ *   // --- Input File Example -------------------------------------------------
+  *   // The standard hidden-input pattern.
+  *   const input = document.createElement('input');
+  *   input.type = 'file';
+  *   input.accept = 'image/*';
+  *   input.addEventListener('change', () => useTexture(input.files[0]));
+  *   myButton.onclick = () => input.click();
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// Downloading — <a download>
+-// -----------------------------------------------------------------------------
+-//
+-// The other direction: handing a file *out*. There is exactly one way a page
+-// can do it, and every "Export" / "Save as" button on the web is built from it:
+-//
+-//   const url = URL.createObjectURL(new Blob([bytes], { type }));
+-//   const link = document.createElement('a');
+-//   link.href = url;
+-//   link.download = 'model.obj';
+-//   link.click();                 // or link.dispatchEvent(new MouseEvent('click'))
+-//   URL.revokeObjectURL(url);
+-//
+-// The file lands in the user's Downloads folder, named by the `download`
+-// attribute (or the URL's own last path segment when the attribute is empty).
+-// An existing file is never overwritten — "model (2).obj" and so on are tried.
+-// The attribute names a file, never a path: separators in it are replaced, so
+-// a page cannot write outside that folder.
+-//
+-// The href can be an object URL, a `data:` URL, or an app path — anything the
+-// runtime can read bytes from. `preventDefault()` on the click cancels the
+-// download, and an anchor without a `download` attribute is a plain link and
+-// saves nothing.
+-//
+-// An app that wants the user to choose the location has `showSaveFileDialog()`
+-// instead (docs/dialogs-api.js); this path is for code written against the web.
+-//
+-// In headless, `lastDownload()` returns the absolute path the most recent
+-// download wrote, so a test can assert on an export without knowing where the
+-// user's Downloads folder is (docs/headless.md).
+-
+-/** @example
++ *
++ * @example
++ *   // --- Downloading Example (<a download>) ---------------------------------
+  *   function exportScene(text) {
+  *     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  *     const link = document.createElement('a');
+@@ -215,38 +71,9 @@
+  *     link.click();
+  *     URL.revokeObjectURL(url);
+  *   }
+- */
+-
+-
+-// -----------------------------------------------------------------------------
+-// Dragging inside the page — draggable + DataTransfer
+-// -----------------------------------------------------------------------------
+-//
+-// The drop above comes from outside the window. The other kind starts inside
+-// the page — reorder a list, reparent a tree node, drop a layer onto another —
+-// and is the HTML5 drag-and-drop sequence:
+-//
+-//   source:  dragstart → drag … → dragend
+-//   target:  dragenter → dragover … → drop   (or dragleave on the way out)
+-//
+-// An element is a drag source when it carries `draggable="true"`, or when a
+-// script sets `el.draggable = true` (the property reflects to the attribute).
+-// A press on it that travels more than a few pixels starts the drag; a press
+-// that does not is an ordinary click, and a gesture that became a drag does
+-// NOT also fire a click.
+-//
+-// A target must call `preventDefault()` in `dragover` (or `dragenter`) to
+-// accept the drop — that inversion is the spec's, and forgetting it is the
+-// usual reason no `drop` arrives. `offsetX`/`offsetY` on each event are
+-// target-relative, which is how a tree tells "reorder above" from "drop into".
+-//
+-// One `DataTransfer` lives for the whole gesture: what the source writes in
+-// `dragstart` is what the drop handler reads back. `setData`/`getData`/
+-// `clearData`/`types`/`dropEffect`/`effectAllowed` all work, and the legacy
+-// short names are accepted ("Text" → text/plain, "URL" → text/uri-list).
+-// `setDragImage()` is accepted and ignored — bro draws no drag ghost.
+-
+-/** @example
++ *
++ * @example
++ *   // --- Dragging inside page (DataTransfer) --------------------------------
+  *   row.draggable = true;
+  *   row.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', row.id));
+  *   list.addEventListener('dragover',  e => e.preventDefault());   // required
+@@ -257,3 +84,446 @@
+  *     e.target.parentNode.insertBefore(moved, before ? e.target : e.target.nextSibling);
+  *   });
+  */
++
++// ── Typedefs ─────────────────────────────────────────────────────────────────
++
++/**
++ * Union of valid parts that can compose a Blob.
++ * @type {(string|ArrayBuffer|ArrayBufferView|Blob)}
++ */
++// typedef (string|ArrayBuffer|ArrayBufferView|Blob) BlobPart;
++
++// ── Dictionaries ─────────────────────────────────────────────────────────────
++
++/**
++ * Initialization dictionary for creating a Blob.
++ * @typedef {Object} BlobPropertyBag
++ * @property {string} [type=""]
++ */
++
++/**
++ * Initialization dictionary for creating a File.
++ * @typedef {Object} FilePropertyBag extends BlobPropertyBag
++ * @property {number} [lastModified]
++ */
++
++// ── Classes & Interfaces ─────────────────────────────────────────────────────
++
++/**
++ * Represents immutable raw binary data held in native memory.
++ */
++class Blob {
++
++  /**
++   * Create a new Blob from an array of parts (strings, ArrayBuffers, TypedArrays, or Blobs).
++   *
++   * @param {Array<BlobPart>} [blobParts] - Array of parts to concatenate into the blob
++   * @param {BlobPropertyBag} [options] - Configuration options including MIME type
++   */
++  constructor(blobParts, options) {}
++
++  /**
++   * Byte length of the blob data.
++   * @readonly
++   * @type {number}
++   */
++  size;
++
++  /**
++   * Normalized ASCII-encoded lowercase MIME type string (e.g. "image/png").
++   * @readonly
++   * @type {string}
++   */
++  type;
++
++  /**
++   * Returns a new Blob object containing the data in the specified byte range.
++   *
++   * @param {number} [start] - Byte offset start (negative offsets count from end)
++   * @param {number} [end] - Byte offset end
++   * @param {string} [contentType] - MIME type of the returned slice
++   * @returns {Blob} Sliced Blob instance
++   */
++  slice(start, end, contentType) {}
++
++  /**
++   * Asynchronously reads and decodes the blob contents as a UTF-8 text string.
++   * @returns {Promise<string>} Promise resolving to the text content
++   */
++  text() {}
++
++  /**
++   * Asynchronously reads the blob contents as a binary ArrayBuffer.
++   * @returns {Promise<ArrayBuffer>} Promise resolving to an ArrayBuffer copy of the bytes
++   */
++  arrayBuffer() {}
++
++  /**
++   * Asynchronously returns a Uint8Array view of the blob's binary contents.
++   * @returns {Promise<Uint8Array>} Promise resolving to Uint8Array
++   */
++  bytes() {}
++
++}
++
++/**
++ * A File represents a Blob with file metadata (filename, last modified timestamp, and origin path).
++ */
++class File extends Blob {
++
++  /**
++   * Construct a File instance.
++   *
++   * @param {Array<BlobPart>} fileBits - Array of parts forming the file's binary content
++   * @param {string} fileName - The name of the file
++   * @param {FilePropertyBag} [options] - Options specifying MIME type and lastModified time
++   */
++  constructor(fileBits, fileName, options) {}
++
++  /**
++   * Name of the file.
++   * @readonly
++   * @type {string}
++   */
++  name;
++
++  /**
++   * Milliseconds timestamp since Unix epoch when the file was last modified.
++   * @readonly
++   * @type {number}
++   */
++  lastModified;
++
++  /**
++   * Relative path if picked via a directory picker, otherwise empty.
++   * @readonly
++   * @type {string}
++   */
++  webkitRelativePath;
++
++  /**
++   * Absolute real filesystem path when the file originates from a drag-and-drop gesture or native file picker.
++   * @readonly
++   * @type {string}
++   */
++  path;
++
++}
++
++/**
++ * Event-driven async reader for Blob and File objects.
++ */
++class FileReader {
++
++  /**
++   * Construct a new FileReader.
++   */
++  constructor() {}
++
++  /**
++   * @readonly
++   * @type {number}
++   */
++  static readonly EMPTY = 0;
++
++  /**
++   * @readonly
++   * @type {number}
++   */
++  static readonly LOADING = 1;
++
++  /**
++   * @readonly
++   * @type {number}
++   */
++  static readonly DONE = 2;
++
++  /**
++   * Current state of the reader (EMPTY 0, LOADING 1, DONE 2).
++   * @readonly
++   * @type {number}
++   */
++  readyState;
++
++  /**
++   * Result of the read operation (DOMString or ArrayBuffer on success, null on error/empty).
++   * @readonly
++   * @type {(string|ArrayBuffer|null)}
++   */
++  result;
++
++  /**
++   * Error object if the read failed, otherwise null.
++   * @readonly
++   * @type {Object|null}
++   */
++  error;
++
++  /**
++   * Event handler for read start.
++   * @type {EventHandler}
++   */
++  onloadstart;
++
++  /**
++   * Event handler for progress updates.
++   * @type {EventHandler}
++   */
++  onprogress;
++
++  /**
++   * Event handler for successful load completion.
++   * @type {EventHandler}
++   */
++  onload;
++
++  /**
++   * Event handler for aborted read operations.
++   * @type {EventHandler}
++   */
++  onabort;
++
++  /**
++   * Event handler for read errors.
++   * @type {EventHandler}
++   */
++  onerror;
++
++  /**
++   * Event handler for completed read operations (success or failure).
++   * @type {EventHandler}
++   */
++  onloadend;
++
++  /**
++   * Starts reading the contents of the specified Blob or File as an ArrayBuffer.
++   *
++   * @param {Blob} blob - The Blob to read
++   */
++  readAsArrayBuffer(blob) {}
++
++  /**
++   * Starts reading the contents of the specified Blob as a binary string (one character per byte).
++   *
++   * @param {Blob} blob - The Blob to read
++   */
++  readAsBinaryString(blob) {}
++
++  /**
++   * Starts reading the contents of the specified Blob as UTF-8 text.
++   *
++   * @param {Blob} blob - The Blob to read
++   * @param {string} [encoding] - Optional encoding string (UTF-8 is default)
++   */
++  readAsText(blob, encoding) {}
++
++  /**
++   * Starts reading the contents of the specified Blob as a base64 data: URL.
++   *
++   * @param {Blob} blob - The Blob to read
++   */
++  readAsDataURL(blob) {}
++
++  /**
++   * Aborts the in-flight read operation and resets reader state.
++   */
++  abort() {}
++
++  /**
++   * Register an event listener for reader events.
++   *
++   * @param {string} type - Event type ('load', 'error', 'loadend', 'progress', 'abort')
++   * @param {EventListener} listener - Event listener callback
++   */
++  addEventListener(type, listener) {}
++
++  /**
++   * Remove a previously registered event listener.
++   *
++   * @param {string} type - Event type
++   * @param {EventListener} listener - Event listener callback
++   */
++  removeEventListener(type, listener) {}
++
++}
++
++/**
++ * URL query parameter parser and manipulator.
++ */
++class URLSearchParams {
++
++  /**
++   * Create a URLSearchParams object from query string, entries, or dictionary.
++   *
++   * @param {(Array<Array<string>>|Object<string, string>|string)} [init]
++   */
++  constructor(init) {}
++
++  /**
++   * Appends a specified key/value pair as a new search parameter.
++   *
++   * @param {string} name
++   * @param {string} value
++   */
++  append(name, value) {}
++
++  /**
++   * Deletes the given search parameter and its associated value(s).
++   *
++   * @param {string} name
++   */
++  delete(name) {}
++
++  /**
++   * Returns the first value associated to the given search parameter.
++   *
++   * @param {string} name
++   * @returns {string|null}
++   */
++  get(name) {}
++
++  /**
++   * Returns all the values associated with a given search parameter as an array.
++   *
++   * @param {string} name
++   * @returns {Array<string>}
++   */
++  getAll(name) {}
++
++  /**
++   * Returns a boolean indicating if such a search parameter exists.
++   *
++   * @param {string} name
++   * @returns {boolean}
++   */
++  has(name) {}
++
++  /**
++   * Sets the value associated with a given search parameter to the given value.
++   *
++   * @param {string} name
++   * @param {string} value
++   */
++  set(name, value) {}
++
++  /**
++   * Returns a query string suitable for use in a URL.
++   * @returns {string}
++   */
++  toString() {}
++
++}
++
++/**
++ * Standard WHATWG URL interface for parsing, constructing, and resolving URLs and Blob URLs.
++ */
++class URL {
++
++  /**
++   * Parse an absolute or relative URL string against an optional base URL.
++   *
++   * @param {string} url - Absolute or relative URL string
++   * @param {string} [base] - Optional base URL string
++   */
++  constructor(url, base) {}
++
++  /**
++   * Mint an object URL naming the given Blob's bytes (e.g. "blob:bro/17").
++   *
++   * @param {Blob} obj - The Blob to expose
++   * @returns {string} Object URL string
++   */
++  static createObjectURL(obj) {}
++
++  /**
++   * Revoke an object URL previously created with createObjectURL.
++   *
++   * @param {string} url - The object URL string to revoke
++   */
++  static revokeObjectURL(url) {}
++
++  /**
++   * Parse a URL string against a base, returning null on invalid input instead of throwing.
++   *
++   * @param {string} url - URL string to parse
++   * @param {string} [base] - Optional base URL
++   * @returns {URL|null} Parsed URL instance or null if invalid
++   */
++  static parse(url, base) {}
++
++  /**
++   * Full serialized URL href string.
++   * @type {string}
++   */
++  href;
++
++  /**
++   * Origin of the URL (protocol + hostname + port).
++   * @readonly
++   * @type {string}
++   */
++  origin;
++
++  /**
++   * Protocol scheme of the URL (including trailing colon ':').
++   * @type {string}
++   */
++  protocol;
++
++  /**
++   * Host (hostname and port) of the URL.
++   * @type {string}
++   */
++  host;
++
++  /**
++   * Hostname without port number.
++   * @type {string}
++   */
++  hostname;
++
++  /**
++   * Port number string.
++   * @type {string}
++   */
++  port;
++
++  /**
++   * Pathname component of the URL.
++   * @type {string}
++   */
++  pathname;
++
++  /**
++   * Query search string (including leading '?').
++   * @type {string}
++   */
++  search;
++
++  /**
++   * URLSearchParams object representing query parameters.
++   * @readonly
++   * @type {URLSearchParams}
++   */
++  searchParams;
++
++  /**
++   * Fragment hash component (including leading '#').
++   * @type {string}
++   */
++  hash;
++
++  /**
++   * Returns serialized URL href.
++   * @returns {string}
++   */
++  toJSON() {}
++
++  /**
++   * Returns serialized URL href.
++   * @returns {string}
++   */
++  toString() {}
++
++}
++
