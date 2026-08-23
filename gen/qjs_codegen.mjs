@@ -357,7 +357,7 @@ export function emitInterfaceTU(interfaceDefs) {
     return emitEngineWrapperTU(interfaceDefs);
   }
 
-  const primary = interfaceDefs[0];
+  const primary = interfaceDefs.find(i => hasAttr(i, 'cpp_install') || hasAttr(i, 'cpp_header') || hasAttr(i, 'cpp_prologue')) || interfaceDefs[0];
   const cppHeader = getAttr(primary, 'cpp_header') || 'api/api.h';
   const cppNamespace = getAttr(primary, 'cpp_namespace') || 'brokit::api';
   const cppIncludes = getAttr(primary, 'cpp_includes') || '';
@@ -1528,7 +1528,7 @@ export function emitLayeredStoreTU(nsDef) {
   const cppHeader = getAttr(nsDef, 'cpp_header') || `js/${snake}_bindings.h`;
   const cppNamespace = getAttr(nsDef, 'cpp_namespace') || 'bro::js';
   const cppIncludes = getAttr(nsDef, 'cpp_includes') || '';
-  const installSig = getAttr(nsDef, 'install_signature') || `void ${pascal}Bindings::install(JSContext* ctx, engine::Settings* store, platform::Window* window, engine::Engine* engine)`;
+  const installSig = getAttr(nsDef, 'install_signature') || `void ${pascal}Bindings::install(JSContext* ctx, engine::Settings* store, platform::Window* platWin, engine::Engine* engine)`;
 
   const lines = [];
   lines.push(`#include "${cppHeader}"`);
@@ -1547,7 +1547,7 @@ export function emitLayeredStoreTU(nsDef) {
   lines.push('');
   lines.push(`struct ${pascal}State {`);
   lines.push(`    engine::Settings* store = nullptr;`);
-  lines.push(`    platform::Window* window = nullptr;`);
+  lines.push(`    platform::Window* platWin = nullptr;`);
   lines.push(`    engine::Engine* engine = nullptr;`);
   lines.push(`};`);
   lines.push('');
@@ -1848,8 +1848,8 @@ export function emitLayeredStoreTU(nsDef) {
   lines.push(`    auto* state = getState(ctx);`);
   lines.push(`    if (!state) return JS_NewArray(ctx);`);
   lines.push(`    JSValue arr = JS_NewArray(ctx);`);
-  lines.push(`    if (!state->window) return arr;`);
-  lines.push(`    auto modes = state->window->getDisplayModes();`);
+  lines.push(`    if (!state->platWin) return arr;`);
+  lines.push(`    auto modes = state->platWin->getDisplayModes();`);
   lines.push(`    for (size_t i = 0; i < modes.size(); i++) {`);
   lines.push(`        JSValue obj = JS_NewObject(ctx);`);
   lines.push(`        JS_SetPropertyStr(ctx, obj, "width", JS_NewInt32(ctx, modes[i].width));`);
@@ -1907,7 +1907,7 @@ export function emitLayeredStoreTU(nsDef) {
   lines.push(`${installSig} {`);
   lines.push(`    auto* state = new ${pascal}State();`);
   lines.push(`    state->store = ${storeParam};`);
-  lines.push(`    state->window = window;`);
+  lines.push(`    state->platWin = platWin;`);
   lines.push(`    state->engine = engine;`);
   lines.push('');
   lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);

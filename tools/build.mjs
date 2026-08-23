@@ -7,6 +7,7 @@ import { runEmitStubs } from '../gen/emit_stubs.mjs';
 console.log('Regenerating all artifacts from idl/ ...');
 runEmitDocs('idl/', 'out/docs/');
 runEmitDts('idl/', 'out/types/index.d.ts');
+runEmitDts('idl/', 'out/bro.d.ts');
 runEmitQjsbind('idl/', 'out/qjs/');
 runEmitBronzeHost('idl/', 'out/bronze_host/');
 runEmitStubs('idl/', 'out/stubs/feature_stubs.cpp');

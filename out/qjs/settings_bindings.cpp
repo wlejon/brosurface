@@ -13,7 +13,7 @@ static const char* kWindowKey = "__bro_settings_window_ptr";
 
 struct SettingsState {
     engine::Settings* store = nullptr;
-    platform::Window* window = nullptr;
+    platform::Window* platWin = nullptr;
     engine::Engine* engine = nullptr;
 };
 
@@ -314,8 +314,8 @@ static JSValue js_settings_get_display_modes(JSContext* ctx, JSValueConst, int, 
     auto* state = getState(ctx);
     if (!state) return JS_NewArray(ctx);
     JSValue arr = JS_NewArray(ctx);
-    if (!state->window) return arr;
-    auto modes = state->window->getDisplayModes();
+    if (!state->platWin) return arr;
+    auto modes = state->platWin->getDisplayModes();
     for (size_t i = 0; i < modes.size(); i++) {
         JSValue obj = JS_NewObject(ctx);
         JS_SetPropertyStr(ctx, obj, "width", JS_NewInt32(ctx, modes[i].width));
@@ -371,7 +371,7 @@ void SettingsBindings::cleanup(JSContext* ctx) {
 void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platform::Window* window, engine::Engine* engine) {
     auto* state = new SettingsState();
     state->store = settings;
-    state->window = window;
+    state->platWin = platWin;
     state->engine = engine;
 
     JSValue global = JS_GetGlobalObject(ctx);

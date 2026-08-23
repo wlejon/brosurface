@@ -70,7 +70,65 @@ interface Node { [key: string]: any; }
  */
 type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob;
 
+type ListenSource = string | ListenSourceOptions;
+
 // ── Dictionaries ─────────────────────────────────────────────────────────────
+
+/**
+ * @file audio.idl
+ * @description Web Audio API compatible AudioContext, DSP nodes, synthesis, and streaming.
+ */
+interface AudioDecodedBuffer {
+  samples?: Float32Array;
+  channels?: number;
+  sampleRate?: number;
+  numFrames?: number;
+}
+
+interface StreamStats {
+  decodedFrames?: number;
+  playedFrames?: number;
+  bufferedFrames?: number;
+  underrunFrames?: number;
+  finished?: boolean;
+}
+
+interface StreamFromFileOptions {
+  ringFrames?: number;
+  prebufferFrames?: number;
+  loop?: boolean;
+  gain?: number;
+}
+
+interface SequenceNote {
+  beat?: number;
+  note?: number;
+  velocity?: number;
+  duration?: number;
+}
+
+interface SequenceAutomationPoint {
+  beat?: number;
+  value?: number;
+}
+
+interface MidiPort {
+  index?: number;
+  name?: string;
+}
+
+interface MidiRawEvent {
+  type?: string;
+  channel?: number;
+  data1?: number;
+  data2?: number;
+  pitchBend?: number;
+  timestamp?: number;
+}
+
+interface MediaStreamConstraints {
+  audio?: boolean;
+}
 
 /**
  * Options for custom element definition (e.g. customized built-in element extension).
@@ -120,6 +178,43 @@ interface GamepadEffectParameters {
    *  Right trigger motor magnitude [0.0 - 1.0] (trigger-rumble only)
    */
   rightTrigger?: number;
+}
+
+/**
+ * @file gesture.idl
+ * @description Non-speech acoustic gesture matching (clicks, rhythms, whistles).
+ * Dual-homed on bro.gesture (default mic) and stream.gesture (bro.listen.open handle).
+ */
+interface GesturePolicyOptions {
+  tempoTol?: number;
+  pitchTol?: number;
+  pitchStabilityTol?: number;
+  shapeTol?: number;
+  refractoryFrames?: number;
+  minOnsets?: number;
+  minToneFrames?: number;
+  onsetSigFrames?: number;
+}
+
+interface GestureListenOptions {
+  onGesture: Function;
+}
+
+interface GestureOnsetSignature {
+  voiced?: number;
+  pitchHz?: number;
+  bright?: number;
+}
+
+interface GestureInspection {
+  name?: string;
+  kind?: string;
+  frameMs?: number;
+  intervalsMs?: number[];
+  onsets?: GestureOnsetSignature[];
+  toneHz?: number;
+  toneMs?: number;
+  toneSpread?: number;
 }
 
 /**
@@ -224,6 +319,126 @@ interface GpuMemoryInfo {
    * Total physical VRAM in bytes on the device.
    */
   totalBytes: number;
+}
+
+/**
+ * @file kws.idl
+ * @description Open-vocabulary keyword spotting via PhonemeSpotter. Dual-homed on bro.kws
+ * (default microphone) and stream.kws (bro.listen.open handle).
+ */
+interface KwsSmoothingOptions {
+  hits?: number;
+  window?: number;
+}
+
+interface KwsPolicyOptions {
+  weights?: string;
+  device?: string;
+  threshold?: number;
+  refractoryMs?: number;
+  smoothing?: KwsSmoothingOptions;
+  minPhonemes?: number;
+  entrySilenceFrames?: number;
+  emissionFloor?: number;
+  minCoverage?: number;
+  scoreNorm?: number;
+  enrollGaps?: boolean;
+  gapMinFrames?: number;
+  gapTolerance?: number;
+}
+
+interface KwsListenOptions {
+  onSpot: Function;
+}
+
+interface KwsSpan {
+  startFrame?: number;
+  endFrame?: number;
+  matchedFrames?: number;
+}
+
+interface KwsStateInspection {
+  cls?: number;
+  label?: string;
+  gap?: boolean;
+  gapLo?: number;
+  gapHi?: number;
+}
+
+interface KwsInspection {
+  name?: string;
+  threshold?: number;
+  frameMs?: number;
+  hasGaps?: boolean;
+  states?: KwsStateInspection[];
+}
+
+interface KwsTemplateProgress {
+  name?: string;
+  matched?: number;
+  length?: number;
+  progress?: number;
+  confidence?: number;
+  completions?: number;
+  lastAdvanceFrame?: number;
+  lastFireFrame?: number;
+}
+
+interface KwsProgress {
+  frames?: number;
+  generation?: number;
+  templates?: KwsTemplateProgress[];
+}
+
+interface KwsPosteriorTopClass {
+  cls?: number;
+  label?: string;
+  p?: number;
+}
+
+interface KwsPosterior {
+  frame?: number;
+  top?: KwsPosteriorTopClass[];
+}
+
+interface KwsStats {
+  framesDelivered?: number;
+  samplesDelivered?: number;
+  rollingPeak?: number;
+}
+
+interface KwsEvent {
+  name?: string;
+  confidence?: number;
+}
+
+/**
+ * @file listen.idl
+ * @description Core audio streaming pipelines and listen host retention.
+ */
+interface ListenSourceOptions {
+  mic?: boolean;
+  system?: boolean;
+  process?: number;
+  pid?: number;
+  exclude?: boolean;
+  channel?: number;
+}
+
+interface ListenRetentionInfo {
+  active?: boolean;
+  seconds?: number;
+  rate?: number;
+  hop?: number;
+  frameRate?: number;
+  streamFrame?: number;
+  heldFrames?: number;
+  heldSeconds?: number;
+}
+
+interface AudioApp {
+  pid?: number;
+  name?: string;
 }
 
 /**
@@ -369,6 +584,100 @@ interface MistralModelPair {
 interface GemmaModelPair {
   model: LMModel;
   tokenizer: GemmaTokenizer;
+}
+
+/**
+ * Event object dispatched to MediaQueryList change event listeners.
+ */
+interface MediaQueryListEvent {
+  /**
+   *  Event type string ("change").
+   */
+  type?: string;
+  /**
+   *  Whether the media query matches current document media context.
+   */
+  matches?: boolean;
+  /**
+   *  The serialized media query string.
+   */
+  media?: string;
+  /**
+   *  Target MediaQueryList object.
+   */
+  target?: MediaQueryList;
+  /**
+   *  Current target MediaQueryList object.
+   */
+  currentTarget?: MediaQueryList;
+}
+
+/**
+ * Menu item descriptor definition.
+ */
+interface MenuItem {
+  /**
+   *  Unique item identifier, or '__system.*' for engine actions.
+   */
+  id?: string;
+  /**
+   *  Display label text.
+   */
+  label?: string;
+  /**
+   *  Keyboard shortcut hint string (e.g. 'Ctrl+S').
+   */
+  accel?: string;
+  /**
+   *  Whether to draw as a horizontal separator line.
+   */
+  separator?: boolean;
+  /**
+   *  Whether item is enabled and clickable.
+   */
+  enabled?: boolean;
+  /**
+   *  Whether item is hidden from the menu.
+   */
+  hidden?: boolean;
+  /**
+   *  Whether item shows a checkmark.
+   */
+  checked?: boolean;
+  /**
+   *  Submenu child items.
+   */
+  items?: MenuItem[];
+}
+
+/**
+ * Mutable properties for updating an existing menu item.
+ */
+interface MenuItemUpdate {
+  /**
+   *  New display label text.
+   */
+  label?: string;
+  /**
+   *  New keyboard shortcut hint string.
+   */
+  accel?: string;
+  /**
+   *  Enabled status.
+   */
+  enabled?: boolean;
+  /**
+   *  Visibility status.
+   */
+  hidden?: boolean;
+  /**
+   *  Checkmark status.
+   */
+  checked?: boolean;
+  /**
+   *  New submenu child items.
+   */
+  items?: MenuItem[];
 }
 
 /**
@@ -662,6 +971,69 @@ interface RaveLoadOptions {
 }
 
 /**
+ * @file sense.idl
+ * @description Real-time tier-0 acoustic sensing (VAD, pitch, onset, tonality, centroid).
+ * Dual-homed on bro.sense (default mic) and stream.sense (bro.listen.open handle).
+ */
+interface SenseStartOptions {
+  vadFloorDb?: number;
+  vadSnrDb?: number;
+  vadRiseDbps?: number;
+  vadHangFrames?: number;
+  onsetRatio?: number;
+  onsetAbs?: number;
+  onsetEma?: number;
+  onsetRefractoryFrames?: number;
+  tonalMinPeriodicity?: number;
+  tonalFminHz?: number;
+  tonalFmaxHz?: number;
+}
+
+interface SenseSnapshot {
+  frames?: number;
+  t?: number;
+  rms?: number;
+  peak?: number;
+  db?: number;
+  voice?: boolean;
+  noiseFloorDb?: number;
+  snrDb?: number;
+  voiceFrames?: number;
+  voiceEvents?: number;
+  lastVoiceFrame?: number;
+  flux?: number;
+  onset?: boolean;
+  onsets?: number;
+  lastOnsetFrame?: number;
+  periodicity?: number;
+  dominantHz?: number;
+  tonal?: boolean;
+  tonalFrames?: number;
+  tonalEvents?: number;
+  lastTonalFrame?: number;
+  centroid?: number;
+}
+
+interface SenseStats {
+  framesDelivered?: number;
+  samplesDelivered?: number;
+  rollingPeak?: number;
+}
+
+interface SenseAnalysis {
+  frames?: number;
+  hop?: number;
+  win?: number;
+  rate?: number;
+  frameMs?: number;
+  db?: Float32Array;
+  dominantHz?: Float32Array;
+  periodicity?: Float32Array;
+  centroid?: Float32Array;
+  flags?: Int32Array;
+}
+
+/**
  * Options for action binding definitions.
  */
 interface ActionOptions {
@@ -701,6 +1073,58 @@ interface DisplayModeInfo {
    *  Vertical refresh rate in Hz.
    */
   refreshRate?: number;
+}
+
+/**
+ * @file stt.idl
+ * @description Speech-to-text inference models: Whisper, Parakeet, and Qwen3-ASR.
+ */
+interface WhisperLoadOptions {
+  device?: string;
+  quantize?: boolean;
+}
+
+interface TokenizerLoadOptions {
+  path: string;
+  specialTokens?: string;
+}
+
+interface WhisperTranscribeOptions {
+  maxNewTokens?: number;
+  prompt?: Int32Array | number[];
+  temperature?: number;
+  onToken?: Function;
+  onDone?: Function;
+}
+
+interface ParakeetTranscribeOptions {
+  onToken?: Function;
+  onDone?: Function;
+}
+
+interface ParakeetResult {
+  tokenIds?: Int32Array;
+  frameOffsets?: Int32Array;
+}
+
+interface QwenAsrTranscribeOptions {
+  maxNewTokens?: number;
+  contextIds?: Int32Array | number[];
+  onToken?: Function;
+  onDone?: Function;
+}
+
+interface QwenAsrEncodeResult {
+  tokenIds?: Int32Array;
+}
+
+interface QwenAsrStreamOptions {
+  device?: string;
+}
+
+interface SttAudioBuffer {
+  samples?: Float32Array;
+  sampleRate?: number;
 }
 
 /**
@@ -1039,6 +1463,249 @@ interface BidiParagraph {
   runs?: BidiRun[];
 }
 
+/**
+ * @file tts.idl
+ * @description Text-to-speech synthesis engines: Kokoro (82M), Qwen3-TTS, and Supertonic-3.
+ */
+interface KokoroLoadOptions {
+  device?: string;
+}
+
+interface VoiceLoadOptions {
+  path?: string;
+}
+
+interface KokoroSynthesizeOptions {
+  speed?: number;
+  onDone?: Function;
+}
+
+interface KokoroSynthesizeResult {
+  samples?: Float32Array;
+  sampleRate?: number;
+}
+
+interface KokoroStreamOptions {
+  speed?: number;
+  onChunk?: Function;
+  onDone?: Function;
+}
+
+interface QwenLoadOptions {
+  device?: string;
+}
+
+interface QwenSynthesizeOptions {
+  speaker?: string;
+  speed?: number;
+  onDone?: Function;
+}
+
+interface QwenSynthesizeResult {
+  samples?: Float32Array;
+  sampleRate?: number;
+}
+
+interface QwenStreamOptions {
+  speaker?: string;
+  speed?: number;
+  onChunk?: Function;
+  onDone?: Function;
+}
+
+interface QwenAudioCodes {
+  codes?: Int32Array;
+  numFrames?: number;
+}
+
+interface SupertonicLoadOptions {
+  device?: string;
+}
+
+interface SupertonicSynthesizeOptions {
+  voice?: SupertonicVoice;
+  speed?: number;
+  onDone?: Function;
+}
+
+interface SupertonicSynthesizeResult {
+  samples?: Float32Array;
+  sampleRate?: number;
+}
+
+interface SpeakerEncoderLoadOptions {
+  device?: string;
+}
+
+interface SpeakerEncoderEmbedOptions {
+  audio?: Float32Array | SttAudioBuffer;
+  onDone?: Function;
+}
+
+interface TtsAssetsOptions {
+  root?: string;
+  lexicon?: string;
+  pos?: string;
+  kokoroConfig?: string;
+}
+
+/**
+ * @file wake.idl
+ * @description Streaming wake-word detection via BcResnet2d. Dual-homed on bro.wake
+ * (default microphone) and stream.wake (bro.listen.open handle).
+ */
+interface WakeSmoothingOptions {
+  hits?: number;
+  window?: number;
+}
+
+interface WakeListenOptions {
+  weights?: string;
+  onFire: Function;
+  threshold?: number;
+  smoothing?: WakeSmoothingOptions;
+  refractoryMs?: number;
+  device?: string;
+}
+
+interface WakeLoadOptions {
+  weights: string;
+  device?: string;
+}
+
+interface WakeStats {
+  framesDelivered?: number;
+  samplesDelivered?: number;
+  rollingPeak?: number;
+  scoreMax?: number;
+}
+
+/**
+ * Timing and configuration options for element animations.
+ */
+interface KeyframeAnimationOptions {
+  /**
+   *  Duration of single iteration in milliseconds.
+   */
+  duration?: number;
+  /**
+   *  Start delay in milliseconds.
+   */
+  delay?: number;
+  /**
+   *  End delay in milliseconds.
+   */
+  endDelay?: number;
+  /**
+   *  Number of iterations (or Infinity).
+   */
+  iterations?: number;
+  /**
+   *  Playback direction ("normal", "reverse", "alternate", "alternate-reverse").
+   */
+  direction?: string;
+  /**
+   *  Timing function easing name.
+   */
+  easing?: string;
+  /**
+   *  Fill mode ("none", "forwards", "backwards", "both").
+   */
+  fill?: string;
+  /**
+   *  Animation identifier string.
+   */
+  id?: string;
+}
+
+/**
+ * Desktop coordinates and dimensions of a rectangle bounds.
+ */
+interface DisplayBounds {
+  /**
+   *  X coordinate in desktop pixels.
+   */
+  x?: number;
+  /**
+   *  Y coordinate in desktop pixels.
+   */
+  y?: number;
+  /**
+   *  Width in desktop pixels.
+   */
+  width?: number;
+  /**
+   *  Height in desktop pixels.
+   */
+  height?: number;
+}
+
+/**
+ * Display device descriptor.
+ */
+interface DisplayInfo {
+  /**
+   *  Stable SDL display identifier.
+   */
+  id?: number;
+  /**
+   *  Display device name.
+   */
+  name?: string;
+  /**
+   *  Full display bounds.
+   */
+  bounds?: DisplayBounds;
+  /**
+   *  Usable work area bounds minus taskbars and docks.
+   */
+  workArea?: DisplayBounds;
+  /**
+   *  Refresh rate in Hz.
+   */
+  refreshRate?: number;
+  /**
+   *  OS content scale multiplier (1.0 = 100%).
+   */
+  contentScale?: number;
+  /**
+   *  Whether this is the system primary display.
+   */
+  isPrimary?: boolean;
+  /**
+   *  Whether the active window currently sits on this display.
+   */
+  isCurrent?: boolean;
+}
+
+/**
+ * 2D desktop position.
+ */
+interface WindowPosition {
+  /**
+   *  Desktop X coordinate.
+   */
+  x?: number;
+  /**
+   *  Desktop Y coordinate.
+   */
+  y?: number;
+}
+
+/**
+ * 2D window dimensions.
+ */
+interface WindowSize {
+  /**
+   *  Width in pixels.
+   */
+  width?: number;
+  /**
+   *  Height in pixels.
+   */
+  height?: number;
+}
+
 // ── Global Classes & Interfaces ──────────────────────────────────────────────
 
 /**
@@ -1115,6 +1782,149 @@ declare class AbortController {
   abort(reason?: any): void;
 }
 
+declare class AudioParam {
+  value: number;
+  setValueAtTime(value: number, time: number): void;
+  linearRampToValueAtTime(value: number, time: number): void;
+  exponentialRampToValueAtTime(value: number, time: number): void;
+  setTargetAtTime(target: number, startTime: number, timeConstant: number): void;
+  setValueCurveAtTime(values: Float32Array, startTime: number, duration: number): void;
+  cancelScheduledValues(cancelTime: number): void;
+  cancelAndHoldAtTime(cancelTime: number): void;
+}
+
+declare class OscillatorNode {
+  type: string;
+  readonly frequency: AudioParam;
+  readonly detune: AudioParam;
+  start(when?: number): void;
+  stop(when?: number): void;
+  connect(destination: object): void;
+  disconnect(): void;
+}
+
+declare class GainNode {
+  readonly gain: AudioParam;
+  connect(destination: object): void;
+  disconnect(): void;
+}
+
+declare class BiquadFilterNode {
+  type: string;
+  readonly frequency: AudioParam;
+  readonly detune: AudioParam;
+  readonly Q: AudioParam;
+  readonly gain: AudioParam;
+  connect(destination: object): void;
+  disconnect(): void;
+  getFrequencyResponse(frequencyHz: Float32Array, magResponse: Float32Array, phaseResponse: Float32Array): void;
+}
+
+declare class AnalyserNode {
+  fftSize: number;
+  readonly frequencyBinCount: number;
+  minDecibels: number;
+  maxDecibels: number;
+  smoothingTimeConstant: number;
+  getFloatFrequencyData(array: Float32Array): void;
+  getByteFrequencyData(array: Uint8Array): void;
+  getFloatTimeDomainData(array: Float32Array): void;
+  getByteTimeDomainData(array: Uint8Array): void;
+  connect(destination: object): void;
+  disconnect(): void;
+}
+
+declare class MediaStream {
+  readonly active: boolean;
+}
+
+declare class MediaStreamAudioSourceNode {
+  connect(destination: object): void;
+  disconnect(): void;
+}
+
+declare class AudioDestinationNode {
+  readonly maxChannelCount: number;
+}
+
+declare class VoiceAllocator {
+  noteOn(note: number, velocity: number): number;
+  noteOff(note: number): void;
+  allNotesOff(): void;
+  voiceCount(): number;
+}
+
+declare class ModMatrix {
+  setRouting(source: string, dest: string, amount: number): void;
+  getRouting(source: string, dest: string): number;
+  clear(): void;
+}
+
+declare class MidiInput {
+  listPorts(): MidiPort[];
+  openPort(index: number): boolean;
+  closePort(): void;
+  pollEvents(): MidiRawEvent[];
+}
+
+declare class Sequence {
+  tempo: number;
+  length: number;
+  loop: boolean;
+  addNote(beat: number, note: number, velocity: number, duration: number): void;
+  clearNotes(): void;
+  getNotes(): SequenceNote[];
+}
+
+declare class AudioContext {
+  constructor();
+  readonly currentTime: number;
+  readonly sampleRate: number;
+  readonly state: string;
+  readonly destination: AudioDestinationNode;
+  createOscillator(): OscillatorNode;
+  createGain(): GainNode;
+  createBiquadFilter(): BiquadFilterNode;
+  createAnalyser(): AnalyserNode;
+  createMediaStreamSource(stream: MediaStream): MediaStreamAudioSourceNode;
+  createVoiceAllocator(maxVoices: number): VoiceAllocator;
+  createModMatrix(): ModMatrix;
+  createMidiInput(): MidiInput;
+  createSequence(): Sequence;
+  suspend(): void;
+  resume(): void;
+  close(): void;
+  startRecording(): void;
+  stopRecording(): Float32Array | null;
+  createClipFromFile(path: string): number;
+  createClipFromFileAsync(path: string): AsyncHandle;
+  decodeAudioData(buffer: ArrayBuffer): AudioDecodedBuffer | null;
+  decodeAudioFile(path: string): AudioDecodedBuffer | null;
+  exportRecordingToWav(path: string): boolean;
+  saveWav(path: string, samples: Float32Array, channels: number, sampleRate: number): boolean;
+  createClip(samples: Float32Array, channels?: number): number;
+  deleteClip(id: number): void;
+  getClipSampleCount(id: number): number;
+  getClipChannels(id: number): number;
+  getClipWaveform(id: number, points: number): Float32Array | null;
+  playClip(id: number, gain?: number, loop?: boolean, pan?: number): number;
+  createStream(channels: number, sampleRate: number): number;
+  pushStreamSamples(id: number, samples: Float32Array): boolean;
+  closeStream(id: number): void;
+  createStreamFromFile(path: string, opts?: StreamFromFileOptions): number;
+  getStreamStats(id: number): StreamStats | null;
+  stopPlayback(id: number): void;
+  setPlaybackGain(id: number, gain: number): void;
+  setPlaybackLoop(id: number, loop: boolean): void;
+  setPlaybackPlaying(id: number, playing: boolean): void;
+  setPlaybackRegion(id: number, startFrame: number, endFrame: number): void;
+  setPlaybackRate(id: number, rate: number): void;
+  setPlaybackPan(id: number, pan: number): void;
+  getPlaybackPosition(id: number): number;
+  getPlaybackPositionSeconds(id: number): number;
+  seekPlayback(id: number, seconds: number): void;
+}
+
 /**
  * Custom element registry for registering and querying custom element definitions.
  */
@@ -1150,6 +1960,51 @@ declare class HTMLElement {
    * Creates a new HTMLElement instance.
    */
   constructor();
+}
+
+/**
+ * Native modal dialogs and file system pickers interface.
+ */
+declare class Dialogs {
+  /**
+   * Displays a modal alert dialog with an optional message.
+   * @param message Text to display
+   */
+  static alert(message?: any): void;
+  /**
+   * Displays a modal confirmation dialog with OK and Cancel buttons.
+   * @param message Prompt message to display
+   * @returns True if OK was clicked, false if cancelled
+   */
+  static confirm(message?: any): boolean;
+  /**
+   * Displays a modal dialog with a text prompt and default value.
+   * @param message Prompt message to display
+   * @param defaultText Default input value
+   * @returns String response or null if cancelled
+   */
+  static prompt(message?: any, defaultText?: string): string | null;
+  /**
+   * Opens a native modal file picker dialog.
+   * @param filter Filter pattern string (e.g. "Images|png;jpg")
+   * @param allowMultiple Whether to allow multiple file selection
+   * @returns Array of selected absolute file paths
+   */
+  static showOpenFileDialog(filter?: string, allowMultiple?: boolean): string[];
+  /**
+   * Opens a native modal directory picker dialog.
+   * @param defaultLocation Starting directory path
+   * @param allowMultiple Whether to allow multiple folder selection
+   * @returns Array of selected absolute folder paths
+   */
+  static showOpenFolderDialog(defaultLocation?: string, allowMultiple?: boolean): string[];
+  /**
+   * Opens a native modal file save dialog.
+   * @param filter Filter pattern string (e.g. "JSON|json")
+   * @param defaultName Default location or file path
+   * @returns Selected file path string or null if cancelled
+   */
+  static showSaveFileDialog(filter?: string, defaultName?: string): string | null;
 }
 
 declare class Sortformer {
@@ -1688,6 +2543,105 @@ declare class GamepadEvent {
   readonly gamepad: Gamepad;
 }
 
+declare class GestureStreamView {
+  readonly active: boolean;
+  enrollFromAudio(name: string, samples: Float32Array, policy?: GesturePolicyOptions): number;
+  remove(name: string): boolean;
+  clear(): void;
+  templates(): string[];
+  inspect(name: string): GestureInspection | null;
+  reset(): void;
+  listen(opts: GestureListenOptions): void;
+  stop(): void;
+  isActive(): boolean;
+  sampleRate(): number;
+}
+
+/**
+ * W3C ImageBitmap interface representing a bitmap image that can be drawn to a canvas.
+ */
+declare class ImageBitmap {
+  /**
+   * Intrinsic width of the image bitmap in pixels.
+   */
+  readonly width: number;
+  /**
+   * Intrinsic height of the image bitmap in pixels.
+   */
+  readonly height: number;
+  /**
+   * Releases the underlying graphics memory and closes the bitmap.
+   */
+  close(): void;
+}
+
+/**
+ * Represents underlying pixel data of an area of a canvas or image.
+ */
+declare class ImageData {
+  /**
+   * Creates an ImageData object with given dimensions.
+   */
+  constructor(width: number, height: number);
+  /**
+   * Creates an ImageData object with given pixel data and dimensions.
+   */
+  constructor(data: Uint8ClampedArray, width: number, height?: number);
+  /**
+   *  Width in pixels.
+   */
+  readonly width: number;
+  /**
+   *  Height in pixels.
+   */
+  readonly height: number;
+  /**
+   *  RGBA one-dimensional array of pixel data.
+   */
+  readonly data: Uint8ClampedArray;
+}
+
+declare class KwsStreamView {
+  readonly active: boolean;
+  enroll(name: string, phonemeIds: Int32Array | number[], policy?: KwsPolicyOptions): number;
+  enrollFromAudio(name: string, samples: Float32Array, policy?: KwsPolicyOptions): number;
+  enrollFromClasses(name: string, classIds: Int32Array | number[], policy?: KwsPolicyOptions): number;
+  inspect(name: string): KwsInspection | null;
+  remove(name: string): boolean;
+  clear(): void;
+  templates(): string[];
+  reset(): void;
+  listen(opts: KwsListenOptions): void;
+  stop(): void;
+  suspend(): void;
+  resume(): void;
+  isActive(): boolean;
+  isSuspended(): boolean;
+  isLoaded(): boolean;
+  sampleRate(): number;
+  prefixProgress(): number;
+  progress(): KwsProgress | null;
+  posterior(topK?: number): KwsPosterior | null;
+  stats(): KwsStats | null;
+  feed(samples: Float32Array): KwsEvent[] | null;
+}
+
+declare class ListenStream {
+  readonly id: number;
+  readonly kind: string;
+  readonly valid: boolean;
+  readonly wake: WakeStreamView;
+  readonly kws: KwsStreamView;
+  readonly sense: SenseStreamView;
+  readonly gesture: GestureStreamView;
+  retain(seconds?: number): void;
+  audio(startFrame: number, endFrame: number): Float32Array | null;
+  frame(): number;
+  info(): ListenRetentionInfo;
+  feed(samples: Float32Array): void;
+  close(): void;
+}
+
 /**
  * Asynchronous job handle with cancellation support.
  */
@@ -2085,6 +3039,48 @@ declare class T5Model {
   encode(text: string, opts?: T5EncodeOptions): T5EncodeResult;
 }
 
+/**
+ * Stores information on a media query applied to a document, with support for real-time listener updates.
+ */
+declare class MediaQueryList {
+  /**
+   * Evaluates if the current document media context matches the media query.
+   */
+  readonly matches: boolean;
+  /**
+   * The serialized media query string.
+   */
+  readonly media: string;
+  /**
+   * Event handler called when the matching status changes.
+   */
+  onchange: ((event: any) => any) | null;
+  /**
+   * Adds an event listener callback for media query changes.
+   * @param type Event type string ("change")
+   * @param listener Callback function
+   * @param options Optional options object or capture boolean
+   */
+  addEventListener(type: string, listener: (event: any) => void, options?: any): void;
+  /**
+   * Removes a previously registered media query change event listener.
+   * @param type Event type string ("change")
+   * @param listener Callback function to remove
+   * @param options Optional options object or capture boolean
+   */
+  removeEventListener(type: string, listener: (event: any) => void, options?: any): void;
+  /**
+   * Legacy alias for adding a change listener.
+   * @param listener Callback function
+   */
+  addListener(listener: (event: any) => void): void;
+  /**
+   * Legacy alias for removing a change listener.
+   * @param listener Callback function to remove
+   */
+  removeListener(listener: (event: any) => void): void;
+}
+
 declare class SpatialHash3D {
   /**
    * Create a 3D spatial hash index.
@@ -2464,6 +3460,76 @@ declare class Rave {
   decode(latent: Float32Array, frames: number, opts?: RaveDecodeOptions): RaveAudioBuffer;
 }
 
+declare class SenseStreamView {
+  readonly active: boolean;
+  start(opts?: SenseStartOptions): void;
+  stop(): void;
+  isActive(): boolean;
+  snapshot(): SenseSnapshot | null;
+  sampleRate(): number;
+  stats(): SenseStats | null;
+  feed(samples: Float32Array): SenseSnapshot | null;
+  analyze(samples: Float32Array, opts?: SenseStartOptions): SenseAnalysis | null;
+}
+
+declare class WhisperTokenizer {
+  readonly loaded: boolean;
+  encode(text: string): Int32Array | number[];
+  decode(tokenIds: Int32Array | number[]): string;
+  buildPrompt(opts?: object): Int32Array;
+}
+
+declare class WhisperModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  transcribe(audio: Float32Array | SttAudioBuffer, promptOrOpts?: Int32Array | number[] | WhisperTranscribeOptions, opts?: WhisperTranscribeOptions): AsyncHandle;
+  createSession(): WhisperSession;
+}
+
+declare class WhisperSession {
+  readonly loaded: boolean;
+  transcribe(audio: Float32Array | SttAudioBuffer, promptOrOpts?: Int32Array | number[] | WhisperTranscribeOptions, opts?: WhisperTranscribeOptions): AsyncHandle;
+  reset(): void;
+}
+
+declare class ParakeetTokenizer {
+  readonly loaded: boolean;
+  encode(text: string): Int32Array | number[];
+  decode(tokenIds: Int32Array | number[]): string;
+}
+
+declare class ParakeetModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  transcribe(audio: Float32Array | SttAudioBuffer, opts?: ParakeetTranscribeOptions): AsyncHandle;
+  createSession(): ParakeetSession;
+}
+
+declare class ParakeetSession {
+  readonly loaded: boolean;
+  transcribe(audio: Float32Array | SttAudioBuffer, opts?: ParakeetTranscribeOptions): AsyncHandle;
+  reset(): void;
+}
+
+declare class QwenAsrModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  transcribe(audio: Float32Array | SttAudioBuffer, opts?: QwenAsrTranscribeOptions): AsyncHandle;
+  createSession(): QwenAsrSession;
+}
+
+declare class QwenAsrSession {
+  readonly loaded: boolean;
+  transcribe(audio: Float32Array | SttAudioBuffer, opts?: QwenAsrTranscribeOptions): AsyncHandle;
+  reset(): void;
+}
+
+declare class QwenAsrStream {
+  readonly loaded: boolean;
+  feed(audio: Float32Array | SttAudioBuffer): void;
+  finish(): QwenAsrEncodeResult;
+}
+
 /**
  * Chunked procedural and heightmap terrain manager instance.
  */
@@ -2573,6 +3639,131 @@ declare class TripoSplatPipeline {
    * Generate 3D Gaussian Splat cloud from input image.
    */
   generate(image: any, opts?: object): object;
+}
+
+declare class KokoroModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  encodePhonemes(ipa: string): Int32Array;
+  loadVoice(path: string): Voice;
+  createSession(): KokoroSession;
+}
+
+declare class Voice {
+  readonly loaded: boolean;
+  readonly name: string;
+}
+
+declare class KokoroSession {
+  readonly loaded: boolean;
+  synthesize(phonemes: Int32Array | number[], voice: Voice, opts?: KokoroSynthesizeOptions): AsyncHandle;
+  reset(): void;
+}
+
+declare class QwenTtsModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  readonly variant: string;
+  createSession(): QwenTtsSession;
+  encodeAudio(audio: Float32Array): QwenAudioCodes;
+  decodeCodes(codes: Int32Array): Float32Array;
+}
+
+declare class QwenTtsSession {
+  readonly loaded: boolean;
+  readonly variant: string;
+  synthesize(text: string, opts?: QwenSynthesizeOptions): AsyncHandle;
+  reset(): void;
+}
+
+declare class SupertonicModel {
+  readonly loaded: boolean;
+  readonly device: string;
+  loadVoiceStyle(path: string): SupertonicVoice;
+}
+
+declare class SupertonicVoice {
+  readonly loaded: boolean;
+  readonly name: string;
+}
+
+declare class SpeakerEncoder {
+  readonly loaded: boolean;
+  readonly device: string;
+  embedSpeaker(audio: Float32Array, opts?: SpeakerEncoderEmbedOptions): AsyncHandle;
+}
+
+declare class WakeStreamView {
+  readonly active: boolean;
+  listen(opts: WakeListenOptions): void;
+  stop(): void;
+  suspend(): void;
+  resume(): void;
+  lastScore(): number;
+  isActive(): boolean;
+  isSuspended(): boolean;
+  isLoaded(): boolean;
+  setThreshold(threshold: number): void;
+  stats(): WakeStats | null;
+  feed(samples: Float32Array, sampleRate?: number): any;
+}
+
+/**
+ * Web Animations API Animation controller instance.
+ */
+declare class Animation {
+  /**
+   *  Current playback time in milliseconds, or null if idle.
+   */
+  currentTime: number | null;
+  /**
+   *  Playback rate multiplier (default 1.0).
+   */
+  playbackRate: number;
+  /**
+   *  Current playback state ("idle", "running", "paused", "finished").
+   */
+  readonly playState: string;
+  /**
+   *  Whether the animation has pending async tasks (always false).
+   */
+  readonly pending: boolean;
+  /**
+   *  Optional identifier for the animation.
+   */
+  id: string;
+  /**
+   *  Promise that resolves when animation finishes or rejects if cancelled.
+   */
+  readonly finished: Promise<Animation>;
+  /**
+   *  Event handler called when animation finishes.
+   */
+  onfinish: ((event: any) => any) | null;
+  /**
+   *  Event handler called when animation is cancelled.
+   */
+  oncancel: ((event: any) => any) | null;
+  /**
+   *  Starts or resumes playback of the animation.
+   */
+  play(): void;
+  /**
+   *  Pauses playback of the animation.
+   */
+  pause(): void;
+  /**
+   *  Cancels the animation and clears its effects.
+   */
+  cancel(): void;
+  /**
+   *  Fast-forwards animation to completion.
+   */
+  finish(): void;
+  /**
+   *  Reverses playback direction of the animation.
+   */
+  reverse(): void;
 }
 
 declare class World {
@@ -2741,6 +3932,19 @@ declare namespace bro {
      * @return Mesh instance containing generated leaf vertices and indices.
      */
     function leafCluster(phyllotaxy: any, opts?: object): object;
+  }
+
+  namespace gesture {
+    function enrollFromAudio(name: string, samples: Float32Array, policy?: GesturePolicyOptions): number;
+    function remove(name: string): boolean;
+    function clear(): void;
+    function templates(): string[];
+    function inspect(name: string): GestureInspection | null;
+    function reset(): void;
+    function listen(opts: GestureListenOptions): void;
+    function stop(): void;
+    function isActive(): boolean;
+    function sampleRate(): number;
   }
 
   /**
@@ -2927,6 +4131,42 @@ declare namespace bro {
     function trim(device?: string, keepBytes?: number): boolean;
   }
 
+  namespace kws {
+    function load(opts: KwsPolicyOptions): void;
+    function unload(): void;
+    function enroll(name: string, phonemeIds: Int32Array | number[], policy?: KwsPolicyOptions): number;
+    function enrollFromAudio(name: string, samples: Float32Array, policy?: KwsPolicyOptions): number;
+    function enrollFromClasses(name: string, classIds: Int32Array | number[], policy?: KwsPolicyOptions): number;
+    function inspect(name: string): KwsInspection | null;
+    function remove(name: string): boolean;
+    function clear(): void;
+    function templates(): string[];
+    function reset(): void;
+    function listen(opts: KwsListenOptions): void;
+    function stop(): void;
+    function suspend(): void;
+    function resume(): void;
+    function isActive(): boolean;
+    function isSuspended(): boolean;
+    function isLoaded(): boolean;
+    function sampleRate(): number;
+    function prefixProgress(): number;
+    function progress(): KwsProgress | null;
+    function posterior(topK?: number): KwsPosterior | null;
+    function stats(): KwsStats | null;
+    function feed(samples: Float32Array): KwsEvent[] | null;
+  }
+
+  namespace listen {
+    function open(source?: ListenSource): ListenStream;
+    function supported(): boolean;
+    function apps(): AudioApp[];
+    function retain(seconds?: number): void;
+    function audio(startFrame: number, endFrame: number): Float32Array | null;
+    function frame(): number;
+    function info(): ListenRetentionInfo;
+  }
+
   /**
    * Language-model inference and cross-modal embedding namespace.
    */
@@ -3084,6 +4324,56 @@ declare namespace bro {
   }
 
   /**
+   * Top-level application menu bar management namespace.
+   */
+  namespace menu {
+    /**
+     * Whether the menu bar is currently visible.
+     */
+    const visible: boolean;
+    /**
+     * Shows the menu bar panel.
+     */
+    function show(): void;
+    /**
+     * Hides the menu bar panel.
+     */
+    function hide(): void;
+    /**
+     * Replaces the entire menu bar tree.
+     * @param items Array of root menu item trees
+     */
+    function set(items: MenuItem[]): void;
+    /**
+     * Adds an item to a submenu or root.
+     * @param parentId Parent submenu id, or empty string for root
+     * @param item Item descriptor to add
+     * @param index Optional insertion index (negative to append)
+     * @returns True if item was added, false otherwise
+     */
+    function addItem(parentId: string, item: MenuItem, index?: number): boolean;
+    /**
+     * Updates mutable properties of an item by id.
+     * @param id Target item identifier
+     * @param props Properties to update
+     * @returns True if target item was found and updated, false otherwise
+     */
+    function updateItem(id: string, props: MenuItemUpdate): boolean;
+    /**
+     * Removes an item anywhere in the tree.
+     * @param id Target item identifier
+     * @returns True if item was found and removed, false otherwise
+     */
+    function removeItem(id: string): boolean;
+    /**
+     * Registers an action handler callback for a menu item.
+     * @param id Target item identifier
+     * @param callback Callback function executed on click
+     */
+    function on(id: string, callback: Function): void;
+  }
+
+  /**
    * Real-time microphone audio capture and fixed-size chunk streaming namespace.
    */
   namespace mic {
@@ -3178,6 +4468,35 @@ declare namespace bro {
      * @returns Rave model instance
      */
     function loadRave(modelDir: string, opts?: RaveLoadOptions): Rave;
+  }
+
+  namespace sense {
+    function start(opts?: SenseStartOptions): void;
+    function stop(): void;
+    function isActive(): boolean;
+    function snapshot(): SenseSnapshot | null;
+    function sampleRate(): number;
+    function stats(): SenseStats | null;
+    function feed(samples: Float32Array): SenseSnapshot | null;
+    function analyze(samples: Float32Array, opts?: SenseStartOptions): SenseAnalysis | null;
+  }
+
+  /**
+   * Dedicated server and worker host runtime control namespace.
+   */
+  namespace server {
+    /**
+     * Server tick rate in Hertz (ticks per second, range [1, 1000]).
+     */
+    let tickrate: number;
+    /**
+     * Server uptime in seconds since launch.
+     */
+    const uptime: number;
+    /**
+     * Requests graceful termination of the dedicated server or worker loop.
+     */
+    function stop(): void;
   }
 
   /**
@@ -3296,6 +4615,17 @@ declare namespace bro {
      * @returns Default settings object
      */
     function getDefaults(category?: string): object;
+  }
+
+  namespace stt {
+    function init(): void;
+    function loadWhisper(dir: string, opts?: WhisperLoadOptions): WhisperModel | AsyncHandle;
+    function loadTokenizer(opts: TokenizerLoadOptions): WhisperTokenizer | AsyncHandle;
+    function loadParakeet(dir: string, opts?: WhisperLoadOptions): ParakeetModel | AsyncHandle;
+    function loadParakeetTokenizer(path: string, opts?: WhisperLoadOptions): ParakeetTokenizer | AsyncHandle;
+    function loadQwenAsr(dir: string, opts?: WhisperLoadOptions): QwenAsrModel | AsyncHandle;
+    function loadQwenAsrStream(dir: string, opts?: QwenAsrStreamOptions): QwenAsrStream | AsyncHandle;
+    function transcribe(model: object, audio: Float32Array | SttAudioBuffer, promptOrOpts?: any, opts?: object): AsyncHandle;
   }
 
   /**
@@ -3420,6 +4750,106 @@ declare namespace bro {
     function cancel(): void;
   }
 
+  namespace tts {
+    function init(): void;
+    function loadKokoro(dir: string, opts?: KokoroLoadOptions): KokoroModel | AsyncHandle;
+    function loadQwen(dir: string, opts?: QwenLoadOptions): QwenTtsModel | AsyncHandle;
+    function loadSupertonic(dir: string, opts?: SupertonicLoadOptions): SupertonicModel | AsyncHandle;
+    function loadSpeakerEncoder(dir: string, opts?: SpeakerEncoderLoadOptions): SpeakerEncoder | AsyncHandle;
+    function phonemize(text: string, opts?: object): Int32Array;
+    function setAssetRoot(dir: string): void;
+    function setAssets(opts: TtsAssetsOptions): void;
+    function synthesize(model: object, textOrPhonemes: any, voiceOrOpts: any, opts?: object): AsyncHandle;
+    function synthesizeStream(model: object, textOrChunks: any, voiceOrOpts: any, opts?: object): AsyncHandle;
+    function decodeFrom(kokoro: KokoroModel, voice: Voice, asr: Float32Array, F0: Float32Array, N: Float32Array, nPhonemes: number, opts?: object): AsyncHandle;
+  }
+
+  namespace wake {
+    function load(opts: WakeLoadOptions): void;
+    function unload(): void;
+    function listen(opts: WakeListenOptions): void;
+    function stop(): void;
+    function suspend(): void;
+    function resume(): void;
+    function lastScore(): number;
+    function isActive(): boolean;
+    function isSuspended(): boolean;
+    function isLoaded(): boolean;
+    function setThreshold(threshold: number): void;
+    function stats(): WakeStats | null;
+    function feed(samples: Float32Array, sampleRate?: number): any;
+  }
+
+  /**
+   * Runtime window management namespace.
+   */
+  namespace window {
+    /**
+     * Current window display state ('normal', 'minimized', 'maximized', 'fullscreen').
+     */
+    const state: string;
+    /**
+     * Whether the window has OS borders and title bar removed.
+     */
+    let borderless: boolean;
+    /**
+     * Whether the window stays pinned above standard windows.
+     */
+    let alwaysOnTop: boolean;
+    /**
+     * Minimizes the window.
+     */
+    function minimize(): void;
+    /**
+     * Maximizes the window.
+     */
+    function maximize(): void;
+    /**
+     * Restores the window from minimized or maximized state.
+     */
+    function restore(): void;
+    /**
+     * Retrieves current desktop coordinate position of the window.
+     */
+    function getPosition(): WindowPosition;
+    /**
+     * Sets desktop coordinate position of the window.
+     * @param x Desktop X coordinate
+     * @param y Desktop Y coordinate
+     */
+    function setPosition(x: number, y: number): void;
+    /**
+     * Retrieves minimum window resize bounds in pixels.
+     */
+    function getMinSize(): WindowSize;
+    /**
+     * Sets minimum window resize bounds.
+     * @param width Minimum width in pixels (0 for unconstrained)
+     * @param height Minimum height in pixels (0 for unconstrained)
+     */
+    function setMinSize(width: number, height: number): void;
+    /**
+     * Retrieves maximum window resize bounds in pixels.
+     */
+    function getMaxSize(): WindowSize;
+    /**
+     * Sets maximum window resize bounds.
+     * @param width Maximum width in pixels (0 for unconstrained)
+     * @param height Maximum height in pixels (0 for unconstrained)
+     */
+    function setMaxSize(width: number, height: number): void;
+    /**
+     * Enumerates all attached monitor displays.
+     */
+    function getDisplays(): DisplayInfo[];
+    /**
+     * Moves and centers the window on a specific display.
+     * @param id Target display identifier
+     * @returns True if window was moved, false otherwise
+     */
+    function moveToDisplay(id: number): boolean;
+  }
+
   /**
    * =============================================================================
    * bro.worldgen — learned neural terrain diffusion pipeline
@@ -3460,3 +4890,7 @@ declare namespace bro {
 }
 
 declare const customElements: CustomElementRegistry;
+
+declare const createImageBitmap: ImageBitmap;
+
+declare const matchMedia: MediaQueryList;
