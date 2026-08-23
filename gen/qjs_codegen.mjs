@@ -432,7 +432,7 @@ export function emitInterfaceTU(interfaceDefs) {
   }
 
   // 3. Shared Helpers (Float32Array helpers, unwrapper helpers, etc.)
-  const hasFloat32Array = interfaceDefs.some(i => i.members.some(m => (m.dataType && m.dataType.name === 'Float32Array') || (m.parameters && m.parameters.some(p => p.dataType.name === 'Float32Array')) || (m.returnType && m.returnType.name === 'Float32Array')));
+  const hasFloat32Array = !hasCustomInstallBody && interfaceDefs.some(i => i.members.some(m => (m.dataType && m.dataType.name === 'Float32Array') || (m.parameters && m.parameters.some(p => p.dataType.name === 'Float32Array')) || (m.returnType && m.returnType.name === 'Float32Array')));
   if (hasFloat32Array) {
     lines.push(`static JSValue make_float32_array(JSContext* ctx, const float* data, size_t count)`);
     lines.push(`{`);
@@ -2237,7 +2237,7 @@ export function emitEngineWrapperTU(interfaceDefs) {
   lines.push(`    return JS_UNDEFINED;`);
   lines.push(`}`);
   lines.push('');
-  lines.push(`JSValue create${pascal}JS(JSContext* ctx, scene::SceneGraph* graph, JSValueConst opts) {`);
+  lines.push(`JSValue create${pascal}JS(JSContext* ctx, scene::${'Scene'}Graph* graph, JSValueConst opts) {`);
   lines.push(`    if (!graph) return JS_NULL;`);
   lines.push(`    auto mgr = std::make_unique<${managerType}>(*graph);`);
   lines.push(`    mgr->configure(parseConfig(ctx, opts));`);

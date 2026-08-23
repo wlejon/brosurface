@@ -33,7 +33,7 @@ function findIdlFiles(dirOrFile) {
 }
 
 /**
- * Capitalizes the first character of a string (e.g. 'foo' -> 'Foo', 'tensor' -> 'Tensor').
+ * Capitalizes the first character of a string (e.g. 'foo' -> 'Foo', 'sample' -> 'Sample').
  * @param {string} str
  * @returns {string}
  */

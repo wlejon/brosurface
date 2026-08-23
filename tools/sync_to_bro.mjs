@@ -52,8 +52,8 @@ if (fs.existsSync(outQjsDir)) {
   const qjsFiles = fs.readdirSync(outQjsDir).filter(f => f.endsWith('.cpp'));
   for (const f of qjsFiles) {
     const srcPath = path.join(outQjsDir, f);
-    if (f === 'blob.cpp' || f === 'noise.cpp') {
-      // These live in brokit standalone - skip copying to preserve brokit integrity
+    if (f === 'blob.cpp' || f === 'noise.cpp' || f === 'intl.cpp' || f === 'vendor_globals.cpp' || f === 'image_gpu.cpp') {
+      // These live in brokit standalone or polyfills - skip copying to preserve bro integrity
       continue;
     } else {
       const dst = path.join(BRO_ROOT, 'src', 'js', f);

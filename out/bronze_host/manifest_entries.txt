@@ -8,3 +8,4 @@ URL
 GamepadButton
 Gamepad
 GamepadEvent
+vendor_globals
