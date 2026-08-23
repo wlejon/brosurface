@@ -1,0 +1,167 @@
+/**
+ * =============================================================================
+ * bro.window & window.* — Runtime Window & Display Management
+ * =============================================================================
+ *
+ * Runtime window state control (borderless, always-on-top, position, size limits,
+ * display enumeration and placement).
+ *
+ * @example
+ *   bro.window.borderless = true;
+ *   bro.window.alwaysOnTop = true;
+ *   const pos = bro.window.getPosition();
+ *   console.log('Window position:', pos.x, pos.y);
+ *   const displays = bro.window.getDisplays();
+ *   console.log('Displays attached:', displays.length);
+ */
+
+/**
+ * Desktop coordinates and dimensions of a rectangle bounds.
+ */
+dictionary DisplayBounds {
+  /** X coordinate in desktop pixels. */
+  long x;
+  /** Y coordinate in desktop pixels. */
+  long y;
+  /** Width in desktop pixels. */
+  long width;
+  /** Height in desktop pixels. */
+  long height;
+};
+
+/**
+ * Display device descriptor.
+ */
+dictionary DisplayInfo {
+  /** Stable SDL display identifier. */
+  unsigned long id;
+  /** Display device name. */
+  DOMString name;
+  /** Full display bounds. */
+  DisplayBounds bounds;
+  /** Usable work area bounds minus taskbars and docks. */
+  DisplayBounds workArea;
+  /** Refresh rate in Hz. */
+  double refreshRate;
+  /** OS content scale multiplier (1.0 = 100%). */
+  double contentScale;
+  /** Whether this is the system primary display. */
+  boolean isPrimary;
+  /** Whether the active window currently sits on this display. */
+  boolean isCurrent;
+};
+
+/**
+ * 2D desktop position.
+ */
+dictionary WindowPosition {
+  /** Desktop X coordinate. */
+  long x;
+  /** Desktop Y coordinate. */
+  long y;
+};
+
+/**
+ * 2D window dimensions.
+ */
+dictionary WindowSize {
+  /** Width in pixels. */
+  long width;
+  /** Height in pixels. */
+  long height;
+};
+
+/**
+ * Runtime window management namespace.
+ */
+[
+  cpp_file="window_bindings.cpp",
+  cpp_header="js/window_bindings.h",
+  cpp_includes="\"js/event_dispatch.h\"\n\"platform/clipboard.h\"\n\"platform/event_loop.h\"\n\"platform/sdl_window.h\"\n\"util/log.h\"\n\"window_polyfill.js.h\"\n<qjsbind/qjsbind.h>\n<cstring>\n<limits>\n<unordered_map>\n<SDL3/SDL_misc.h>\n<SDL3/SDL_power.h>\n<SDL3/SDL_stdinc.h>",
+  cpp_namespace="bro::js",
+  cpp_install="installBroWindowBindings",
+  install_signature="void installBroWindowBindings(JSContext* ctx, platform::Window* window, bool headless)",
+  prefix="bro.",
+  cpp_prologue="struct RealmWindowState {\n    platform::Window* window = nullptr;\n    bool headless = false;\n};\n\nstatic std::unordered_map<JSContext*, RealmWindowState> s_realms;\n\nstatic constexpr int kDefaultFallbackW = 800;\nstatic constexpr int kDefaultFallbackH = 600;\n\nstatic RealmWindowState& realmFor(JSContext* ctx) {\n    return s_realms[ctx];\n}\n\nstatic platform::Window* realmWindow(JSContext* ctx) {\n    auto it = s_realms.find(ctx);\n    return (it != s_realms.end()) ? it->second.window : nullptr;\n}\n\nstatic bool realmHeadless(JSContext* ctx) {\n    auto it = s_realms.find(ctx);\n    return (it != s_realms.end()) ? it->second.headless : false;\n}\n\nstatic platform::DisplayInfo currentDisplayInfo(JSContext* ctx) {\n    platform::DisplayInfo out{};\n    auto* win = realmWindow(ctx);\n    if (win) {\n        out = win->getCurrentDisplay();\n    } else {\n        out.width = kDefaultFallbackW;\n        out.height = kDefaultFallbackH;\n        out.workWidth = kDefaultFallbackW;\n        out.workHeight = kDefaultFallbackH;\n    }\n    return out;\n}\n\nstatic JSValue js_clipboard_write(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    JSValue resolving_funcs[2];\n    JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);\n    if (JS_IsException(promise)) return promise;\n\n    const char* text = argc > 0 ? JS_ToCString(ctx, argv[0]) : \"\";\n    bool ok = text ? platform::setClipboardText(text) : false;\n    if (text && argc > 0) JS_FreeCString(ctx, text);\n\n    if (ok) {\n        JSValue undef = JS_UNDEFINED;\n        JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &undef);\n        JS_FreeValue(ctx, ret);\n    } else {\n        JSValue err = JS_NewError(ctx);\n        JS_SetPropertyStr(ctx, err, \"message\", JS_NewString(ctx, \"Clipboard write failed\"));\n        JSValue ret = JS_Call(ctx, resolving_funcs[1], JS_UNDEFINED, 1, &err);\n        JS_FreeValue(ctx, err);\n        JS_FreeValue(ctx, ret);\n    }\n    JS_FreeValue(ctx, resolving_funcs[0]);\n    JS_FreeValue(ctx, resolving_funcs[1]);\n    return promise;\n}\n\nstatic JSValue js_clipboard_read(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    JSValue resolving_funcs[2];\n    JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);\n    if (JS_IsException(promise)) return promise;\n\n    std::string text = platform::getClipboardText();\n    JSValue result = JS_NewString(ctx, text.c_str());\n    JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &result);\n    JS_FreeValue(ctx, result);\n    JS_FreeValue(ctx, ret);\n\n    JS_FreeValue(ctx, resolving_funcs[0]);\n    JS_FreeValue(ctx, resolving_funcs[1]);\n    return promise;\n}\n\nstatic void screenDims(JSContext* ctx, int& fullW, int& fullH, int& workW, int& workH) {\n    auto* win = realmWindow(ctx);\n    if (!win) {\n        fullW = workW = kDefaultFallbackW;\n        fullH = workH = kDefaultFallbackH;\n        return;\n    }\n    if (realmHeadless(ctx)) {\n        int w = 0, h = 0;\n        win->getSize(w, h);\n        if (w <= 0) w = kDefaultFallbackW;\n        if (h <= 0) h = kDefaultFallbackH;\n        fullW = workW = w;\n        fullH = workH = h;\n        return;\n    }\n    auto d = win->getCurrentDisplay();\n    fullW = d.width;\n    fullH = d.height;\n    workW = d.workWidth;\n    workH = d.workHeight;\n}\n\nstatic JSValue js_screen_width(JSContext* ctx, JSValueConst) {\n    int fw = 0, fh = 0, ww = 0, wh = 0;\n    screenDims(ctx, fw, fh, ww, wh);\n    return JS_NewInt32(ctx, fw);\n}\n\nstatic JSValue js_screen_height(JSContext* ctx, JSValueConst) {\n    int fw = 0, fh = 0, ww = 0, wh = 0;\n    screenDims(ctx, fw, fh, ww, wh);\n    return JS_NewInt32(ctx, fh);\n}\n\nstatic JSValue js_screen_availWidth(JSContext* ctx, JSValueConst) {\n    int fw = 0, fh = 0, ww = 0, wh = 0;\n    screenDims(ctx, fw, fh, ww, wh);\n    return JS_NewInt32(ctx, ww);\n}\n\nstatic JSValue js_screen_availHeight(JSContext* ctx, JSValueConst) {\n    int fw = 0, fh = 0, ww = 0, wh = 0;\n    screenDims(ctx, fw, fh, ww, wh);\n    return JS_NewInt32(ctx, wh);\n}\n\nstatic JSValue js_screen_colorDepth(JSContext* ctx, JSValueConst) {\n    return JS_NewInt32(ctx, 24);\n}\n\nstatic JSValue js_window_focus(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    if (auto* win = realmWindow(ctx)) {\n        if (!realmHeadless(ctx)) win->raise();\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_window_blur(JSContext*, JSValueConst, int, JSValueConst*) {\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_window_open(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1 || !JS_IsString(argv[0])) return JS_NULL;\n    const char* url = JS_ToCString(ctx, argv[0]);\n    if (!url) return JS_NULL;\n\n    if (realmHeadless(ctx)) {\n        LOG_INFO(\"[window.open] (headless, not shelling out) -> %s\", url);\n        JS_FreeCString(ctx, url);\n        return JS_NULL;\n    }\n\n    if (!SDL_OpenURL(url)) {\n        LOG_WARN(\"[window.open] SDL_OpenURL failed: %s (url: %s)\",\n                 SDL_GetError(), url);\n    }\n    JS_FreeCString(ctx, url);\n    return JS_NULL;\n}\n\nstatic JSValue js_navigator_getBattery(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    JSValue funcs[2];\n    JSValue p = JS_NewPromiseCapability(ctx, funcs);\n    if (JS_IsException(p)) return p;\n\n    bool charging = true;\n    double chargingTime = 0.0;\n    double dischargingTime = std::numeric_limits<double>::infinity();\n    double level = 1.0;\n\n    if (!realmHeadless(ctx)) {\n        int seconds = -1, percent = -1;\n        SDL_PowerState st = SDL_GetPowerInfo(&seconds, &percent);\n        switch (st) {\n        case SDL_POWERSTATE_ON_BATTERY:\n            charging = false;\n            chargingTime = std::numeric_limits<double>::infinity();\n            dischargingTime = (seconds >= 0)\n                ? static_cast<double>(seconds)\n                : std::numeric_limits<double>::infinity();\n            level = (percent >= 0)\n                ? std::clamp(static_cast<double>(percent) / 100.0, 0.0, 1.0)\n                : 1.0;\n            break;\n        case SDL_POWERSTATE_CHARGING:\n            charging = true;\n            chargingTime = std::numeric_limits<double>::infinity();\n            dischargingTime = std::numeric_limits<double>::infinity();\n            level = (percent >= 0)\n                ? std::clamp(static_cast<double>(percent) / 100.0, 0.0, 1.0)\n                : 1.0;\n            break;\n        case SDL_POWERSTATE_CHARGED:\n            charging = true;\n            chargingTime = 0.0;\n            dischargingTime = std::numeric_limits<double>::infinity();\n            level = 1.0;\n            break;\n        case SDL_POWERSTATE_NO_BATTERY:\n        case SDL_POWERSTATE_ERROR:\n        case SDL_POWERSTATE_UNKNOWN:\n        default:\n            charging = true;\n            chargingTime = 0.0;\n            dischargingTime = std::numeric_limits<double>::infinity();\n            level = 1.0;\n            break;\n        }\n    }\n\n    JSValue mgr = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, mgr, \"charging\",        JS_NewBool(ctx, charging));\n    JS_SetPropertyStr(ctx, mgr, \"chargingTime\",    JS_NewFloat64(ctx, chargingTime));\n    JS_SetPropertyStr(ctx, mgr, \"dischargingTime\", JS_NewFloat64(ctx, dischargingTime));\n    JS_SetPropertyStr(ctx, mgr, \"level\",           JS_NewFloat64(ctx, level));\n\n    auto inert = [](JSContext*, JSValueConst, int, JSValueConst*) -> JSValue {\n        return JS_UNDEFINED;\n    };\n    JS_SetPropertyStr(ctx, mgr, \"addEventListener\",\n        JS_NewCFunction(ctx, inert, \"addEventListener\", 2));\n    JS_SetPropertyStr(ctx, mgr, \"removeEventListener\",\n        JS_NewCFunction(ctx, inert, \"removeEventListener\", 2));\n    JS_SetPropertyStr(ctx, mgr, \"dispatchEvent\",\n        JS_NewCFunction(ctx, [](JSContext* c, JSValueConst, int, JSValueConst*) -> JSValue {\n            return JS_NewBool(c, true);\n        }, \"dispatchEvent\", 1));\n    JS_SetPropertyStr(ctx, mgr, \"onchargingchange\",        JS_NULL);\n    JS_SetPropertyStr(ctx, mgr, \"onchargingtimechange\",    JS_NULL);\n    JS_SetPropertyStr(ctx, mgr, \"ondischargingtimechange\", JS_NULL);\n    JS_SetPropertyStr(ctx, mgr, \"onlevelchange\",           JS_NULL);\n\n    JSValue r = JS_Call(ctx, funcs[0], JS_UNDEFINED, 1, &mgr);\n    JS_FreeValue(ctx, r);\n    JS_FreeValue(ctx, mgr);\n    JS_FreeValue(ctx, funcs[0]);\n    JS_FreeValue(ctx, funcs[1]);\n    return p;\n}\n\nvoid installWindowBindings(JSContext* ctx, platform::Window* window, bool headless) {\n    RealmWindowState& st = realmFor(ctx);\n    st.window = window;\n    st.headless = headless;\n\n    JSValue global = JS_GetGlobalObject(ctx);\n\n    JSValue nav = JS_GetPropertyStr(ctx, global, \"navigator\");\n    if (JS_IsUndefined(nav) || JS_IsNull(nav)) {\n        JS_FreeValue(ctx, nav);\n        nav = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"navigator\", JS_DupValue(ctx, nav));\n    }\n    JSValue clip = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, clip, \"writeText\",\n        JS_NewCFunction(ctx, js_clipboard_write, \"writeText\", 1));\n    JS_SetPropertyStr(ctx, clip, \"readText\",\n        JS_NewCFunction(ctx, js_clipboard_read, \"readText\", 0));\n    JS_SetPropertyStr(ctx, nav, \"clipboard\", clip);\n\n    JS_SetPropertyStr(ctx, nav, \"getBattery\",\n        JS_NewCFunction(ctx, js_navigator_getBattery, \"getBattery\", 0));\n    JS_FreeValue(ctx, nav);\n\n    JSValue screen = JS_NewObject(ctx);\n    auto defScreenGet = [&](const char* name, JSCFunction* fn) {\n        JSAtom atom = JS_NewAtom(ctx, name);\n        JS_DefinePropertyGetSet(ctx, screen, atom,\n            JS_NewCFunction(ctx, fn, name, 0), JS_UNDEFINED,\n            JS_PROP_CONFIGURABLE | JS_PROP_ENUMERABLE);\n        JS_FreeAtom(ctx, atom);\n    };\n    defScreenGet(\"width\",       js_screen_width);\n    defScreenGet(\"height\",      js_screen_height);\n    defScreenGet(\"availWidth\",  js_screen_availWidth);\n    defScreenGet(\"availHeight\", js_screen_availHeight);\n    defScreenGet(\"colorDepth\",  js_screen_colorDepth);\n    defScreenGet(\"pixelDepth\",  js_screen_colorDepth);\n    JS_SetPropertyStr(ctx, global, \"screen\", screen);\n\n    JS_SetPropertyStr(ctx, global, \"focus\",\n        JS_NewCFunction(ctx, js_window_focus, \"focus\", 0));\n    JS_SetPropertyStr(ctx, global, \"blur\",\n        JS_NewCFunction(ctx, js_window_blur, \"blur\", 0));\n    JS_SetPropertyStr(ctx, global, \"open\",\n        JS_NewCFunction(ctx, js_window_open, \"open\", 1));\n\n    JSValue evalVal = JS_Eval(ctx, window_polyfill_js,\n                              std::strlen(window_polyfill_js),\n                              \"<window_polyfill>\", JS_EVAL_TYPE_GLOBAL);\n    if (JS_IsException(evalVal)) {\n        JSValue ex = JS_GetException(ctx);\n        const char* s = JS_ToCString(ctx, ex);\n        LOG_ERROR(\"[window_polyfill] %s\", s ? s : \"unknown error\");\n        if (s) JS_FreeCString(ctx, s);\n        JS_FreeValue(ctx, ex);\n    }\n    JS_FreeValue(ctx, evalVal);\n\n    JS_FreeValue(ctx, global);\n}\n\nstatic JSValue js_brw_get_state(JSContext* ctx, JSValueConst) {\n    auto* win = realmWindow(ctx);\n    if (!win) return JS_NewString(ctx, \"normal\");\n    switch (win->getState()) {\n    case platform::WindowState::Minimized:  return JS_NewString(ctx, \"minimized\");\n    case platform::WindowState::Maximized:  return JS_NewString(ctx, \"maximized\");\n    case platform::WindowState::Fullscreen: return JS_NewString(ctx, \"fullscreen\");\n    case platform::WindowState::Normal:\n    default:                                return JS_NewString(ctx, \"normal\");\n    }\n}\n\nstatic JSValue js_brw_get_borderless(JSContext* ctx, JSValueConst) {\n    auto* win = realmWindow(ctx);\n    return JS_NewBool(ctx, win ? win->isBorderless() : false);\n}\n\nstatic JSValue js_brw_set_borderless(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_UNDEFINED;\n    if (auto* win = realmWindow(ctx)) {\n        win->setBorderless(JS_ToBool(ctx, argv[0]));\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_get_alwaysOnTop(JSContext* ctx, JSValueConst) {\n    auto* win = realmWindow(ctx);\n    return JS_NewBool(ctx, win ? win->isAlwaysOnTop() : false);\n}\n\nstatic JSValue js_brw_set_alwaysOnTop(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_UNDEFINED;\n    if (auto* win = realmWindow(ctx)) {\n        win->setAlwaysOnTop(JS_ToBool(ctx, argv[0]));\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_minimize(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    if (realmWindow(ctx) && !realmHeadless(ctx)) realmWindow(ctx)->minimize();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_maximize(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    if (realmWindow(ctx) && !realmHeadless(ctx)) realmWindow(ctx)->maximize();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_restore(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    if (realmWindow(ctx) && !realmHeadless(ctx)) realmWindow(ctx)->restore();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_getPosition(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    int x = 0, y = 0;\n    if (realmWindow(ctx)) realmWindow(ctx)->getPosition(x, y);\n    JSValue obj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, obj, \"x\", JS_NewInt32(ctx, x));\n    JS_SetPropertyStr(ctx, obj, \"y\", JS_NewInt32(ctx, y));\n    return obj;\n}\n\nstatic JSValue js_brw_setPosition(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (!realmWindow(ctx) || realmHeadless(ctx) || argc < 2) return JS_UNDEFINED;\n    int32_t x = 0, y = 0;\n    if (JS_ToInt32(ctx, &x, argv[0]) || JS_ToInt32(ctx, &y, argv[1]))\n        return JS_EXCEPTION;\n    realmWindow(ctx)->setPosition(x, y);\n    return JS_UNDEFINED;\n}\n\nstatic JSValue sizePairToJS(JSContext* ctx, int w, int h) {\n    JSValue obj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, obj, \"width\",  JS_NewInt32(ctx, w));\n    JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, h));\n    return obj;\n}\n\nstatic JSValue js_brw_getMinSize(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    int w = 0, h = 0;\n    if (realmWindow(ctx)) realmWindow(ctx)->getMinimumSize(w, h);\n    return sizePairToJS(ctx, w, h);\n}\n\nstatic JSValue js_brw_setMinSize(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (!realmWindow(ctx) || argc < 2) return JS_UNDEFINED;\n    int32_t w = 0, h = 0;\n    if (JS_ToInt32(ctx, &w, argv[0]) || JS_ToInt32(ctx, &h, argv[1]))\n        return JS_EXCEPTION;\n    realmWindow(ctx)->setMinimumSize(w, h);\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_getMaxSize(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    int w = 0, h = 0;\n    if (realmWindow(ctx)) realmWindow(ctx)->getMaximumSize(w, h);\n    return sizePairToJS(ctx, w, h);\n}\n\nstatic JSValue js_brw_setMaxSize(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (!realmWindow(ctx) || argc < 2) return JS_UNDEFINED;\n    int32_t w = 0, h = 0;\n    if (JS_ToInt32(ctx, &w, argv[0]) || JS_ToInt32(ctx, &h, argv[1]))\n        return JS_EXCEPTION;\n    realmWindow(ctx)->setMaximumSize(w, h);\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_brw_getDisplays(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    JSValue arr = JS_NewArray(ctx);\n    if (!realmWindow(ctx)) return arr;\n\n    auto displays = realmWindow(ctx)->getDisplays();\n    for (size_t i = 0; i < displays.size(); i++) {\n        const auto& d = displays[i];\n        JSValue obj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, obj, \"id\", JS_NewUint32(ctx, d.id));\n        JS_SetPropertyStr(ctx, obj, \"name\", JS_NewString(ctx, d.name.c_str()));\n\n        JSValue bounds = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, bounds, \"x\", JS_NewInt32(ctx, d.x));\n        JS_SetPropertyStr(ctx, bounds, \"y\", JS_NewInt32(ctx, d.y));\n        JS_SetPropertyStr(ctx, bounds, \"width\", JS_NewInt32(ctx, d.width));\n        JS_SetPropertyStr(ctx, bounds, \"height\", JS_NewInt32(ctx, d.height));\n        JS_SetPropertyStr(ctx, obj, \"bounds\", bounds);\n\n        JSValue work = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, work, \"x\", JS_NewInt32(ctx, d.workX));\n        JS_SetPropertyStr(ctx, work, \"y\", JS_NewInt32(ctx, d.workY));\n        JS_SetPropertyStr(ctx, work, \"width\", JS_NewInt32(ctx, d.workWidth));\n        JS_SetPropertyStr(ctx, work, \"height\", JS_NewInt32(ctx, d.workHeight));\n        JS_SetPropertyStr(ctx, obj, \"workArea\", work);\n\n        JS_SetPropertyStr(ctx, obj, \"refreshRate\", JS_NewFloat64(ctx, d.refreshRate));\n        JS_SetPropertyStr(ctx, obj, \"contentScale\", JS_NewFloat64(ctx, d.contentScale));\n        JS_SetPropertyStr(ctx, obj, \"isPrimary\", JS_NewBool(ctx, d.isPrimary));\n        JS_SetPropertyStr(ctx, obj, \"isCurrent\", JS_NewBool(ctx, d.isCurrent));\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), obj);\n    }\n    return arr;\n}\n\nstatic JSValue js_brw_moveToDisplay(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (!realmWindow(ctx) || realmHeadless(ctx) || argc < 1) return JS_NewBool(ctx, false);\n    uint32_t id = 0;\n    if (JS_ToUint32(ctx, &id, argv[0]))\n        return JS_EXCEPTION;\n    return JS_NewBool(ctx, realmWindow(ctx)->moveToDisplay(id));\n}\n\nstatic const JSCFunctionListEntry js_brw_funcs[] = {\n    JS_CFUNC_DEF(\"minimize\", 0, js_brw_minimize),\n    JS_CFUNC_DEF(\"maximize\", 0, js_brw_maximize),\n    JS_CFUNC_DEF(\"restore\", 0, js_brw_restore),\n    JS_CFUNC_DEF(\"getPosition\", 0, js_brw_getPosition),\n    JS_CFUNC_DEF(\"setPosition\", 2, js_brw_setPosition),\n    JS_CFUNC_DEF(\"getMinSize\", 0, js_brw_getMinSize),\n    JS_CFUNC_DEF(\"setMinSize\", 2, js_brw_setMinSize),\n    JS_CFUNC_DEF(\"getMaxSize\", 0, js_brw_getMaxSize),\n    JS_CFUNC_DEF(\"setMaxSize\", 2, js_brw_setMaxSize),\n    JS_CFUNC_DEF(\"getDisplays\", 0, js_brw_getDisplays),\n    JS_CFUNC_DEF(\"moveToDisplay\", 1, js_brw_moveToDisplay),\n};",
+  install_body="{\n        RealmWindowState& st = realmFor(ctx);\n        if (window) st.window = window;\n        st.headless = headless;\n    }\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue bro = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(bro) || JS_IsNull(bro)) {\n        JS_FreeValue(ctx, bro);\n        bro = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, bro));\n    }\n\n    JSValue win = JS_NewObject(ctx);\n    JS_SetPropertyFunctionList(ctx, win, js_brw_funcs,\n                               sizeof(js_brw_funcs) / sizeof(js_brw_funcs[0]));\n\n    auto defineGetSet = [&](const char* name, JSCFunction* getter,\n                            JSCFunction* setter) {\n        JSAtom atom = JS_NewAtom(ctx, name);\n        JS_DefinePropertyGetSet(ctx, win, atom,\n            JS_NewCFunction(ctx, getter, name, 0),\n            setter ? JS_NewCFunction(ctx, setter, name, 1) : JS_UNDEFINED,\n            JS_PROP_CONFIGURABLE | JS_PROP_ENUMERABLE);\n        JS_FreeAtom(ctx, atom);\n    };\n    defineGetSet(\"state\",       js_brw_get_state,       nullptr);\n    defineGetSet(\"borderless\",  js_brw_get_borderless,  js_brw_set_borderless);\n    defineGetSet(\"alwaysOnTop\", js_brw_get_alwaysOnTop, js_brw_set_alwaysOnTop);\n\n    JS_SetPropertyStr(ctx, bro, \"window\", win);\n    JS_FreeValue(ctx, bro);\n    JS_FreeValue(ctx, global);",
+  cpp_epilogue="void cleanupWindowBindings(JSContext* ctx) {\n    s_realms.erase(ctx);\n}\n\nvoid installWindowClose(JSContext* ctx, platform::EventLoop* eventLoop) {\n    if (!eventLoop) return;\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue ptrVal = JS_NewInt64(ctx, static_cast<int64_t>(\n        reinterpret_cast<intptr_t>(eventLoop)));\n    JS_SetPropertyStr(ctx, global, \"close\",\n        JS_NewCFunctionData(ctx, [](JSContext*, JSValue, int, JSValue*,\n                                   int, JSValue* fdata) -> JSValue {\n            int64_t p = 0;\n            JS_ToInt64(nullptr, &p, fdata[0]);\n            auto* loop = reinterpret_cast<platform::EventLoop*>(\n                static_cast<intptr_t>(p));\n            if (loop) loop->requestQuit();\n            return JS_UNDEFINED;\n        }, 0, 0, 1, &ptrVal));\n    JS_FreeValue(ctx, ptrVal);\n    JS_FreeValue(ctx, global);\n}"
+]
+namespace window {
+  /**
+   * Current window display state ('normal', 'minimized', 'maximized', 'fullscreen').
+   */
+  readonly attribute DOMString state;
+
+  /**
+   * Whether the window has OS borders and title bar removed.
+   */
+  attribute boolean borderless;
+
+  /**
+   * Whether the window stays pinned above standard windows.
+   */
+  attribute boolean alwaysOnTop;
+
+  /**
+   * Minimizes the window.
+   */
+  void minimize();
+
+  /**
+   * Maximizes the window.
+   */
+  void maximize();
+
+  /**
+   * Restores the window from minimized or maximized state.
+   */
+  void restore();
+
+  /**
+   * Retrieves current desktop coordinate position of the window.
+   */
+  WindowPosition getPosition();
+
+  /**
+   * Sets desktop coordinate position of the window.
+   * @param x Desktop X coordinate
+   * @param y Desktop Y coordinate
+   */
+  void setPosition(long x, long y);
+
+  /**
+   * Retrieves minimum window resize bounds in pixels.
+   */
+  WindowSize getMinSize();
+
+  /**
+   * Sets minimum window resize bounds.
+   * @param width Minimum width in pixels (0 for unconstrained)
+   * @param height Minimum height in pixels (0 for unconstrained)
+   */
+  void setMinSize(long width, long height);
+
+  /**
+   * Retrieves maximum window resize bounds in pixels.
+   */
+  WindowSize getMaxSize();
+
+  /**
+   * Sets maximum window resize bounds.
+   * @param width Maximum width in pixels (0 for unconstrained)
+   * @param height Maximum height in pixels (0 for unconstrained)
+   */
+  void setMaxSize(long width, long height);
+
+  /**
+   * Enumerates all attached monitor displays.
+   */
+  sequence<DisplayInfo> getDisplays();
+
+  /**
+   * Moves and centers the window on a specific display.
+   * @param id Target display identifier
+   * @returns True if window was moved, false otherwise
+   */
+  boolean moveToDisplay(unsigned long id);
+};

@@ -97,8 +97,14 @@ export function emitNamespaceTU(nsDef) {
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
       const trimmed = inc.trim();
-      if (!trimmed) continue;
-      lines.push(trimmed.startsWith('#') ? trimmed : `#include ${trimmed}`);
+      if (!trimmed || trimmed === 'extern "C" {' || trimmed === '}' || trimmed === '#include "quickjs.h"' || trimmed === '"quickjs.h"') continue;
+      if (trimmed.startsWith('#include ')) {
+        lines.push(trimmed);
+      } else if (trimmed.startsWith('#')) {
+        lines.push(trimmed);
+      } else {
+        lines.push(`#include ${trimmed}`);
+      }
     }
   }
   lines.push('');

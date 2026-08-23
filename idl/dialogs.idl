@@ -1,0 +1,79 @@
+/**
+ * =============================================================================
+ * bro Native File Dialogs & Modal Dialogs API
+ * =============================================================================
+ *
+ * Native open/save file dialogs backed by SDL3's portable file dialog API, plus
+ * the browser's standard modal dialog trio (alert, confirm, prompt).
+ *
+ * @example
+ *   const files = showOpenFileDialog('Audio Files|wav;flac;mp3;ogg;opus');
+ *   if (files.length) {
+ *     console.log('Selected file:', files[0]);
+ *   }
+ *
+ * @example
+ *   if (confirm('Are you sure you want to proceed?')) {
+ *     alert('Action confirmed');
+ *   }
+ */
+
+/**
+ * Native modal dialogs and file system pickers interface.
+ */
+[
+  cpp_file="dialog_bindings.cpp",
+  cpp_header="js/dialog_bindings.h",
+  cpp_includes="\"util/log.h\"\n#include <qjsbind/qjsbind.h>\n#include <SDL3/SDL_dialog.h>\n#include <SDL3/SDL_messagebox.h>\n#include <SDL3/SDL_events.h>\n#include <SDL3/SDL_timer.h>\n#include <atomic>\n#include <string>\n#include <vector>",
+  cpp_namespace="bro::js",
+  cpp_install="DialogBindings::install",
+  install_signature="void DialogBindings::install(JSContext* ctx, SDL_Window* window, TickCallback tickCb, bool interactive)",
+  cpp_prologue="static SDL_Window* s_window = nullptr;\nstatic DialogBindings::TickCallback s_tickCb;\n\nstatic std::string normalizeSeparators(std::string s)\n{\n#ifdef _WIN32\n    for (char& c : s) {\n        if (c == '/') c = '\\\\';\n    }\n#endif\n    return s;\n}\n\n#ifdef _WIN32\nstatic constexpr int kMaxDialogCallbacks = 2;\n#else\nstatic constexpr int kMaxDialogCallbacks = 1;\n#endif\n\nstruct DialogResult {\n    std::atomic<bool> haveResult{false};\n    std::atomic<int>  callbackCount{0};\n    std::vector<std::string> files;\n};\n\nstatic void dialogCallback(void* userdata, const char* const* filelist, int /*filter*/)\n{\n    auto* result = static_cast<DialogResult*>(userdata);\n    if (filelist) {\n        for (const char* const* p = filelist; *p; ++p) {\n            result->files.emplace_back(*p);\n        }\n        result->haveResult.store(true, std::memory_order_release);\n    }\n    result->callbackCount.fetch_add(1, std::memory_order_release);\n}\n\nstatic void waitForDialog(DialogResult& result)\n{\n    while (!result.haveResult.load(std::memory_order_acquire) &&\n           result.callbackCount.load(std::memory_order_acquire) < kMaxDialogCallbacks) {\n        SDL_PumpEvents();\n        if (s_tickCb) s_tickCb();\n        SDL_Delay(8);\n    }\n}\n\nstatic JSValue js_showOpenFileDialog(JSContext* ctx, JSValueConst /*this_val*/,\n                                     int argc, JSValueConst* argv)\n{\n    std::string filterStr;\n    bool allowMany = false;\n    if (argc >= 1 && JS_IsString(argv[0])) {\n        const char* s = JS_ToCString(ctx, argv[0]);\n        if (s) { filterStr = s; JS_FreeCString(ctx, s); }\n    }\n    if (argc >= 2) {\n        allowMany = JS_ToBool(ctx, argv[1]);\n    }\n\n    SDL_DialogFileFilter sdlFilter;\n    bool hasFilter = false;\n    std::string filterName, filterPattern;\n    if (!filterStr.empty()) {\n        auto pos = filterStr.find('|');\n        if (pos != std::string::npos) {\n            filterName = filterStr.substr(0, pos);\n            filterPattern = filterStr.substr(pos + 1);\n        } else {\n            filterName = \"Files\";\n            filterPattern = filterStr;\n        }\n        sdlFilter.name = filterName.c_str();\n        sdlFilter.pattern = filterPattern.c_str();\n        hasFilter = true;\n    }\n\n    DialogResult result;\n    SDL_ShowOpenFileDialog(dialogCallback, &result, s_window,\n                           hasFilter ? &sdlFilter : nullptr,\n                           hasFilter ? 1 : 0,\n                           nullptr, allowMany);\n\n    waitForDialog(result);\n\n    JSValue arr = JS_NewArray(ctx);\n    for (size_t i = 0; i < result.files.size(); i++) {\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i),\n                             JS_NewString(ctx, result.files[i].c_str()));\n    }\n    return arr;\n}\n\nstatic JSValue js_showOpenFolderDialog(JSContext* ctx, JSValueConst /*this_val*/,\n                                       int argc, JSValueConst* argv)\n{\n    std::string defaultLoc;\n    bool allowMany = false;\n    if (argc >= 1 && JS_IsString(argv[0])) {\n        const char* s = JS_ToCString(ctx, argv[0]);\n        if (s) { defaultLoc = normalizeSeparators(s); JS_FreeCString(ctx, s); }\n    }\n    if (argc >= 2) {\n        allowMany = JS_ToBool(ctx, argv[1]);\n    }\n\n    DialogResult result;\n    SDL_ShowOpenFolderDialog(dialogCallback, &result, s_window,\n                             defaultLoc.empty() ? nullptr : defaultLoc.c_str(),\n                             allowMany);\n\n    waitForDialog(result);\n\n    JSValue arr = JS_NewArray(ctx);\n    for (size_t i = 0; i < result.files.size(); i++) {\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i),\n                             JS_NewString(ctx, result.files[i].c_str()));\n    }\n    return arr;\n}\n\nstatic JSValue js_showSaveFileDialog(JSContext* ctx, JSValueConst /*this_val*/,\n                                     int argc, JSValueConst* argv)\n{\n    std::string filterStr;\n    std::string defaultLoc;\n    if (argc >= 1 && JS_IsString(argv[0])) {\n        const char* s = JS_ToCString(ctx, argv[0]);\n        if (s) { filterStr = s; JS_FreeCString(ctx, s); }\n    }\n    if (argc >= 2 && JS_IsString(argv[1])) {\n        const char* s = JS_ToCString(ctx, argv[1]);\n        if (s) { defaultLoc = normalizeSeparators(s); JS_FreeCString(ctx, s); }\n    }\n\n    SDL_DialogFileFilter sdlFilter;\n    bool hasFilter = false;\n    std::string filterName, filterPattern;\n    if (!filterStr.empty()) {\n        auto pos = filterStr.find('|');\n        if (pos != std::string::npos) {\n            filterName = filterStr.substr(0, pos);\n            filterPattern = filterStr.substr(pos + 1);\n        } else {\n            filterName = \"Files\";\n            filterPattern = filterStr;\n        }\n        sdlFilter.name = filterName.c_str();\n        sdlFilter.pattern = filterPattern.c_str();\n        hasFilter = true;\n    }\n\n    DialogResult result;\n    SDL_ShowSaveFileDialog(dialogCallback, &result, s_window,\n                            hasFilter ? &sdlFilter : nullptr,\n                            hasFilter ? 1 : 0,\n                            defaultLoc.empty() ? nullptr : defaultLoc.c_str());\n\n    waitForDialog(result);\n\n    if (result.files.empty()) return JS_NULL;\n    return JS_NewString(ctx, result.files[0].c_str());\n}\n\nstatic bool s_interactive = true;\nstatic bool s_autoAccept = true;\n\nenum : int { kBtnCancel = 0, kBtnOk = 1 };\n\nstatic std::string argToString(JSContext* ctx, JSValueConst v)\n{\n    if (JS_IsUndefined(v)) return \"\";\n    const char* s = JS_ToCString(ctx, v);\n    if (!s) return \"\";\n    std::string out(s);\n    JS_FreeCString(ctx, s);\n    return out;\n}\n\nstatic bool showMessageBox(const std::string& message, bool withCancel)\n{\n    SDL_MessageBoxButtonData buttons[2];\n    int nButtons = 0;\n    if (withCancel) {\n        buttons[nButtons++] = {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,\n                               kBtnCancel, \"Cancel\"};\n    }\n    buttons[nButtons++] = {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, kBtnOk, \"OK\"};\n\n    SDL_MessageBoxData data{};\n    data.flags = SDL_MESSAGEBOX_INFORMATION;\n    data.window = s_window;\n    data.title = \"\";\n    data.message = message.c_str();\n    data.numbuttons = nButtons;\n    data.buttons = buttons;\n\n    int pressed = kBtnCancel;\n    if (!SDL_ShowMessageBox(&data, &pressed)) {\n        LOG_WARN(\"[dialog] message box unavailable: %s\", SDL_GetError());\n        return !withCancel;\n    }\n    return pressed == kBtnOk;\n}\n\nvoid DialogBindings::showAlert(const std::string& message)\n{\n    if (!s_interactive) {\n        LOG_INFO(\"[alert] %s\", message.c_str());\n        return;\n    }\n    showMessageBox(message, false);\n}\n\nbool DialogBindings::showConfirm(const std::string& message)\n{\n    if (!s_interactive) {\n        LOG_INFO(\"[confirm] %s -> %s\", message.c_str(),\n                 s_autoAccept ? \"OK\" : \"Cancel\");\n        return s_autoAccept;\n    }\n    return showMessageBox(message, true);\n}\n\nstd::optional<std::string> DialogBindings::showPrompt(const std::string& message,\n                                                      const std::string& defaultText)\n{\n    if (!s_interactive) {\n        LOG_INFO(\"[prompt] %s -> %s\", message.c_str(),\n                 s_autoAccept ? defaultText.c_str() : \"(cancelled)\");\n        if (!s_autoAccept) return std::nullopt;\n        return defaultText;\n    }\n    std::string full = message;\n    if (!defaultText.empty()) full += \"\\n\\n[\" + defaultText + \"]\";\n    if (!showMessageBox(full, true)) return std::nullopt;\n    return defaultText;\n}\n\nstatic JSValue js_alert(JSContext* ctx, JSValueConst /*this_val*/,\n                        int argc, JSValueConst* argv)\n{\n    DialogBindings::showAlert(argc >= 1 ? argToString(ctx, argv[0]) : \"\");\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_confirm(JSContext* ctx, JSValueConst /*this_val*/,\n                          int argc, JSValueConst* argv)\n{\n    return JS_NewBool(ctx, DialogBindings::showConfirm(\n        argc >= 1 ? argToString(ctx, argv[0]) : \"\"));\n}\n\nstatic JSValue js_prompt(JSContext* ctx, JSValueConst /*this_val*/,\n                         int argc, JSValueConst* argv)\n{\n    std::optional<std::string> answer = DialogBindings::showPrompt(\n        argc >= 1 ? argToString(ctx, argv[0]) : \"\",\n        argc >= 2 ? argToString(ctx, argv[1]) : \"\");\n    if (!answer) return JS_NULL;\n    return JS_NewString(ctx, answer->c_str());\n}\n\nstatic std::vector<std::string> s_queuedPicks;\n\nvoid DialogBindings::setPickedFiles(std::vector<std::string> paths)\n{\n    s_queuedPicks = std::move(paths);\n}\n\nstd::vector<std::string> DialogBindings::pickFiles(const std::string& accept,\n                                                   bool allowMultiple)\n{\n    if (!s_interactive) {\n        std::vector<std::string> picked;\n        picked.swap(s_queuedPicks);\n        return picked;\n    }\n\n    std::string pattern;\n    auto add = [&pattern](const std::string& ext) {\n        if (ext.empty()) return;\n        if (!pattern.empty()) pattern += ';';\n        pattern += ext;\n    };\n    size_t start = 0;\n    while (start <= accept.size() && !accept.empty()) {\n        size_t comma = accept.find(',', start);\n        std::string tok = accept.substr(start, comma == std::string::npos\n                                                   ? std::string::npos\n                                                   : comma - start);\n        while (!tok.empty() && isspace((unsigned char)tok.front())) tok.erase(tok.begin());\n        while (!tok.empty() && isspace((unsigned char)tok.back())) tok.pop_back();\n        if (!tok.empty()) {\n            if (tok[0] == '.') {\n                add(tok.substr(1));\n            } else if (tok == \"image/*\") {\n                add(\"png\"); add(\"jpg\"); add(\"jpeg\"); add(\"gif\"); add(\"webp\"); add(\"bmp\");\n            } else if (tok == \"audio/*\") {\n                add(\"wav\"); add(\"mp3\"); add(\"ogg\"); add(\"flac\");\n            } else if (tok == \"video/*\") {\n                add(\"webm\"); add(\"mp4\");\n            } else if (auto slash = tok.find('/');\n                       slash != std::string::npos && tok.substr(slash + 1) != \"*\") {\n                add(tok.substr(slash + 1));\n            }\n        }\n        if (comma == std::string::npos) break;\n        start = comma + 1;\n    }\n\n    SDL_DialogFileFilter sdlFilter;\n    bool hasFilter = !pattern.empty();\n    if (hasFilter) {\n        sdlFilter.name = \"Accepted files\";\n        sdlFilter.pattern = pattern.c_str();\n    }\n\n    DialogResult result;\n    SDL_ShowOpenFileDialog(dialogCallback, &result, s_window,\n                           hasFilter ? &sdlFilter : nullptr,\n                           hasFilter ? 1 : 0,\n                           nullptr, allowMultiple);\n    waitForDialog(result);\n    return std::move(result.files);\n}\n\nvoid DialogBindings::setAutoDialogAnswer(bool accept)\n{\n    s_autoAccept = accept;\n}",
+  install_body="s_window = window;\n    s_tickCb = std::move(tickCb);\n    s_interactive = interactive;\n\n    qjsbind::Global(ctx)\n        .function(\"showOpenFileDialog\",   js_showOpenFileDialog,   0)\n        .function(\"showOpenFolderDialog\", js_showOpenFolderDialog, 0)\n        .function(\"showSaveFileDialog\",   js_showSaveFileDialog,   0)\n        .function(\"alert\",                js_alert,                1)\n        .function(\"confirm\",              js_confirm,              1)\n        .function(\"prompt\",               js_prompt,               2);"
+]
+interface Dialogs {
+  /**
+   * Displays a modal alert dialog with an optional message.
+   * @param message Text to display
+   */
+  static void alert(optional any message);
+
+  /**
+   * Displays a modal confirmation dialog with OK and Cancel buttons.
+   * @param message Prompt message to display
+   * @returns True if OK was clicked, false if cancelled
+   */
+  static boolean confirm(optional any message);
+
+  /**
+   * Displays a modal dialog with a text prompt and default value.
+   * @param message Prompt message to display
+   * @param defaultText Default input value
+   * @returns String response or null if cancelled
+   */
+  static DOMString? prompt(optional any message, optional DOMString defaultText);
+
+  /**
+   * Opens a native modal file picker dialog.
+   * @param filter Filter pattern string (e.g. "Images|png;jpg")
+   * @param allowMultiple Whether to allow multiple file selection
+   * @returns Array of selected absolute file paths
+   */
+  static sequence<DOMString> showOpenFileDialog(optional DOMString filter, optional boolean allowMultiple);
+
+  /**
+   * Opens a native modal directory picker dialog.
+   * @param defaultLocation Starting directory path
+   * @param allowMultiple Whether to allow multiple folder selection
+   * @returns Array of selected absolute folder paths
+   */
+  static sequence<DOMString> showOpenFolderDialog(optional DOMString defaultLocation, optional boolean allowMultiple);
+
+  /**
+   * Opens a native modal file save dialog.
+   * @param filter Filter pattern string (e.g. "JSON|json")
+   * @param defaultName Default location or file path
+   * @returns Selected file path string or null if cancelled
+   */
+  static DOMString? showSaveFileDialog(optional DOMString filter, optional DOMString defaultName);
+};

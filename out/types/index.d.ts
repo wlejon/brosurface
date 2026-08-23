@@ -372,6 +372,100 @@ interface GemmaModelPair {
 }
 
 /**
+ * Event object dispatched to MediaQueryList change event listeners.
+ */
+interface MediaQueryListEvent {
+  /**
+   *  Event type string ("change").
+   */
+  type?: string;
+  /**
+   *  Whether the media query matches current document media context.
+   */
+  matches?: boolean;
+  /**
+   *  The serialized media query string.
+   */
+  media?: string;
+  /**
+   *  Target MediaQueryList object.
+   */
+  target?: MediaQueryList;
+  /**
+   *  Current target MediaQueryList object.
+   */
+  currentTarget?: MediaQueryList;
+}
+
+/**
+ * Menu item descriptor definition.
+ */
+interface MenuItem {
+  /**
+   *  Unique item identifier, or '__system.*' for engine actions.
+   */
+  id?: string;
+  /**
+   *  Display label text.
+   */
+  label?: string;
+  /**
+   *  Keyboard shortcut hint string (e.g. 'Ctrl+S').
+   */
+  accel?: string;
+  /**
+   *  Whether to draw as a horizontal separator line.
+   */
+  separator?: boolean;
+  /**
+   *  Whether item is enabled and clickable.
+   */
+  enabled?: boolean;
+  /**
+   *  Whether item is hidden from the menu.
+   */
+  hidden?: boolean;
+  /**
+   *  Whether item shows a checkmark.
+   */
+  checked?: boolean;
+  /**
+   *  Submenu child items.
+   */
+  items?: MenuItem[];
+}
+
+/**
+ * Mutable properties for updating an existing menu item.
+ */
+interface MenuItemUpdate {
+  /**
+   *  New display label text.
+   */
+  label?: string;
+  /**
+   *  New keyboard shortcut hint string.
+   */
+  accel?: string;
+  /**
+   *  Enabled status.
+   */
+  enabled?: boolean;
+  /**
+   *  Visibility status.
+   */
+  hidden?: boolean;
+  /**
+   *  Checkmark status.
+   */
+  checked?: boolean;
+  /**
+   *  New submenu child items.
+   */
+  items?: MenuItem[];
+}
+
+/**
  * Options for configuring and starting live mic stream capture.
  */
 interface MicStartOptions {
@@ -1039,6 +1133,132 @@ interface BidiParagraph {
   runs?: BidiRun[];
 }
 
+/**
+ * Timing and configuration options for element animations.
+ */
+interface KeyframeAnimationOptions {
+  /**
+   *  Duration of single iteration in milliseconds.
+   */
+  duration?: number;
+  /**
+   *  Start delay in milliseconds.
+   */
+  delay?: number;
+  /**
+   *  End delay in milliseconds.
+   */
+  endDelay?: number;
+  /**
+   *  Number of iterations (or Infinity).
+   */
+  iterations?: number;
+  /**
+   *  Playback direction ("normal", "reverse", "alternate", "alternate-reverse").
+   */
+  direction?: string;
+  /**
+   *  Timing function easing name.
+   */
+  easing?: string;
+  /**
+   *  Fill mode ("none", "forwards", "backwards", "both").
+   */
+  fill?: string;
+  /**
+   *  Animation identifier string.
+   */
+  id?: string;
+}
+
+/**
+ * Desktop coordinates and dimensions of a rectangle bounds.
+ */
+interface DisplayBounds {
+  /**
+   *  X coordinate in desktop pixels.
+   */
+  x?: number;
+  /**
+   *  Y coordinate in desktop pixels.
+   */
+  y?: number;
+  /**
+   *  Width in desktop pixels.
+   */
+  width?: number;
+  /**
+   *  Height in desktop pixels.
+   */
+  height?: number;
+}
+
+/**
+ * Display device descriptor.
+ */
+interface DisplayInfo {
+  /**
+   *  Stable SDL display identifier.
+   */
+  id?: number;
+  /**
+   *  Display device name.
+   */
+  name?: string;
+  /**
+   *  Full display bounds.
+   */
+  bounds?: DisplayBounds;
+  /**
+   *  Usable work area bounds minus taskbars and docks.
+   */
+  workArea?: DisplayBounds;
+  /**
+   *  Refresh rate in Hz.
+   */
+  refreshRate?: number;
+  /**
+   *  OS content scale multiplier (1.0 = 100%).
+   */
+  contentScale?: number;
+  /**
+   *  Whether this is the system primary display.
+   */
+  isPrimary?: boolean;
+  /**
+   *  Whether the active window currently sits on this display.
+   */
+  isCurrent?: boolean;
+}
+
+/**
+ * 2D desktop position.
+ */
+interface WindowPosition {
+  /**
+   *  Desktop X coordinate.
+   */
+  x?: number;
+  /**
+   *  Desktop Y coordinate.
+   */
+  y?: number;
+}
+
+/**
+ * 2D window dimensions.
+ */
+interface WindowSize {
+  /**
+   *  Width in pixels.
+   */
+  width?: number;
+  /**
+   *  Height in pixels.
+   */
+  height?: number;
+}
+
 // ── Global Classes & Interfaces ──────────────────────────────────────────────
 
 /**
@@ -1150,6 +1370,51 @@ declare class HTMLElement {
    * Creates a new HTMLElement instance.
    */
   constructor();
+}
+
+/**
+ * Native modal dialogs and file system pickers interface.
+ */
+declare class Dialogs {
+  /**
+   * Displays a modal alert dialog with an optional message.
+   * @param message Text to display
+   */
+  static alert(message?: any): void;
+  /**
+   * Displays a modal confirmation dialog with OK and Cancel buttons.
+   * @param message Prompt message to display
+   * @returns True if OK was clicked, false if cancelled
+   */
+  static confirm(message?: any): boolean;
+  /**
+   * Displays a modal dialog with a text prompt and default value.
+   * @param message Prompt message to display
+   * @param defaultText Default input value
+   * @returns String response or null if cancelled
+   */
+  static prompt(message?: any, defaultText?: string): string | null;
+  /**
+   * Opens a native modal file picker dialog.
+   * @param filter Filter pattern string (e.g. "Images|png;jpg")
+   * @param allowMultiple Whether to allow multiple file selection
+   * @returns Array of selected absolute file paths
+   */
+  static showOpenFileDialog(filter?: string, allowMultiple?: boolean): string[];
+  /**
+   * Opens a native modal directory picker dialog.
+   * @param defaultLocation Starting directory path
+   * @param allowMultiple Whether to allow multiple folder selection
+   * @returns Array of selected absolute folder paths
+   */
+  static showOpenFolderDialog(defaultLocation?: string, allowMultiple?: boolean): string[];
+  /**
+   * Opens a native modal file save dialog.
+   * @param filter Filter pattern string (e.g. "JSON|json")
+   * @param defaultName Default location or file path
+   * @returns Selected file path string or null if cancelled
+   */
+  static showSaveFileDialog(filter?: string, defaultName?: string): string | null;
 }
 
 declare class Sortformer {
@@ -1689,6 +1954,50 @@ declare class GamepadEvent {
 }
 
 /**
+ * W3C ImageBitmap interface representing a bitmap image that can be drawn to a canvas.
+ */
+declare class ImageBitmap {
+  /**
+   * Intrinsic width of the image bitmap in pixels.
+   */
+  readonly width: number;
+  /**
+   * Intrinsic height of the image bitmap in pixels.
+   */
+  readonly height: number;
+  /**
+   * Releases the underlying graphics memory and closes the bitmap.
+   */
+  close(): void;
+}
+
+/**
+ * Represents underlying pixel data of an area of a canvas or image.
+ */
+declare class ImageData {
+  /**
+   * Creates an ImageData object with given dimensions.
+   */
+  constructor(width: number, height: number);
+  /**
+   * Creates an ImageData object with given pixel data and dimensions.
+   */
+  constructor(data: Uint8ClampedArray, width: number, height?: number);
+  /**
+   *  Width in pixels.
+   */
+  readonly width: number;
+  /**
+   *  Height in pixels.
+   */
+  readonly height: number;
+  /**
+   *  RGBA one-dimensional array of pixel data.
+   */
+  readonly data: Uint8ClampedArray;
+}
+
+/**
  * Asynchronous job handle with cancellation support.
  */
 declare class AsyncHandle {
@@ -2083,6 +2392,48 @@ declare class T5Model {
    * @returns Encoded data buffer and dimension metadata
    */
   encode(text: string, opts?: T5EncodeOptions): T5EncodeResult;
+}
+
+/**
+ * Stores information on a media query applied to a document, with support for real-time listener updates.
+ */
+declare class MediaQueryList {
+  /**
+   * Evaluates if the current document media context matches the media query.
+   */
+  readonly matches: boolean;
+  /**
+   * The serialized media query string.
+   */
+  readonly media: string;
+  /**
+   * Event handler called when the matching status changes.
+   */
+  onchange: ((event: any) => any) | null;
+  /**
+   * Adds an event listener callback for media query changes.
+   * @param type Event type string ("change")
+   * @param listener Callback function
+   * @param options Optional options object or capture boolean
+   */
+  addEventListener(type: string, listener: (event: any) => void, options?: any): void;
+  /**
+   * Removes a previously registered media query change event listener.
+   * @param type Event type string ("change")
+   * @param listener Callback function to remove
+   * @param options Optional options object or capture boolean
+   */
+  removeEventListener(type: string, listener: (event: any) => void, options?: any): void;
+  /**
+   * Legacy alias for adding a change listener.
+   * @param listener Callback function
+   */
+  addListener(listener: (event: any) => void): void;
+  /**
+   * Legacy alias for removing a change listener.
+   * @param listener Callback function to remove
+   */
+  removeListener(listener: (event: any) => void): void;
 }
 
 declare class SpatialHash3D {
@@ -2573,6 +2924,64 @@ declare class TripoSplatPipeline {
    * Generate 3D Gaussian Splat cloud from input image.
    */
   generate(image: any, opts?: object): object;
+}
+
+/**
+ * Web Animations API Animation controller instance.
+ */
+declare class Animation {
+  /**
+   *  Current playback time in milliseconds, or null if idle.
+   */
+  currentTime: number | null;
+  /**
+   *  Playback rate multiplier (default 1.0).
+   */
+  playbackRate: number;
+  /**
+   *  Current playback state ("idle", "running", "paused", "finished").
+   */
+  readonly playState: string;
+  /**
+   *  Whether the animation has pending async tasks (always false).
+   */
+  readonly pending: boolean;
+  /**
+   *  Optional identifier for the animation.
+   */
+  id: string;
+  /**
+   *  Promise that resolves when animation finishes or rejects if cancelled.
+   */
+  readonly finished: Promise<Animation>;
+  /**
+   *  Event handler called when animation finishes.
+   */
+  onfinish: ((event: any) => any) | null;
+  /**
+   *  Event handler called when animation is cancelled.
+   */
+  oncancel: ((event: any) => any) | null;
+  /**
+   *  Starts or resumes playback of the animation.
+   */
+  play(): void;
+  /**
+   *  Pauses playback of the animation.
+   */
+  pause(): void;
+  /**
+   *  Cancels the animation and clears its effects.
+   */
+  cancel(): void;
+  /**
+   *  Fast-forwards animation to completion.
+   */
+  finish(): void;
+  /**
+   *  Reverses playback direction of the animation.
+   */
+  reverse(): void;
 }
 
 declare class World {
@@ -3084,6 +3493,56 @@ declare namespace bro {
   }
 
   /**
+   * Top-level application menu bar management namespace.
+   */
+  namespace menu {
+    /**
+     * Whether the menu bar is currently visible.
+     */
+    const visible: boolean;
+    /**
+     * Shows the menu bar panel.
+     */
+    function show(): void;
+    /**
+     * Hides the menu bar panel.
+     */
+    function hide(): void;
+    /**
+     * Replaces the entire menu bar tree.
+     * @param items Array of root menu item trees
+     */
+    function set(items: MenuItem[]): void;
+    /**
+     * Adds an item to a submenu or root.
+     * @param parentId Parent submenu id, or empty string for root
+     * @param item Item descriptor to add
+     * @param index Optional insertion index (negative to append)
+     * @returns True if item was added, false otherwise
+     */
+    function addItem(parentId: string, item: MenuItem, index?: number): boolean;
+    /**
+     * Updates mutable properties of an item by id.
+     * @param id Target item identifier
+     * @param props Properties to update
+     * @returns True if target item was found and updated, false otherwise
+     */
+    function updateItem(id: string, props: MenuItemUpdate): boolean;
+    /**
+     * Removes an item anywhere in the tree.
+     * @param id Target item identifier
+     * @returns True if item was found and removed, false otherwise
+     */
+    function removeItem(id: string): boolean;
+    /**
+     * Registers an action handler callback for a menu item.
+     * @param id Target item identifier
+     * @param callback Callback function executed on click
+     */
+    function on(id: string, callback: Function): void;
+  }
+
+  /**
    * Real-time microphone audio capture and fixed-size chunk streaming namespace.
    */
   namespace mic {
@@ -3178,6 +3637,24 @@ declare namespace bro {
      * @returns Rave model instance
      */
     function loadRave(modelDir: string, opts?: RaveLoadOptions): Rave;
+  }
+
+  /**
+   * Dedicated server and worker host runtime control namespace.
+   */
+  namespace server {
+    /**
+     * Server tick rate in Hertz (ticks per second, range [1, 1000]).
+     */
+    let tickrate: number;
+    /**
+     * Server uptime in seconds since launch.
+     */
+    const uptime: number;
+    /**
+     * Requests graceful termination of the dedicated server or worker loop.
+     */
+    function stop(): void;
   }
 
   /**
@@ -3421,6 +3898,76 @@ declare namespace bro {
   }
 
   /**
+   * Runtime window management namespace.
+   */
+  namespace window {
+    /**
+     * Current window display state ('normal', 'minimized', 'maximized', 'fullscreen').
+     */
+    const state: string;
+    /**
+     * Whether the window has OS borders and title bar removed.
+     */
+    let borderless: boolean;
+    /**
+     * Whether the window stays pinned above standard windows.
+     */
+    let alwaysOnTop: boolean;
+    /**
+     * Minimizes the window.
+     */
+    function minimize(): void;
+    /**
+     * Maximizes the window.
+     */
+    function maximize(): void;
+    /**
+     * Restores the window from minimized or maximized state.
+     */
+    function restore(): void;
+    /**
+     * Retrieves current desktop coordinate position of the window.
+     */
+    function getPosition(): WindowPosition;
+    /**
+     * Sets desktop coordinate position of the window.
+     * @param x Desktop X coordinate
+     * @param y Desktop Y coordinate
+     */
+    function setPosition(x: number, y: number): void;
+    /**
+     * Retrieves minimum window resize bounds in pixels.
+     */
+    function getMinSize(): WindowSize;
+    /**
+     * Sets minimum window resize bounds.
+     * @param width Minimum width in pixels (0 for unconstrained)
+     * @param height Minimum height in pixels (0 for unconstrained)
+     */
+    function setMinSize(width: number, height: number): void;
+    /**
+     * Retrieves maximum window resize bounds in pixels.
+     */
+    function getMaxSize(): WindowSize;
+    /**
+     * Sets maximum window resize bounds.
+     * @param width Maximum width in pixels (0 for unconstrained)
+     * @param height Maximum height in pixels (0 for unconstrained)
+     */
+    function setMaxSize(width: number, height: number): void;
+    /**
+     * Enumerates all attached monitor displays.
+     */
+    function getDisplays(): DisplayInfo[];
+    /**
+     * Moves and centers the window on a specific display.
+     * @param id Target display identifier
+     * @returns True if window was moved, false otherwise
+     */
+    function moveToDisplay(id: number): boolean;
+  }
+
+  /**
    * =============================================================================
    * bro.worldgen — learned neural terrain diffusion pipeline
    * =============================================================================
@@ -3460,3 +4007,7 @@ declare namespace bro {
 }
 
 declare const customElements: CustomElementRegistry;
+
+declare const createImageBitmap: ImageBitmap;
+
+declare const matchMedia: MediaQueryList;

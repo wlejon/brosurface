@@ -1,0 +1,128 @@
+/**
+ * =============================================================================
+ * bro.menu — Standard Application Menu Bar
+ * =============================================================================
+ *
+ * Horizontal menu bar rendered by the engine's system panel. Provides native
+ * menu hierarchies, accelerator keys, dynamic items, and custom action routing.
+ *
+ * @example
+ *   bro.menu.show();
+ *   bro.menu.set([
+ *     { id: 'file', label: 'File', items: [
+ *       { id: 'file.new', label: 'New', accel: 'Ctrl+N' },
+ *       { id: '__system.quit', label: 'Quit', accel: 'Ctrl+Q' }
+ *     ]}
+ *   ]);
+ *   bro.menu.on('file.new', () => {
+ *     console.log('New file requested');
+ *   });
+ */
+
+/**
+ * Menu item descriptor definition.
+ */
+dictionary MenuItem {
+  /** Unique item identifier, or '__system.*' for engine actions. */
+  DOMString id;
+  /** Display label text. */
+  DOMString label;
+  /** Keyboard shortcut hint string (e.g. 'Ctrl+S'). */
+  DOMString accel;
+  /** Whether to draw as a horizontal separator line. */
+  boolean separator;
+  /** Whether item is enabled and clickable. */
+  boolean enabled;
+  /** Whether item is hidden from the menu. */
+  boolean hidden;
+  /** Whether item shows a checkmark. */
+  boolean checked;
+  /** Submenu child items. */
+  sequence<MenuItem> items;
+};
+
+/**
+ * Mutable properties for updating an existing menu item.
+ */
+dictionary MenuItemUpdate {
+  /** New display label text. */
+  DOMString label;
+  /** New keyboard shortcut hint string. */
+  DOMString accel;
+  /** Enabled status. */
+  boolean enabled;
+  /** Visibility status. */
+  boolean hidden;
+  /** Checkmark status. */
+  boolean checked;
+  /** New submenu child items. */
+  sequence<MenuItem> items;
+};
+
+/**
+ * Top-level application menu bar management namespace.
+ */
+[
+  cpp_file="menu_bindings.cpp",
+  cpp_header="js/menu_bindings.h",
+  cpp_includes="\"engine/engine.h\"\n\"engine/menu_bar.h\"\n<cstring>\n<string>",
+  cpp_namespace="bro::js",
+  cpp_install="MenuBindings::install",
+  install_signature="void MenuBindings::install(JSContext* ctx, engine::Engine* engine)",
+  prefix="bro.",
+  cpp_prologue="static const char* kMenuEngineKey = \"__bro_menu_engine_ptr\";\n\nstatic engine::Engine* getEngine(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kMenuEngineKey);\n    engine::Engine* e = nullptr;\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        e = reinterpret_cast<engine::Engine*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_FreeValue(ctx, global);\n    return e;\n}\n\nstatic std::string readCString(JSContext* ctx, JSValueConst v) {\n    std::string out;\n    if (JS_IsString(v)) {\n        const char* s = JS_ToCString(ctx, v);\n        if (s) { out = s; JS_FreeCString(ctx, s); }\n    }\n    return out;\n}\n\nstatic JSValue js_menu_show(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    eng->menuBar().visible = true;\n    eng->menuBar().dirty = true;\n    eng->onMenuChanged();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_menu_hide(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    eng->menuBar().visible = false;\n    eng->menuBar().dirty = true;\n    eng->onMenuChanged();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_menu_get_visible(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* eng = getEngine(ctx);\n    return JS_NewBool(ctx, eng ? eng->menuBar().visible : false);\n}\n\nstatic JSValue js_menu_set(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1 || !JS_IsArray(argv[0]))\n        return JS_ThrowTypeError(ctx, \"bro.menu.set() requires an array\");\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    eng->menuBar().setRootsFromJS(ctx, argv[0]);\n    eng->onMenuChanged();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_menu_addItem(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2)\n        return JS_ThrowTypeError(ctx, \"bro.menu.addItem(parentId, item [, index])\");\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n\n    std::string parentId = readCString(ctx, argv[0]);\n    if (!JS_IsObject(argv[1]))\n        return JS_ThrowTypeError(ctx, \"item must be an object\");\n\n    std::vector<engine::MenuBar::Item> parsed;\n    {\n        JSValue arr = JS_NewArray(ctx);\n        JS_SetPropertyUint32(ctx, arr, 0, JS_DupValue(ctx, argv[1]));\n        engine::MenuBar tmp;\n        tmp.setRootsFromJS(ctx, arr);\n        parsed = std::move(tmp.roots);\n        JS_FreeValue(ctx, arr);\n    }\n    if (parsed.empty()) return JS_FALSE;\n\n    int index = -1;\n    if (argc >= 3 && JS_IsNumber(argv[2])) {\n        int32_t i = 0; JS_ToInt32(ctx, &i, argv[2]); index = i;\n    }\n    bool ok = eng->menuBar().addItem(parentId, std::move(parsed[0]), index);\n    if (ok) eng->onMenuChanged();\n    return JS_NewBool(ctx, ok);\n}\n\nstatic JSValue js_menu_updateItem(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2 || !JS_IsObject(argv[1]))\n        return JS_ThrowTypeError(ctx, \"bro.menu.updateItem(id, props)\");\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    std::string id = readCString(ctx, argv[0]);\n    bool ok = eng->menuBar().updateItem(ctx, id, argv[1]);\n    if (ok) eng->onMenuChanged();\n    return JS_NewBool(ctx, ok);\n}\n\nstatic JSValue js_menu_removeItem(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_FALSE;\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    std::string id = readCString(ctx, argv[0]);\n    bool ok = eng->menuBar().removeItem(id);\n    if (ok) eng->onMenuChanged();\n    return JS_NewBool(ctx, ok);\n}\n\nstatic JSValue js_menu_on(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2 || !JS_IsFunction(ctx, argv[1]))\n        return JS_ThrowTypeError(ctx, \"bro.menu.on(id, fn)\");\n    auto* eng = getEngine(ctx);\n    if (!eng) return JS_UNDEFINED;\n    std::string id = readCString(ctx, argv[0]);\n    eng->menuBar().on(ctx, id, argv[1]);\n    return JS_UNDEFINED;\n}\n\nstatic const JSCFunctionListEntry js_menu_funcs[] = {\n    JS_CFUNC_DEF(\"show\", 0, js_menu_show),\n    JS_CFUNC_DEF(\"hide\", 0, js_menu_hide),\n    JS_CFUNC_DEF(\"set\", 1, js_menu_set),\n    JS_CFUNC_DEF(\"addItem\", 3, js_menu_addItem),\n    JS_CFUNC_DEF(\"updateItem\", 2, js_menu_updateItem),\n    JS_CFUNC_DEF(\"removeItem\", 1, js_menu_removeItem),\n    JS_CFUNC_DEF(\"on\", 2, js_menu_on),\n};",
+  install_body="JSValue global = JS_GetGlobalObject(ctx);\n    JS_SetPropertyStr(ctx, global, kMenuEngineKey,\n                      JS_NewInt64(ctx, static_cast<int64_t>(\n                          reinterpret_cast<intptr_t>(engine))));\n\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n\n    JSValue menuObj = JS_NewObject(ctx);\n    JS_SetPropertyFunctionList(ctx, menuObj, js_menu_funcs,\n                               sizeof(js_menu_funcs) / sizeof(js_menu_funcs[0]));\n\n    JSAtom visibleAtom = JS_NewAtom(ctx, \"visible\");\n    JS_DefinePropertyGetSet(ctx, menuObj, visibleAtom,\n        JS_NewCFunction(ctx, js_menu_get_visible, \"get visible\", 0),\n        JS_UNDEFINED,\n        JS_PROP_CONFIGURABLE);\n    JS_FreeAtom(ctx, visibleAtom);\n\n    JS_SetPropertyStr(ctx, broObj, \"menu\", menuObj);\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);"
+]
+namespace menu {
+  /**
+   * Whether the menu bar is currently visible.
+   */
+  readonly attribute boolean visible;
+
+  /**
+   * Shows the menu bar panel.
+   */
+  void show();
+
+  /**
+   * Hides the menu bar panel.
+   */
+  void hide();
+
+  /**
+   * Replaces the entire menu bar tree.
+   * @param items Array of root menu item trees
+   */
+  void set(sequence<MenuItem> items);
+
+  /**
+   * Adds an item to a submenu or root.
+   * @param parentId Parent submenu id, or empty string for root
+   * @param item Item descriptor to add
+   * @param index Optional insertion index (negative to append)
+   * @returns True if item was added, false otherwise
+   */
+  boolean addItem(DOMString parentId, MenuItem item, optional long index);
+
+  /**
+   * Updates mutable properties of an item by id.
+   * @param id Target item identifier
+   * @param props Properties to update
+   * @returns True if target item was found and updated, false otherwise
+   */
+  boolean updateItem(DOMString id, MenuItemUpdate props);
+
+  /**
+   * Removes an item anywhere in the tree.
+   * @param id Target item identifier
+   * @returns True if item was found and removed, false otherwise
+   */
+  boolean removeItem(DOMString id);
+
+  /**
+   * Registers an action handler callback for a menu item.
+   * @param id Target item identifier
+   * @param callback Callback function executed on click
+   */
+  void on(DOMString id, Function callback);
+};

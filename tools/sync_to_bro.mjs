@@ -2,9 +2,8 @@
 /**
  * tools/sync_to_bro.mjs — Direct Generator Sync from brosurface to live bro
  *
- * Applies all 23 bundled & equivalence-proven generator outputs directly into
- * the live bro tree (D:/projects/bro), including QuickJS bindings, bronze_host bindings,
- * documentation, and TypeScript definitions.
+ * Applies all generator outputs (QuickJS bindings, docs, stubs, and TypeScript definitions)
+ * directly into the live bro tree (D:/projects/bro).
  *
  * Usage:
  *   node tools/sync_to_bro.mjs [--dry-run]
@@ -15,11 +14,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { runEmitDocs } from '../gen/emit_docs.mjs';
+import { runEmitDts } from '../gen/emit_dts.mjs';
+import { runEmitQjsbind } from '../gen/emit_qjsbind.mjs';
+import { runEmitBronzeHost } from '../gen/emit_bronze_host.mjs';
+import { runEmitStubs } from '../gen/emit_stubs.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const BROSURFACE_ROOT = path.resolve(__dirname, '..');
 const BRO_ROOT = path.resolve(BROSURFACE_ROOT, '..', 'bro');
+const BROKIT_ROOT = path.resolve(BROSURFACE_ROOT, '..', 'brokit');
 
 const isDryRun = process.argv.includes('--dry-run');
 
@@ -32,36 +37,51 @@ if (!fs.existsSync(BRO_ROOT)) {
   process.exit(1);
 }
 
-// 1. Get all integration bundles
-const integrationDir = path.join(BROSURFACE_ROOT, 'integration');
-const bundles = fs.readdirSync(integrationDir, { withFileTypes: true })
-  .filter(e => e.isDirectory() && fs.existsSync(path.join(integrationDir, e.name, 'diff.patch')))
-  .map(e => e.name);
+// 1. Regenerate all targets from IDLs
+console.log('[Step 1] Regenerating all targets from idl/...');
+runEmitDocs(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/docs/'));
+runEmitDts(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/types/index.d.ts'));
+runEmitQjsbind(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/qjs/'));
+runEmitBronzeHost(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/bronze_host/'));
+runEmitStubs(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/stubs/feature_stubs.cpp'));
 
-console.log(`[Step 1] Applying ${bundles.length} equivalence-proven integration bundles to ${BRO_ROOT}...`);
-
-let successCount = 0;
-let failCount = 0;
-
-for (const name of bundles) {
-  const patchPath = path.join(integrationDir, name, 'diff.patch');
-  try {
-    if (isDryRun) {
-      execSync(`git -C "${BRO_ROOT}" apply --check "${patchPath}"`, { stdio: 'pipe' });
-      console.log(`  [DRY-RUN] ${name.padEnd(20)} ✅ Applies cleanly`);
+// 2. Direct copy of emitted QuickJS bindings to bro/src/js
+console.log('\n[Step 2] Copying emitted QuickJS bindings to bro/src/js/...');
+const outQjsDir = path.join(BROSURFACE_ROOT, 'out', 'qjs');
+if (fs.existsSync(outQjsDir)) {
+  const qjsFiles = fs.readdirSync(outQjsDir).filter(f => f.endsWith('.cpp'));
+  for (const f of qjsFiles) {
+    const srcPath = path.join(outQjsDir, f);
+    if (f === 'blob.cpp' || f === 'noise.cpp') {
+      // These live in brokit standalone
+      if (fs.existsSync(BROKIT_ROOT)) {
+        const dst = path.join(BROKIT_ROOT, 'src', 'api', f);
+        if (!isDryRun) fs.copyFileSync(srcPath, dst);
+        console.log(`  ✅ [brokit] ${f} -> ${dst}`);
+      }
     } else {
-      execSync(`git -C "${BRO_ROOT}" apply --whitespace=nowarn "${patchPath}"`, { stdio: 'pipe' });
-      console.log(`  [APPLIED] ${name.padEnd(20)} ✅ Successfully applied`);
+      const dst = path.join(BRO_ROOT, 'src', 'js', f);
+      if (!isDryRun) fs.copyFileSync(srcPath, dst);
+      console.log(`  ✅ [bro] ${f} -> ${dst}`);
     }
-    successCount++;
-  } catch (err) {
-    console.error(`  [FAILED]  ${name.padEnd(20)} ❌ Error applying patch: ${err.message}`);
-    failCount++;
   }
 }
 
-// 2. Sync TypeScript Definitions to bro/docs/bro.d.ts and bro/types/index.d.ts
-console.log(`\n[Step 2] Emitting global TypeScript definition files to bro...`);
+// 3. Direct copy of docs to bro/docs
+console.log('\n[Step 3] Copying emitted docs to bro/docs/...');
+const outDocsDir = path.join(BROSURFACE_ROOT, 'out', 'docs');
+if (fs.existsSync(outDocsDir)) {
+  const docFiles = fs.readdirSync(outDocsDir).filter(f => f.endsWith('.js') || f.endsWith('.md'));
+  for (const f of docFiles) {
+    const srcPath = path.join(outDocsDir, f);
+    const dst = path.join(BRO_ROOT, 'docs', f);
+    if (!isDryRun) fs.copyFileSync(srcPath, dst);
+    console.log(`  ✅ [doc] ${f} -> ${dst}`);
+  }
+}
+
+// 4. Sync TypeScript Definitions to bro/docs/bro.d.ts and bro/types/index.d.ts
+console.log('\n[Step 4] Emitting global TypeScript definition files to bro...');
 const dtsSrc = path.join(BROSURFACE_ROOT, 'out', 'types', 'index.d.ts');
 if (fs.existsSync(dtsSrc)) {
   const targetDts1 = path.join(BRO_ROOT, 'docs', 'bro.d.ts');
@@ -74,16 +94,9 @@ if (fs.existsSync(dtsSrc)) {
     fs.copyFileSync(dtsSrc, targetDts2);
     console.log(`  ✅ Emitted ${targetDts1}`);
     console.log(`  ✅ Emitted ${targetDts2}`);
-  } else {
-    console.log(`  [DRY-RUN] Would copy ${dtsSrc} -> ${targetDts1} & ${targetDts2}`);
   }
 }
 
 console.log('\n════════════════════════════════════════════════════════════════════');
-if (failCount === 0) {
-  console.log(`🎉 Sync Complete! ${successCount} bundles and TypeScript definitions synced.`);
-} else {
-  console.error(`⚠️ Sync finished with ${failCount} failures out of ${bundles.length} bundles.`);
-  process.exit(1);
-}
+console.log('🎉 Direct Sync Complete!');
 console.log('════════════════════════════════════════════════════════════════════\n');
