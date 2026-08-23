@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "node tools/acceptance.mjs"
+    "test": "node tools/acceptance.mjs",
+    "sync-to-bro": "node tools/sync_to_bro.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <qjsbind/qjsbind.h>
 
 extern "C" {
 #include "quickjs.h"
@@ -33,6 +34,7 @@ bool argStr(JSContext* ctx, JSValueConst v, std::string& out) {
 }
 
 struct WorldWrapper {
+    std::string dir;
     std::unique_ptr<td::WorldPipeline> pipe;
     std::atomic<bool> busy{false};
 };
@@ -326,7 +328,7 @@ JSValue js_world_elevation(JSContext* ctx, JSValueConst this_val, int argc, JSVa
         JS_FreeValue(ctx, oe);
     }
     auto work = [job](const std::atomic<bool>&) {
-        const auto& pipe = *job->w->pipe;
+        auto& pipe = *job->w->pipe;
         if (job->margin > 0) {
             auto padded = pipe.elevation(job->i1 - job->margin, job->j1 - job->margin, job->i2 + job->margin, job->j2 + job->margin);
             job->out = cropMargin(padded, job->margin);
@@ -435,6 +437,7 @@ JSValue js_loadWorld(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv)
     }
     auto work = [ls](const std::atomic<bool>&) {
         auto w = std::make_unique<WorldWrapper>();
+        w->dir = ls->dir;
         w->pipe = std::make_unique<td::WorldPipeline>(ls->dir, ls->seed);
         ls->w = std::move(w);
     };
