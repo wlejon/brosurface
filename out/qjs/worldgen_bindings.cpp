@@ -1,3 +1,5 @@
+#if BRO_WITH_DIFFUSION
+
 #include "js/worldgen_bindings.h"
 #include "js/async_job.h"
 #include "js/runtime.h"
@@ -490,3 +492,5 @@ void installWorldgenBindings(JSContext* ctx) {
 
 
 } // namespace bro::js
+
+#endif // BRO_WITH_DIFFUSION

@@ -285,7 +285,21 @@ export function emitBronzeHostTU(defs, options = {}) {
       lines.push(`        [](Value, std::span<const Value> a) {`);
       lines.push(indent(ctorBody, '            '));
       lines.push(`        },`);
+    } else if (!ctor) {
+      // No `constructor(...)` in the IDL means the interface is not
+      // constructible: `new` on it is a TypeError on the web, and instances
+      // come from somewhere else — a factory, a static, an event.
+      // HostClass::install turns a null body into exactly that TypeError, so
+      // pass null rather than a body. A lambda returning undefined instead
+      // makes `new` succeed and hand back a bare object, which is how a
+      // not-constructible class quietly became constructible once already.
+      lines.push(`        // Not constructible: the IDL declares no constructor, and`);
+      lines.push(`        // HostClass::install turns a null body into the TypeError the`);
+      lines.push(`        // web specifies for \`new ${def.name}()\`.`);
+      lines.push(`        nullptr,`);
     } else {
+      // Declared constructible, but no bh_body/bh_ctor/cpp_body to run. Keep
+      // the inert body so `new` still yields an instance on the prototype.
       lines.push(`        [](Value, std::span<const Value>) { return ev::undefined(); },`);
     }
 

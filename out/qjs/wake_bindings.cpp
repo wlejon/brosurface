@@ -1,3 +1,5 @@
+#if BRO_WITH_SOUNDML
+
 #include "js/wake_bindings.h"
 #include "audio_inference/audio_inference.h"
 #include "js/listen_host.h"
@@ -632,3 +634,5 @@ void cleanupWakeBindings(JSContext* /*ctx*/) {
 
 
 } // namespace bro::js
+
+#endif // BRO_WITH_SOUNDML

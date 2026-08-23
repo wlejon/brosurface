@@ -1,3 +1,5 @@
+#if BRO_WITH_SOUNDML
+
 #include "js/diar_bindings.h"
 #include "util/interrupt.h"
 #include "js/async_job.h"
@@ -489,3 +491,5 @@ void installDiarBindings(JSContext* ctx) {
 
 
 } // namespace bro::js
+
+#endif // BRO_WITH_SOUNDML

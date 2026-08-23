@@ -88,6 +88,46 @@ export const GENERIC_TYPES = new Set([
   'Array',
 ]);
 
+// Every extended attribute the generator actually reads. An attribute outside
+// this set is a typo or an invention, and the emitters would silently ignore
+// it — which is not a cosmetic problem: `feature_gate="BRO_WITH_SOUNDML"` sat
+// in ten IDLs reading exactly like the gate it was meant to be, while the
+// emitters only ever looked up `gate`. Seven namespaces were regenerated
+// without their `#if` and the app-profile build lost their bindings. Silence
+// is the bug, so an unknown name is an error here rather than a shrug in the
+// emitter.
+//
+// Adding a genuinely new attribute means teaching an emitter to read it and
+// adding it here, in that order.
+export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
+  // Namespace / interface placement and identity
+  'cpp_file', 'cpp_header', 'cpp_namespace', 'cpp_install', 'cpp_includes',
+  'cpp_prologue', 'cpp_epilogue', 'cpp_install_body', 'cpp_install_prologue',
+  'install_body', 'install_fn', 'install_prologue', 'install_signature',
+  'header', 'prefix', 'js_alias', 'js_global', 'global', 'global_var',
+  'internal', 'custom', 'base_class',
+
+  // Feature gating. `gate` is the ONE spelling; `cpp_guard` is the raw escape
+  // hatch for a guard expression that is not a single BRO_WITH_* flag.
+  'gate', 'cpp_guard',
+
+  // qjsbind wrapper plumbing
+  'class_id_var', 'wrapper_struct', 'wrapper_member', 'data_struct',
+  'data_member', 'config_struct', 'factory_helper', 'factory_type',
+  'unwrap_call', 'getter_unwrap', 'getter_body', 'getter_cpp', 'setter_cpp',
+  'cpp_body', 'cpp_call', 'stub_body', 'engine_bound', 'engine_stashed',
+  'engine_wrapper', 'element_base', 'element_registry', 'layered_store',
+  'vfs_paths', 'audio_stream_tap',
+
+  // bronze_host emitter
+  'bh_file', 'bh_header', 'bh_namespace', 'bh_includes', 'bh_install',
+  'bh_install_body', 'bh_prologue', 'bh_epilogue', 'bh_class_var',
+  'bh_decorate', 'bh_no_proto_methods', 'bh_instance_field', 'bh_global',
+  'bh_body', 'bh_ctor', 'bh_call', 'bh_arity', 'bh_custom', 'bh_getter',
+  'bh_setter', 'bh_state_body', 'bh_state_fn', 'bh_static_body',
+  'bh_static_call',
+]);
+
 export class ValidationError {
   /**
    * @param {string} message
@@ -110,6 +150,45 @@ export class ValidationError {
     }
     return out;
   }
+}
+
+// Closest known attribute name within a small edit distance, or null. Exists
+// so the error can say `did you mean 'gate'?` instead of leaving the author to
+// grep the emitters for the spelling they should have used.
+function nearestAttribute(name) {
+  let best = null;
+  let bestScore = Infinity;
+  // A compound miss like `feature_gate` for `gate` is far outside any edit
+  // distance worth accepting, but it is the likeliest mistake there is: the
+  // author spelled out what they meant and the emitters read a shorter name.
+  // Prefer a known attribute the unknown one ends with.
+  for (const known of KNOWN_EXTENDED_ATTRIBUTES) {
+    if (name !== known && name.endsWith('_' + known)) return known;
+  }
+  for (const known of KNOWN_EXTENDED_ATTRIBUTES) {
+    const d = editDistance(name, known);
+    if (d < bestScore) {
+      bestScore = d;
+      best = known;
+    }
+  }
+  const limit = Math.max(2, Math.floor(name.length / 3));
+  return bestScore <= limit ? best : null;
+}
+
+function editDistance(a, b) {
+  const prev = new Array(b.length + 1);
+  const cur = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    cur[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = cur[j];
+  }
+  return prev[b.length];
 }
 
 export class Validator {
@@ -239,6 +318,13 @@ export class Validator {
   validateDefinitions() {
     for (const file of this.files) {
       for (const def of file.definitions) {
+        this.validateExtendedAttributes(def, `${def.type.toLowerCase()} '${def.name}'`);
+        for (const member of def.members || []) {
+          const label = member.name
+            ? `member '${member.name}' of ${def.type.toLowerCase()} '${def.name}'`
+            : `a member of ${def.type.toLowerCase()} '${def.name}'`;
+          this.validateExtendedAttributes(member, label);
+        }
         if (def.type === 'Interface') {
           this.validateInterface(def);
         } else if (def.type === 'Namespace') {
@@ -251,6 +337,23 @@ export class Validator {
           this.validateTypedef(def);
         }
       }
+    }
+  }
+
+  // Extended attributes are free-form in the grammar; this is where an
+  // unrecognised one stops being free-form. See KNOWN_EXTENDED_ATTRIBUTES.
+  validateExtendedAttributes(node, where) {
+    const attrs = node && node.attributes;
+    if (!attrs || !attrs.length) return;
+    for (const attr of attrs) {
+      if (KNOWN_EXTENDED_ATTRIBUTES.has(attr.name)) continue;
+      const suggestion = nearestAttribute(attr.name);
+      this.addError(
+        `Unknown extended attribute '${attr.name}' on ${where}` +
+          (suggestion ? ` (did you mean '${suggestion}'?)` : '') +
+          '. No emitter reads it, so it would be silently dropped.',
+        attr.loc || (node.loc || null)
+      );
     }
   }
 

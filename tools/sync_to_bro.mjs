@@ -6,7 +6,10 @@
  * directly into the live bro tree (D:/projects/bro).
  *
  * Usage:
- *   node tools/sync_to_bro.mjs [--dry-run]
+ *   node tools/sync_to_bro.mjs [--dry-run] [--accept-drift]
+ *
+ * Refuses to run when bro holds changes this sync would overwrite; see
+ * tools/drift.mjs. --accept-drift overwrites them deliberately.
  *   npm run sync-to-bro
  */
 
@@ -19,6 +22,7 @@ import { runEmitDts } from '../gen/emit_dts.mjs';
 import { runEmitQjsbind } from '../gen/emit_qjsbind.mjs';
 import { runEmitBronzeHost } from '../gen/emit_bronze_host.mjs';
 import { runEmitStubs } from '../gen/emit_stubs.mjs';
+import { collectDrift } from './drift.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +31,7 @@ const BRO_ROOT = path.resolve(BROSURFACE_ROOT, '..', 'bro');
 const BROKIT_ROOT = path.resolve(BROSURFACE_ROOT, '..', 'brokit');
 
 const isDryRun = process.argv.includes('--dry-run');
+const acceptDrift = process.argv.includes('--accept-drift');
 
 console.log('╔════════════════════════════════════════════════════════════════════╗');
 console.log('║         brosurface -> bro Direct Generator Sync Tool               ║');
@@ -44,6 +49,33 @@ runEmitDts(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/t
 runEmitQjsbind(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/qjs/'));
 runEmitBronzeHost(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/bronze_host/'));
 runEmitStubs(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out/stubs/feature_stubs.cpp'));
+
+// 1b. Refuse to overwrite a file bro has moved on from.
+//
+// This copies emitted TUs straight over bro/src/js. A file that bro has fixed
+// by hand, where the fix was never folded back into the IDL, is reverted by
+// that copy — silently, inside a commit that reads like a routine
+// regeneration. Two such reverts have already reached main and turned CI red
+// on all three platforms.
+//
+// So compare first, and make overwriting drifted files something the operator
+// says out loud. Drift is not automatically wrong (bro is often simply
+// behind); it just must never be a surprise.
+if (!acceptDrift) {
+  const drift = collectDrift();
+  if (drift && drift.drifted.length) {
+    console.log(`\n[Step 1b] ${drift.drifted.length} file(s) in bro differ from what this sync would write:\n`);
+    for (const d of [...drift.drifted].sort((a, b) => b.changed - a.changed)) {
+      console.log(`  ${String(d.changed).padStart(6)} lines  ${d.broPath}`);
+    }
+    console.log('\nEach one would be overwritten. Read them with');
+    console.log('    node tools/drift.mjs --diff <name>');
+    console.log('and either fold the difference into idl/, or re-run with --accept-drift');
+    console.log('to overwrite deliberately.\n');
+    process.exit(1);
+  }
+  console.log('\n[Step 1b] No drift: bro matches what this sync will write.');
+}
 
 // 2. Direct copy of emitted QuickJS bindings to bro/src/js
 console.log('\n[Step 2] Copying emitted QuickJS bindings to bro/src/js/...');

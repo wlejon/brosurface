@@ -12,7 +12,6 @@
 #include <broaudio/sequencer/sequence.h>
 #include <broaudio/io/audio_file.h>
 #include <broaudio/dsp/resampler.h>
-#include <broaudio/node/audio_node.h>
 #include <algorithm>
 #include <optional>
 #include <string>
@@ -160,16 +159,26 @@ struct OscNodeData {
     broaudio::Engine* engine;
     int voiceId;
     ::std::string type = "sine";
-    broaudio::OscillatorNode node;
+    // The gain node this oscillator is connected to, held as a JS reference
+    // (broaudio no longer exposes a node graph — the connection lives here and
+    // is read back at start()). Freed with JS_FreeValueRT and stored against
+    // the runtime rather than the context because ~OscNodeData runs from the
+    // class finalizer, where only the JSRuntime is guaranteed live. Marked in
+    // the class's gc_mark so a gain object that references this oscillator
+    // back forms a cycle the GC can see rather than one it leaks.
+    JSRuntime* rt = nullptr;
+    JSValue connectedGain = JS_UNDEFINED;
 
     ~OscNodeData() {
-        engine->stopVoice(voiceId, engine->currentTime());
+        if (engine) engine->stopVoice(voiceId, engine->currentTime());
+        if (rt && !JS_IsUndefined(connectedGain)) {
+            JS_FreeValueRT(rt, connectedGain);
+        }
     }
 };
 
 struct GainNodeData {
     broaudio::Engine* engine;
-    broaudio::GainNode node;
 };
 
 struct BiquadFilterNodeData {
@@ -429,7 +438,11 @@ static JSValue js_osc_connect(JSContext* ctx, JSValueConst this_val, int argc, J
 
     auto* gd = qjsbind::unwrap<GainNodeData>(ctx, argv[0]);
     if (gd) {
-        d->node.connect(&gd->node);
+        if (!JS_IsUndefined(d->connectedGain)) {
+            JS_FreeValue(ctx, d->connectedGain);
+        }
+        d->rt = JS_GetRuntime(ctx);
+        d->connectedGain = JS_DupValue(ctx, argv[0]);
     }
 
     return JS_DupValue(ctx, argv[0]);
@@ -439,9 +452,18 @@ static JSValue js_osc_start(JSContext* ctx, JSValueConst this_val, int argc, JSV
     auto* d = qjsbind::unwrap<OscNodeData>(ctx, this_val);
     if (!d) return JS_UNDEFINED;
 
-    if (auto* gNode = d->node.connectedGainNode()) {
-        float g = gNode->gain().value();
-        d->engine->setGain(d->voiceId, g);
+    if (!JS_IsUndefined(d->connectedGain)) {
+        JSValue gainObj = JS_GetPropertyStr(ctx, d->connectedGain, "gain");
+        if (!JS_IsUndefined(gainObj) && !JS_IsException(gainObj)) {
+            JSValue val = JS_GetPropertyStr(ctx, gainObj, "value");
+            double g = 1.0;
+            if (!JS_IsUndefined(val) && !JS_IsException(val)) {
+                JS_ToFloat64(ctx, &g, val);
+                JS_FreeValue(ctx, val);
+            }
+            JS_FreeValue(ctx, gainObj);
+            d->engine->setGain(d->voiceId, static_cast<float>(g));
+        }
     }
 
     double when = d->engine->currentTime();
@@ -724,7 +746,7 @@ static JSValue js_audioctx_createOscillator(JSContext* ctx, JSValueConst this_va
     if (!d) return JS_UNDEFINED;
 
     int voiceId = d->engine->createVoice();
-    auto* oscData = new OscNodeData{d->engine, voiceId, "sine"};
+    auto* oscData = new OscNodeData{d->engine, voiceId, "sine", JS_GetRuntime(ctx)};
     JSValue obj = qjsbind::wrap<OscNodeData>(ctx, oscData);
 
     // Helper to create AudioParam
@@ -2313,6 +2335,11 @@ void AudioBindings::install(JSContext* ctx, broaudio::Engine* engine)
         // --- OscillatorNode ---
         {
             qjsbind::Class<OscNodeData>(ctx, "OscillatorNode")
+                .gc_mark([](OscNodeData* d, JSRuntime* rt, JS_MarkFunc* mark) {
+                    if (!JS_IsUndefined(d->connectedGain)) {
+                        JS_MarkValue(rt, d->connectedGain, mark);
+                    }
+                })
                 .get("voiceId",
                     [](OscNodeData* d) -> int { return d->voiceId; })
                 .prop("type",
@@ -2327,7 +2354,12 @@ void AudioBindings::install(JSContext* ctx, broaudio::Engine* engine)
                         JS_FreeCString(ctx, s);
                     })
                 .method_raw("connect", js_osc_connect, 1)
-                .method("disconnect", [](OscNodeData*) {})
+                .method("disconnect", [](OscNodeData* d) {
+                    if (d->rt && !JS_IsUndefined(d->connectedGain)) {
+                        JS_FreeValueRT(d->rt, d->connectedGain);
+                        d->connectedGain = JS_UNDEFINED;
+                    }
+                })
                 .method_raw("start", js_osc_start, 1)
                 .method_raw("stop", js_osc_stop, 1);
         }

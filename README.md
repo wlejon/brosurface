@@ -47,6 +47,55 @@ Hand-written runtime support (HostClass itself, qjsbind, marshalling helpers, th
 engine-side implementations) stays hand-written — the generator emits *calls into* it,
 never reimplementations of it.
 
+## Two ways a regeneration silently loses meaning
+
+A generator that emits the wrong thing shows up as a red build. A generator
+that emits *nothing* where something was meant does not, and both failures
+below reached `main` as exactly that: a regeneration commit that read like
+routine housekeeping, and three red platforms an hour later.
+
+**1. An attribute no emitter reads.** Ten IDLs carried
+`feature_gate="BRO_WITH_SOUNDML"`. Every emitter looks up `gate`. The
+attribute grammar accepts any name, so the intent parsed, validated, and was
+dropped on the floor — seven namespaces regenerated without their
+`#if BRO_WITH_SOUNDML`, and the app profile (the one CI builds, where the
+sibling is not compiled at all) stopped finding `brosoundml/audio.h`.
+
+`schema/validator.mjs` now holds `KNOWN_EXTENDED_ATTRIBUTES`: every name an
+emitter actually reads. Anything else is a validation error that names the
+attribute, the definition, and its likely correction. Adding a new attribute
+means teaching an emitter to read it and listing it there, in that order.
+
+**2. A default that means something.** `HostClass::install` turns a null
+constructor body into the TypeError the web specifies for `new`. The
+bronze_host emitter used to substitute a lambda returning `undefined` whenever
+an interface had no `constructor()`, which made `new AbortSignal()` succeed and
+hand back a bare object. Nothing failed to build; one probe caught it. An
+interface with no declared constructor now emits `nullptr`, which is what
+WebIDL means by not-constructible.
+
+The general shape: **when the IDL is silent, emit what the silence means, and
+make an unrecognised instruction an error rather than a shrug.**
+
+## Drift: what a sync would change in bro
+
+`tools/sync_to_bro.mjs` copies emitted TUs directly over `bro/src/js` and
+`bro/src/bronze_host`. A repair made in bro and not folded back into the IDL is
+reverted by the next sync.
+
+```bash
+node tools/drift.mjs                 # every file a sync would rewrite
+node tools/drift.mjs --diff audio    # ...and what it would change
+node tools/drift.mjs --quiet         # exit 1 if bro has drifted
+```
+
+`check_out_fresh.mjs` asks whether `out/` matches a fresh generation.
+`drift.mjs` asks the question that actually bites: whether **bro** does. The
+sync refuses to run while any file has drifted, listing each one; fold the
+difference into `idl/` first, or pass `--accept-drift` to overwrite
+deliberately. Drift is often legitimate — bro is simply behind — but it must be
+a decision, never a surprise.
+
 ## Layout
 
 ```
@@ -54,6 +103,7 @@ idl/          the surface declarations (*.idl), one per namespace/class family
 schema/       the IDL grammar + validator
 gen/          the generator and its per-target emitters
 out/          generated artifacts (checked in for review/diffing; bro integrates via reviewed diffs)
+tools/        validate, sync, and drift.mjs (what a sync would change in bro)
 harness/      equivalence harness: builds generated bindings in a bro worktree, runs that namespace's existing tests
 docs/         DESIGN.md (serial-core decisions), SURFACE-INVENTORY.md (the census), migration playbook
 ```
