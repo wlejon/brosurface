@@ -77,6 +77,12 @@ const SURFACE_IDL_MAP = {
   'customelements': 'custom_elements',
   'domparser': 'domparser',
   'abort': 'abort',
+  'bro.flora': 'flora',
+  'bro.math': 'math',
+  'bro.worldgen': 'worldgen',
+  'bro.diar': 'diar',
+  'bro.triposplat': 'triposplat',
+  'bro.diffusion': 'diffusion',
 };
 
 // Engineering effort measured in work orders (hours)
@@ -98,6 +104,12 @@ const MEASURED_EFFORT = {
   'bro.motion': 2.0,
   'bro.rave': 2.0,
   'bro.paths': 1.0,
+  'bro.flora': 2.0,
+  'bro.math': 2.0,
+  'bro.worldgen': 2.5,
+  'bro.diar': 2.0,
+  'bro.triposplat': 2.5,
+  'bro.diffusion': 3.0,
 };
 
 // Flagged custom fraction rationale registry
@@ -113,6 +125,12 @@ const CUSTOM_RATIONALES = {
   'bro.paths': 'Virtual file system path resolution, sandboxed application directory traversal, and asset URI mapping.',
   'bro.rave': 'Real-time neural audio VAE runtime invoking 48kHz torchscript/ONNX tensor graphs.',
   'bro.motion': 'ARDY-G1 text-to-motion diffusion pipeline executing safetensors unpickling and 25 fps motion sequence generation.',
+  'bro.flora': 'Synthetic silviculture ecosystem simulation state, bud fate, branching math, and procedural mesh emitters.',
+  'bro.math': 'Fast 3D spatial hash index, SplitMix64 PRNG, exponential signal filter, and geometric intersection queries.',
+  'bro.worldgen': 'Neural terrain world generation pipeline executing coarse/latent/residual stages with tile memoization.',
+  'bro.diar': 'Sortformer 4-speaker Conformer-Transformer diarization, streaming sessions, and offline cluster diarizer.',
+  'bro.triposplat': 'Single-image 3D Gaussian Splat reconstruction, DINOv3 ViT-H backbone, FlowDiT, and BiRefNet matting.',
+  'bro.diffusion': 'Text-to-image neural diffusion inference pipeline, multi-scheduler stepping, and attention steering.',
   'terrain': 'Procedural heightmap mesh generation, LOD quadtree chunk streaming, and GPU texture splatting subroutines.',
   'customelements': 'Dynamic JS class constructor registry, lifecycle hook invocation (connectedCallback), and attribute observer pump.',
   'domparser': 'HTML markup string tokenization bridge constructing DOM tree hierarchies and reporting XML parsing errors.',
@@ -362,15 +380,15 @@ The \`brosurface\` generator pipeline replaces five hand-maintained, error-prone
 | Aggregate Metric | Exact Value | Notes & Scope |
 | :--- | :---: | :--- |
 | **Total Engine Surfaces** | **${summary.totalSurfaces}** | Comprehensive census across core subsystems, DOM, & ML towers |
-| **Migrated & Bundled Surfaces** | **${summary.bundledCount}** (25.8%) | Complete IDLs, 100% equivalence passed, integration bundles generated |
-| **Blocked-on-Tests Surfaces** | **${summary.blockedOnTestsCount}** (19.7%) | Unmigrated surfaces with 0 existing tests in \`bro\` (equivalence oracle gap) |
-| **Not-Started Surfaces** | **${summary.notStartedCount}** (54.5%) | Unmigrated surfaces with test suites ready for batch migration |
+| **Migrated & Bundled Surfaces** | **${summary.bundledCount}** (${((summary.bundledCount / summary.totalSurfaces) * 100).toFixed(1)}%) | Complete IDLs, 100% equivalence passed, integration bundles generated |
+| **Blocked-on-Tests Surfaces** | **${summary.blockedOnTestsCount}** (${((summary.blockedOnTestsCount / summary.totalSurfaces) * 100).toFixed(1)}%) | Unmigrated surfaces with 0 existing tests in \`bro\` (equivalence oracle gap) |
+| **Not-Started Surfaces** | **${summary.notStartedCount}** (${((summary.notStartedCount / summary.totalSurfaces) * 100).toFixed(1)}%) | Unmigrated surfaces with test suites ready for batch migration |
 | **Total Legacy Hand Tax Cataloged** | **${summary.totalTaxBefore.toLocaleString()} LOC** | Total hand-written surface across QuickJS, bronze_host, stubs, docs, TS, headless |
-| **Legacy Hand Tax Eliminated** | **${summary.eliminatedTax.toLocaleString()} LOC** | Hand-maintained LOC replaced by single \`.idl\` declarations (9.7% of engine surface) |
-| **Total Authored IDL LOC** | **${summary.totalIdlLoc.toLocaleString()} LOC** | Single source of truth declarations authored across 17 surfaces |
+| **Legacy Hand Tax Eliminated** | **${summary.eliminatedTax.toLocaleString()} LOC** | Hand-maintained LOC replaced by single \`.idl\` declarations (${((summary.eliminatedTax / summary.totalTaxBefore) * 100).toFixed(1)}% of engine surface) |
+| **Total Authored IDL LOC** | **${summary.totalIdlLoc.toLocaleString()} LOC** | Single source of truth declarations authored across ${summary.bundledCount} surfaces |
 | **Total Generated Artifact LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | Drop-in C++ TUs (QJS + bronze_host), \`.d.ts\` slices, docs, stubs |
 | **Total Honest Custom LOC** | **${summary.totalCustomLoc.toLocaleString()} LOC** | Hand-written C++/JS lines across emitted binding translation units |
-| **Gross Realized Leverage** | **${grossLeverage}x** | Generated Artifact LOC / Authored IDL LOC across all 17 bundled surfaces |
+| **Gross Realized Leverage** | **${grossLeverage}x** | Generated Artifact LOC / Authored IDL LOC across all ${summary.bundledCount} bundled surfaces |
 | **Derived Generator Leverage** | **${derivedLeverage}x** | Pure Generated LOC / Pure IDL LOC: \`(Artifact LOC − Custom LOC) / (IDL LOC − Custom LOC)\` |
 | **Average Honest Custom Fraction** | **${avgCustomFraction}%** | Hand-written custom code fraction across all generated C++ bindings |
 | **Total Measured Engineering Effort** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** | Empirical authoring, triage, equivalence verification, & bundle packaging |
@@ -380,10 +398,10 @@ The \`brosurface\` generator pipeline replaces five hand-maintained, error-prone
 ## 2. Surface Status Breakdown
 
 \`\`\`mermaid
-pie title Engine Surface Migration Status (66 Surfaces)
-    "Bundled & Equivalence-Proven (17)" : 17
-    "Not Started (36)" : 36
-    "Blocked on Tests (13)" : 13
+pie title Engine Surface Migration Status (${summary.totalSurfaces} Surfaces)
+    "Bundled & Equivalence-Proven (${summary.bundledCount})" : ${summary.bundledCount}
+    "Not Started (${summary.notStartedCount})" : ${summary.notStartedCount}
+    "Blocked on Tests (${summary.blockedOnTestsCount})" : ${summary.blockedOnTestsCount}
 \`\`\`
 
 | Status Tier | Count | Percentage | Operational Description |
@@ -398,7 +416,7 @@ pie title Engine Surface Migration Status (66 Surfaces)
 
 ---
 
-## 3. Work Order 3 Migration Batch Summary
+## 3. Work Order Migration Batch Summary
 
 | Milestone & Batch | Surface Names | Surface Count | IDL LOC | Artifact LOC | Custom LOC | Gross Lev | Derived Lev | Measured Effort |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -421,6 +439,11 @@ pie title Engine Surface Migration Status (66 Surfaces)
       surfaces: ['abort', 'domparser', 'gamepad', 'bro.motion', 'bro.rave', 'bro.paths'],
       namesStr: '`abort`, `domparser`, `gamepad`, `bro.motion`, `bro.rave`, `bro.paths`',
     },
+    {
+      name: 'WO-4 Batch 3 (M4)',
+      surfaces: ['bro.flora', 'bro.math', 'bro.worldgen', 'bro.diar', 'bro.triposplat', 'bro.diffusion'],
+      namesStr: '`bro.flora`, `bro.math`, `bro.worldgen`, `bro.diar`, `bro.triposplat`, `bro.diffusion`',
+    },
   ];
 
   for (const b of batches) {
@@ -436,7 +459,7 @@ pie title Engine Surface Migration Status (66 Surfaces)
     md += `| **${b.name}** | ${b.namesStr} | ${items.length} | ${bIdl.toLocaleString()} LOC | ${bArt.toLocaleString()} LOC | ${bCust.toLocaleString()} LOC | ${bGrossLev} | ${bDerivedLev} | ${bEffort.toFixed(1)} hrs |\n`;
   }
 
-  md += `| **TOTAL MIGRATED** | **17 Authoritative Surfaces** | **${summary.bundledCount}** | **${summary.totalIdlLoc.toLocaleString()} LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | **${summary.totalCustomLoc.toLocaleString()} LOC** | **${grossLeverage}x** | **${derivedLeverage}x** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** |\n`;
+  md += `| **TOTAL MIGRATED** | **${summary.bundledCount} Authoritative Surfaces** | **${summary.bundledCount}** | **${summary.totalIdlLoc.toLocaleString()} LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | **${summary.totalCustomLoc.toLocaleString()} LOC** | **${grossLeverage}x** | **${derivedLeverage}x** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** |\n`;
 
   md += `
 ---

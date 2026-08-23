@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 
@@ -531,8 +532,11 @@ export function runEmitDocs(targetPath = 'idl/', outDir = 'out/docs/') {
 }
 
 // CLI entry point
-const args = process.argv.slice(2);
-const idlDir = args[0] || 'idl/';
-const outDocsDir = args[1] || 'out/docs/';
-runEmitDocs(idlDir, outDocsDir);
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+if (isDirectExecution || (process.argv[1] && process.argv[1].endsWith('emit_docs.mjs'))) {
+  const args = process.argv.slice(2);
+  const idlDir = args[0] || 'idl/';
+  const outDocsDir = args[1] || 'out/docs/';
+  runEmitDocs(idlDir, outDocsDir);
+}
 
