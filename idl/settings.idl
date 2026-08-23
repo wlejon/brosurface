@@ -76,10 +76,8 @@ dictionary DisplayModeInfo {
   cpp_namespace="bro::js",
   cpp_install="SettingsBindings::install",
   install_signature="void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platform::Window* window, engine::Engine* engine)",
-  install_prologue="auto* state = new SettingsState();\nstate->settings = settings;\nstate->window = window;\nstate->engine = engine;\n\nJS_SetPropertyStr(ctx, global, kSettingsKey,\n                  JS_NewInt64(ctx, static_cast<int64_t>(\n                      reinterpret_cast<intptr_t>(state))));",
   prefix="bro.",
-  cpp_prologue="static const char* kSettingsKey = \"__bro_settings_ptr\";\nstatic const char* kWindowKey = \"__bro_settings_window_ptr\";\n\nstruct SettingsState {\n    engine::Settings* settings = nullptr;\n    platform::Window* window = nullptr;\n    engine::Engine* engine = nullptr;\n};\n\nstatic SettingsState* getState(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kSettingsKey);\n    SettingsState* state = nullptr;\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        state = reinterpret_cast<SettingsState*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_FreeValue(ctx, global);\n    return state;\n}\n\nstatic std::string jsStr(JSContext* ctx, JSValueConst val) {\n    const char* s = JS_ToCString(ctx, val);\n    std::string r = s ? s : \"\";\n    if (s) JS_FreeCString(ctx, s);\n    return r;\n}\n\nstatic JSValue settingsValueToJS(JSContext* ctx, const std::string& key,\n                                 const std::string& value) {\n    if (value.empty()) return JS_UNDEFINED;\n    if (key.find(\"fullscreen\") != std::string::npos ||\n        key.find(\"vsync\") != std::string::npos ||\n        key.find(\"resizable\") != std::string::npos ||\n        key.find(\"muted\") != std::string::npos) {\n        return JS_NewBool(ctx, value == \"true\");\n    }\n    if (key.find(\"width\") != std::string::npos ||\n        key.find(\"height\") != std::string::npos ||\n        key.find(\"overlayToggleKey\") != std::string::npos) {\n        try { return JS_NewInt32(ctx, std::stoi(value)); }\n        catch (...) { return JS_NewString(ctx, value.c_str()); }\n    }\n    if (key.find(\"Volume\") != std::string::npos ||\n        key.find(\"Speed\") != std::string::npos ||\n        key.find(\"Threshold\") != std::string::npos ||\n        key.find(\"Distance\") != std::string::npos ||\n        key.find(\"Interval\") != std::string::npos ||\n        key.find(\"maxFps\") != std::string::npos) {\n        try { return JS_NewFloat64(ctx, std::stod(value)); }\n        catch (...) { return JS_NewString(ctx, value.c_str()); }\n    }\n    return JS_NewString(ctx, value.c_str());\n}\n\nstatic JSValue buildActionArray(JSContext* ctx,\n                                const std::vector<bro::engine::ActionBinding>& actions) {\n    JSValue arr = JS_NewArray(ctx);\n    for (size_t i = 0; i < actions.size(); i++) {\n        JSValue obj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, obj, \"action\",\n                          JS_NewString(ctx, actions[i].action.c_str()));\n        JSValue keysArr = JS_NewArray(ctx);\n        for (size_t j = 0; j < actions[i].keys.size(); j++) {\n            JS_SetPropertyUint32(ctx, keysArr, static_cast<uint32_t>(j),\n                                 JS_NewString(ctx, actions[i].keys[j].c_str()));\n        }\n        JS_SetPropertyStr(ctx, obj, \"keys\", keysArr);\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), obj);\n    }\n    return arr;\n}",
-  cpp_epilogue="void SettingsBindings::cleanup(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kSettingsKey);\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        delete reinterpret_cast<SettingsState*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_SetPropertyStr(ctx, global, kSettingsKey, JS_UNDEFINED);\n    JS_FreeValue(ctx, global);\n}"
+  layered_store
 ]
 namespace settings {
   /**
@@ -88,7 +86,6 @@ namespace settings {
    * @param key Setting key (e.g. 'graphics.vsync', 'audio.masterVolume')
    * @returns Typed setting value or undefined
    */
-  [cpp_body="if (argc < 1) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string key = jsStr(ctx, argv[0]);\nstd::string value = state->settings->getString(key);\nreturn settingsValueToJS(ctx, key, value);"]
   any get(DOMString key);
 
   /**
@@ -97,7 +94,6 @@ namespace settings {
    * @param category Optional category name ('graphics', 'audio', 'input', 'appearance')
    * @returns Settings dictionary object
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string category;\nif (argc >= 1 && JS_IsString(argv[0])) category = jsStr(ctx, argv[0]);\n\nauto addGraphics = [&](JSValue obj) {\n    auto& g = state->settings->graphics();\n    JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, g.width));\n    JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, g.height));\n    JS_SetPropertyStr(ctx, obj, \"fullscreen\", JS_NewBool(ctx, g.fullscreen));\n    JS_SetPropertyStr(ctx, obj, \"vsync\", JS_NewBool(ctx, g.vsync));\n    JS_SetPropertyStr(ctx, obj, \"resizable\", JS_NewBool(ctx, g.resizable));\n    JS_SetPropertyStr(ctx, obj, \"maxFrameIntervalMs\", JS_NewFloat64(ctx, g.maxFrameIntervalMs));\n    JS_SetPropertyStr(ctx, obj, \"maxFps\", JS_NewFloat64(ctx, g.maxFps));\n};\nauto addAudio = [&](JSValue obj) {\n    auto& a = state->settings->audio();\n    JS_SetPropertyStr(ctx, obj, \"masterVolume\", JS_NewFloat64(ctx, a.masterVolume));\n    JS_SetPropertyStr(ctx, obj, \"musicVolume\", JS_NewFloat64(ctx, a.musicVolume));\n    JS_SetPropertyStr(ctx, obj, \"sfxVolume\", JS_NewFloat64(ctx, a.sfxVolume));\n    JS_SetPropertyStr(ctx, obj, \"muted\", JS_NewBool(ctx, a.muted));\n};\nauto addInput = [&](JSValue obj) {\n    auto& i = state->settings->input();\n    JS_SetPropertyStr(ctx, obj, \"scrollSpeed\", JS_NewFloat64(ctx, i.scrollSpeed));\n    JS_SetPropertyStr(ctx, obj, \"doubleClickThresholdMs\", JS_NewFloat64(ctx, i.doubleClickThresholdMs));\n    JS_SetPropertyStr(ctx, obj, \"doubleClickDistancePx\", JS_NewFloat64(ctx, i.doubleClickDistancePx));\n    JS_SetPropertyStr(ctx, obj, \"overlayToggleKey\", JS_NewInt32(ctx, static_cast<int32_t>(i.overlayToggleKey)));\n};\nauto addAppearance = [&](JSValue obj) {\n    auto& ap = state->settings->appearance();\n    JS_SetPropertyStr(ctx, obj, \"colorScheme\", JS_NewString(ctx, ap.colorScheme.c_str()));\n};\n\nif (category == \"appearance\") {\n    JSValue obj = JS_NewObject(ctx);\n    addAppearance(obj);\n    return obj;\n}\nif (category == \"graphics\") {\n    JSValue obj = JS_NewObject(ctx);\n    addGraphics(obj);\n    return obj;\n}\nif (category == \"audio\") {\n    JSValue obj = JS_NewObject(ctx);\n    addAudio(obj);\n    return obj;\n}\nif (category == \"input\") {\n    JSValue obj = JS_NewObject(ctx);\n    addInput(obj);\n    return obj;\n}\n\nJSValue root = JS_NewObject(ctx);\nJSValue gObj = JS_NewObject(ctx); addGraphics(gObj); JS_SetPropertyStr(ctx, root, \"graphics\", gObj);\nJSValue aObj = JS_NewObject(ctx); addAudio(aObj); JS_SetPropertyStr(ctx, root, \"audio\", aObj);\nJSValue iObj = JS_NewObject(ctx); addInput(iObj); JS_SetPropertyStr(ctx, root, \"input\", iObj);\nJSValue apObj = JS_NewObject(ctx); addAppearance(apObj); JS_SetPropertyStr(ctx, root, \"appearance\", apObj);\nreturn root;"]
   object getAll(optional DOMString category);
 
   /**
@@ -106,7 +102,6 @@ namespace settings {
    * @param key Setting key
    * @param value New setting value
    */
-  [cpp_body="if (argc < 2) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string key = jsStr(ctx, argv[0]);\nif (JS_IsBool(argv[1])) {\n    state->settings->setUser(key, JS_ToBool(ctx, argv[1]) != 0);\n} else if (JS_IsNumber(argv[1])) {\n    double d;\n    JS_ToFloat64(ctx, &d, argv[1]);\n    state->settings->setUser(key, d);\n} else {\n    state->settings->setUser(key, jsStr(ctx, argv[1]));\n}\nreturn JS_UNDEFINED;"]
   void set(DOMString key, any value);
 
   /**
@@ -115,7 +110,6 @@ namespace settings {
    * @param key Setting key
    * @param value Default setting value
    */
-  [cpp_body="if (argc < 2) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string key = jsStr(ctx, argv[0]);\nif (JS_IsBool(argv[1])) {\n    state->settings->setDefault(key, JS_ToBool(ctx, argv[1]) != 0);\n} else if (JS_IsNumber(argv[1])) {\n    double d;\n    JS_ToFloat64(ctx, &d, argv[1]);\n    state->settings->setDefault(key, d);\n} else {\n    state->settings->setDefault(key, jsStr(ctx, argv[1]));\n}\nreturn JS_UNDEFINED;"]
   void setDefault(DOMString key, any value);
 
   /**
@@ -123,7 +117,6 @@ namespace settings {
    *
    * @param category Optional category name to reset
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nif (argc >= 1 && JS_IsString(argv[0])) {\n    state->settings->resetCategory(jsStr(ctx, argv[0]));\n} else {\n    state->settings->resetAll();\n}\nreturn JS_UNDEFINED;"]
   void reset(optional DOMString category);
 
   /**
@@ -133,7 +126,6 @@ namespace settings {
    * @param keys Sequence of key and input binding strings
    * @param options Optional binding options such as axis deadzone
    */
-  [cpp_body="if (argc < 2) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string action = jsStr(ctx, argv[0]);\nstd::vector<std::string> keys;\nif (JS_IsArray(argv[1])) {\n    JSValue lenVal = JS_GetPropertyStr(ctx, argv[1], \"length\");\n    int32_t len = 0; JS_ToInt32(ctx, &len, lenVal); JS_FreeValue(ctx, lenVal);\n    for (int32_t i = 0; i < len; i++) {\n        JSValue elem = JS_GetPropertyUint32(ctx, argv[1], static_cast<uint32_t>(i));\n        keys.push_back(jsStr(ctx, elem));\n        JS_FreeValue(ctx, elem);\n    }\n}\nstate->settings->defineAction(action, keys);\nif (argc >= 3 && JS_IsObject(argv[2])) {\n    JSValue dz = JS_GetPropertyStr(ctx, argv[2], \"deadzone\");\n    if (JS_IsNumber(dz)) {\n        double d = 0.0; JS_ToFloat64(ctx, &d, dz);\n        state->settings->setActionDeadzone(action, static_cast<float>(d));\n    }\n    JS_FreeValue(ctx, dz);\n}\nreturn JS_UNDEFINED;"]
   void defineAction(DOMString name, sequence<DOMString> keys, optional ActionOptions options);
 
   /**
@@ -142,7 +134,6 @@ namespace settings {
    * @param name Action name identifier
    * @param keys New sequence of key and input binding strings
    */
-  [cpp_body="if (argc < 2) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string action = jsStr(ctx, argv[0]);\nstd::vector<std::string> keys;\nif (JS_IsArray(argv[1])) {\n    JSValue lenVal = JS_GetPropertyStr(ctx, argv[1], \"length\");\n    int32_t len = 0; JS_ToInt32(ctx, &len, lenVal); JS_FreeValue(ctx, lenVal);\n    for (int32_t i = 0; i < len; i++) {\n        JSValue elem = JS_GetPropertyUint32(ctx, argv[1], static_cast<uint32_t>(i));\n        keys.push_back(jsStr(ctx, elem));\n        JS_FreeValue(ctx, elem);\n    }\n}\nstate->settings->rebindAction(action, keys);\nreturn JS_UNDEFINED;"]
   void rebindAction(DOMString name, sequence<DOMString> keys);
 
   /**
@@ -150,13 +141,11 @@ namespace settings {
    *
    * @param name Action name identifier
    */
-  [cpp_body="if (argc < 1) return JS_UNDEFINED;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstate->settings->resetAction(jsStr(ctx, argv[0]));\nreturn JS_UNDEFINED;"]
   void resetAction(DOMString name);
 
   /**
    * Reset all user-level action rebinds to default bindings.
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstate->settings->resetAllActions();\nreturn JS_UNDEFINED;"]
   void resetAllActions();
 
   /**
@@ -165,7 +154,6 @@ namespace settings {
    * @param name Action name identifier
    * @returns Array of bound input strings
    */
-  [cpp_body="if (argc < 1) return JS_NewArray(ctx);\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_NewArray(ctx);\nauto keys = state->settings->getKeysForAction(jsStr(ctx, argv[0]));\nJSValue arr = JS_NewArray(ctx);\nfor (size_t i = 0; i < keys.size(); i++) {\n    JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), JS_NewString(ctx, keys[i].c_str()));\n}\nreturn arr;"]
   sequence<DOMString> getActionKeys(DOMString name);
 
   /**
@@ -174,7 +162,6 @@ namespace settings {
    * @param key Input key string
    * @returns Bound action name or null
    */
-  [cpp_body="if (argc < 1) return JS_NULL;\nauto* state = getState(ctx);\nif (!state || !state->settings) return JS_NULL;\nstd::string action = state->settings->getActionForKey(jsStr(ctx, argv[0]));\nif (action.empty()) return JS_NULL;\nreturn JS_NewString(ctx, action.c_str());"]
   DOMString? getKeyAction(DOMString key);
 
   /**
@@ -183,7 +170,6 @@ namespace settings {
    * @param name Action name identifier
    * @returns Action analog strength
    */
-  [cpp_body="if (argc < 1) return JS_NewFloat64(ctx, 0.0);\nauto* state = getState(ctx);\nif (!state || !state->engine) return JS_NewFloat64(ctx, 0.0);\nfloat s = state->engine->actionStrength(jsStr(ctx, argv[0]));\nreturn JS_NewFloat64(ctx, static_cast<double>(s));"]
   unrestricted double getActionStrength(DOMString name);
 
   /**
@@ -192,7 +178,6 @@ namespace settings {
    * @param name Action name identifier
    * @returns Whether the action is currently pressed
    */
-  [cpp_body="if (argc < 1) return JS_FALSE;\nauto* state = getState(ctx);\nif (!state || !state->engine) return JS_FALSE;\nreturn JS_NewBool(ctx, state->engine->actionPressed(jsStr(ctx, argv[0])));"]
   boolean isActionPressed(DOMString name);
 
   /**
@@ -200,7 +185,6 @@ namespace settings {
    *
    * @returns Sequence of action descriptors
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_NewArray(ctx);\nreturn buildActionArray(ctx, state->settings->getActions());"]
   sequence<ActionBindingInfo> getActions();
 
   /**
@@ -208,7 +192,6 @@ namespace settings {
    *
    * @returns Sequence of app action descriptors
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_NewArray(ctx);\nreturn buildActionArray(ctx, state->settings->getAppActions());"]
   sequence<ActionBindingInfo> getAppActions();
 
   /**
@@ -216,7 +199,6 @@ namespace settings {
    *
    * @returns Array of available display modes
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state) return JS_NewArray(ctx);\nJSValue arr = JS_NewArray(ctx);\nif (!state->window) return arr;\nauto modes = state->window->getDisplayModes();\nfor (size_t i = 0; i < modes.size(); i++) {\n    JSValue obj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, modes[i].width));\n    JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, modes[i].height));\n    JS_SetPropertyStr(ctx, obj, \"refreshRate\",\n                      JS_NewFloat64(ctx, modes[i].refreshRate));\n    JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), obj);\n}\nreturn arr;"]
   sequence<DisplayModeInfo> getDisplayModes();
 
   /**
@@ -225,6 +207,5 @@ namespace settings {
    * @param category Optional category filter
    * @returns Default settings object
    */
-  [cpp_body="auto* state = getState(ctx);\nif (!state || !state->settings) return JS_UNDEFINED;\nstd::string category;\nif (argc >= 1 && JS_IsString(argv[0])) category = jsStr(ctx, argv[0]);\n\nauto addGraphics = [&](JSValue obj) {\n    auto& g = state->settings->graphicsDefaults();\n    JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, g.width));\n    JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, g.height));\n    JS_SetPropertyStr(ctx, obj, \"fullscreen\", JS_NewBool(ctx, g.fullscreen));\n    JS_SetPropertyStr(ctx, obj, \"vsync\", JS_NewBool(ctx, g.vsync));\n    JS_SetPropertyStr(ctx, obj, \"resizable\", JS_NewBool(ctx, g.resizable));\n    JS_SetPropertyStr(ctx, obj, \"maxFrameIntervalMs\", JS_NewFloat64(ctx, g.maxFrameIntervalMs));\n    JS_SetPropertyStr(ctx, obj, \"maxFps\", JS_NewFloat64(ctx, g.maxFps));\n};\nif (category == \"graphics\") {\n    JSValue obj = JS_NewObject(ctx);\n    addGraphics(obj);\n    return obj;\n}\nJSValue root = JS_NewObject(ctx);\nJSValue gObj = JS_NewObject(ctx);\naddGraphics(gObj);\nJS_SetPropertyStr(ctx, root, \"graphics\", gObj);\nreturn root;"]
   object getDefaults(optional DOMString category);
 };
