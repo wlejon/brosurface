@@ -6,12 +6,18 @@
 namespace bro::bronze_host {
 
 // Registered host globals:
-// Blob, File, FileReader, URL
+// AbortSignal, AbortController, DOMParser, Blob, File, FileReader, URL, GamepadButton, Gamepad, GamepadEvent
 
 inline void installDeclaredWebHostGlobals() {
+    installAbortGlobals();
+    installAbortControllerGlobals();
+    installParserGlobal();
     installFileGlobals();
     installFileReaderGlobals();
     installURLGlobals();
+    installGamepadButtonGlobals();
+    installGamepadGlobals();
+    installGamepadEventGlobals();
 }
 
 }  // namespace bro::bronze_host

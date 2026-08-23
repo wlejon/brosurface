@@ -160,6 +160,7 @@ declare function advanceTime(ms: number): void;
 
 declare var window: any;
 declare var document: any;
+declare var navigator: any;
 declare var canvas: any;
 declare var scene: any;
 declare var terrain: any;
@@ -177,6 +178,8 @@ declare var loadFn: () => void;
 declare var unetDir: string;
 declare namespace bro {
   var diffusion: any;
+  var appDir: string;
+  function resolvePath(path: string): string;
 }
 
 

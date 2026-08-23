@@ -23,6 +23,11 @@ namespace bro::bronze_host {
 
 namespace {
 
+HostClass g_blobClass;
+HostClass g_fileClass;
+HostClass g_readerClass;
+HostClass g_urlClass;
+
 void hostBlobDtor(void* p) { delete static_cast<HostBlob*>(p); }
 
 HostBlob* mutableHostBlob(Value v) {
@@ -734,11 +739,6 @@ void setUrlHash(HostUrl* u, Value v) {
     u->parsed->hash = h;
     rebuildUrlHref(*u->parsed);
 }
-
-HostClass g_blobClass;
-HostClass g_fileClass;
-HostClass g_readerClass;
-HostClass g_urlClass;
 
 void decorateBlobProto(ObjectBuilder& b) {
     b.def("slice", 3, [](Value self, std::span<const Value> a) {

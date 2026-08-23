@@ -1,0 +1,63 @@
+/**
+ * =============================================================================
+ * DOMParser — HTML / XML Document Parser
+ * =============================================================================
+ *
+ * Parses HTML markup string into a detached DOM Document tree with full
+ * querySelector, getElementById, and node manipulation APIs.
+ *
+ * @example
+ *   // Parse HTML markup into a new Document
+ *   const parser = new DOMParser();
+ *   const doc = parser.parseFromString(
+ *     '<html><head><title>Parsed Doc</title></head><body><div id="app">Hello World</div></body></html>',
+ *     'text/html'
+ *   );
+ *   console.log(doc.title);
+ *   const el = doc.getElementById('app');
+ *   if (el) {
+ *     console.log(el.textContent);
+ *   }
+ *
+ * @example
+ *   // Parse SVG markup fragment
+ *   const parser = new DOMParser();
+ *   const svgDoc = parser.parseFromString('<svg><circle cx="50" cy="50" r="40"/></svg>', 'image/svg+xml');
+ *   const circle = svgDoc.querySelector('circle');
+ *   console.log('Parsed SVG node:', circle !== null);
+ */
+
+/**
+ * Interface for parsing XML or HTML source code from a string into a DOM Document.
+ */
+[
+  cpp_file="domparser.cpp",
+  cpp_header="js/dom_bindings.h",
+  cpp_includes="\"dom/document.h\"\n\"util/string_utils.h\"\n<string>",
+  cpp_namespace="bro::js",
+  cpp_install="installDOMParser",
+  install_body="JSValue proto = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, proto, \"parseFromString\", JS_NewCFunction(ctx, js_domparser_parseFromString, \"parseFromString\", 2));\nJSValue ctor = JS_NewCFunction2(ctx, js_domparser_ctor, \"DOMParser\", 0, JS_CFUNC_constructor, 0);\nJS_SetConstructor(ctx, ctor, proto);\nJS_FreeValue(ctx, proto);\nJSValue global = JS_GetGlobalObject(ctx);\nJS_SetPropertyStr(ctx, global, \"DOMParser\", ctor);\nJS_FreeValue(ctx, global);",
+  cpp_prologue="static JSValue js_domparser_parseFromString(JSContext* ctx, JSValueConst,\n                                            int argc, JSValueConst* argv)\n{\n    std::string html = argc >= 1 ? jsToStdString(ctx, argv[0]) : std::string();\n    auto* doc = new bro::dom::Document();\n    doc->parse(html);\n    return wrapDetachedDocument(ctx, doc);\n}\n\nstatic JSValue js_domparser_ctor(JSContext* ctx, JSValueConst new_target,\n                                 int, JSValueConst*)\n{\n    JSValue proto = JS_GetPropertyStr(ctx, new_target, \"prototype\");\n    JSValue obj = JS_IsObject(proto) ? JS_NewObjectProto(ctx, proto)\n                                     : JS_NewObject(ctx);\n    JS_FreeValue(ctx, proto);\n    return obj;\n}",
+  bh_file="host_parser.cpp",
+  bh_header="bronze_host/bronze_host.h",
+  bh_includes="#include \"bronze_host/gl_internal.h\"\n#include \"bronze_host/host_internal.h\"\n\n#include \"dom/document.h\"\n\n#include <memory>\n#include <span>\n#include <string>\n#include <vector>",
+  bh_namespace="bro::bronze_host",
+  bh_install="installParserGlobal",
+  bh_install_body="Value ctor = ev::makeFunction(\n    [](Value, std::span<const Value>) { return makeParserValue(); }, 0);\nev::registerGlobal(\"DOMParser\", ctor);",
+  bh_prologue="std::vector<std::unique_ptr<dom::Document>>* g_parsed = nullptr;\n\ndom::Document* parseIntoNewDocument(const std::string& html) {\n    if (!g_parsed) g_parsed = new std::vector<std::unique_ptr<dom::Document>>();\n    g_parsed->push_back(std::make_unique<dom::Document>());\n    dom::Document* doc = g_parsed->back().get();\n    doc->parse(html);\n    return doc;\n}\n\nValue parserParseFromString(Value, std::span<const Value> a) {\n    Value htmlV = argAt(a, 0);\n    if (ev::isObject(htmlV))\n        return ev::throwTypeError(\"parseFromString: markup must be a string\");\n    const std::string html = ev::isUndefined(htmlV) ? std::string() : ev::toUtf8(htmlV);\n    dom::Document* doc = parseIntoNewDocument(html);\n    return hostDocumentValue(doc);\n}\n\nValue makeParserValue() {\n    ObjectBuilder b;\n    b.def(\"parseFromString\", 2, parserParseFromString);\n    return b.get();\n}",
+  bh_no_proto_methods=true
+]
+interface DOMParser {
+  /**
+   * Initializes a new DOMParser instance.
+   */
+  constructor();
+
+  /**
+   * Parses a string containing either HTML or XML into a DOM Document.
+   * @param str Markup text to parse
+   * @param type MIME type ('text/html', 'text/xml', 'image/svg+xml')
+   * @returns Parsed DOM Document instance
+   */
+  Document parseFromString(DOMString str, DOMString type);
+};

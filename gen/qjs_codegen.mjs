@@ -132,9 +132,11 @@ export function emitNamespaceTU(nsDef) {
     lines.push('');
   }
 
-  // 3. Accessors (getters / setters for AttributeMembers)
+  // 3. Accessors (getters/setters for attributes)
   const attrs = nsDef.members.filter(m => m.type === 'AttributeMember');
-  if (attrs.length > 0) {
+  const installBody = getAttr(nsDef, 'install_body') || getAttr(nsDef, 'cpp_install_body');
+
+  if (!installBody && attrs.length > 0) {
     lines.push(`// ---------------------------------------------------------------------------`);
     lines.push(`// Accessors`);
     lines.push(`// ---------------------------------------------------------------------------`);
@@ -188,30 +190,32 @@ export function emitNamespaceTU(nsDef) {
 
   // 4. Operations (methods)
   const ops = nsDef.members.filter(m => m.type === 'OperationMember');
-  for (const op of ops) {
-    const fnName = `js_${nsDef.name}_${toSnakeCase(op.name)}`;
-    const customBody = getAttr(op, 'cpp_body') || getAttr(op, 'cpp_call');
+  if (!installBody) {
+    for (const op of ops) {
+      const fnName = `js_${nsDef.name}_${toSnakeCase(op.name)}`;
+      const customBody = getAttr(op, 'cpp_body') || getAttr(op, 'cpp_call');
 
-    lines.push(`static JSValue ${fnName}(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {`);
-    if (customBody) {
-      for (const cl of customBody.split('\n')) {
-        lines.push(`    ${cl}`);
-      }
-    } else {
-      if (op.parameters.length > 0) {
-        for (let i = 0; i < op.parameters.length; i++) {
-          lines.push(emitArgExtraction(op.parameters[i], i, '    '));
+      lines.push(`static JSValue ${fnName}(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {`);
+      if (customBody) {
+        for (const cl of customBody.split('\n')) {
+          lines.push(`    ${cl}`);
+        }
+      } else {
+        if (op.parameters.length > 0) {
+          for (let i = 0; i < op.parameters.length; i++) {
+            lines.push(emitArgExtraction(op.parameters[i], i, '    '));
+          }
+        }
+        // Return default / mock for type
+        if (op.returnType.name === 'DOMString' || op.returnType.name === 'string') {
+          lines.push(`    return JS_NewString(ctx, "1.0.0");`);
+        } else {
+          lines.push(emitReturnConversion(op.returnType, '0', '    '));
         }
       }
-      // Return default / mock for type
-      if (op.returnType.name === 'DOMString' || op.returnType.name === 'string') {
-        lines.push(`    return JS_NewString(ctx, "1.0.0");`);
-      } else {
-        lines.push(emitReturnConversion(op.returnType, '0', '    '));
-      }
+      lines.push(`}`);
+      lines.push('');
     }
-    lines.push(`}`);
-    lines.push('');
   }
 
   // 5. Install Function
@@ -228,15 +232,6 @@ export function emitNamespaceTU(nsDef) {
       : `void ${cppInstall}(JSContext* ctx)`;
 
   lines.push(`${installSignature} {`);
-  lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
-
-  if (isEngineStashed) {
-    const keyConst = `k${toPascalCase(nsDef.name)}EngineKey`;
-    lines.push(`    JS_SetPropertyStr(ctx, global, ${keyConst},`);
-    lines.push(`                      JS_NewInt64(ctx, static_cast<int64_t>(`);
-    lines.push(`                          reinterpret_cast<intptr_t>(engine))));`);
-    lines.push('');
-  }
 
   const installPrologue = getAttr(nsDef, 'install_prologue') || getAttr(nsDef, 'cpp_install_prologue');
   if (installPrologue) {
@@ -246,12 +241,23 @@ export function emitNamespaceTU(nsDef) {
     lines.push('');
   }
 
-  const installBody = getAttr(nsDef, 'install_body') || getAttr(nsDef, 'cpp_install_body');
   if (installBody) {
     for (const ib of installBody.split('\n')) {
       lines.push(`    ${ib}`);
     }
+    lines.push(`}`);
+    lines.push('');
   } else {
+    lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
+
+    if (isEngineStashed) {
+      const keyConst = `k${toPascalCase(nsDef.name)}EngineKey`;
+      lines.push(`    JS_SetPropertyStr(ctx, global, ${keyConst},`);
+      lines.push(`                      JS_NewInt64(ctx, static_cast<int64_t>(`);
+      lines.push(`                          reinterpret_cast<intptr_t>(engine))));`);
+      lines.push('');
+    }
+
     const objName = `${nsDef.name}Obj`;
     const parentObjName = prefix.startsWith('bro.') ? 'broObj' : 'global';
 
@@ -299,11 +305,10 @@ export function emitNamespaceTU(nsDef) {
     } else {
       lines.push(`    JS_SetPropertyStr(ctx, global, "${nsDef.name}", ${objName});`);
     }
+    lines.push(`    JS_FreeValue(ctx, global);`);
+    lines.push(`}`);
+    lines.push('');
   }
-
-  lines.push(`    JS_FreeValue(ctx, global);`);
-  lines.push(`}`);
-  lines.push('');
 
   const cppEpilogue = getAttr(nsDef, 'cpp_epilogue');
   if (cppEpilogue) {

@@ -1,4 +1,10 @@
+AbortSignal
+AbortController
+DOMParser
 Blob
 File
 FileReader
 URL
+GamepadButton
+Gamepad
+GamepadEvent

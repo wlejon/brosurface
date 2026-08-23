@@ -1,0 +1,222 @@
+diff --git a/docs/abort-api.js b/docs/abort-api.js
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/docs/domparser-api.js b/docs/domparser-api.js
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/docs/paths-api.js b/docs/paths-api.js
+index a443ed14..a58fcae1 100644
+--- a/docs/paths-api.js
++++ b/docs/paths-api.js
+@@ -1,83 +1,39 @@
+-// =============================================================================
+-// bro.appDir / bro.resolvePath — an app naming its own files
+-// =============================================================================
+-//
+-// An app can already READ its own assets by virtual path: `/app/logo.png` in an
+-// <img src>, an import, or any binding that takes a file path. That covers most
+-// apps completely, and if it covers yours you do not need this file.
+-//
+-// What it does not cover is handing a path to something outside the engine:
+-//
+-//   - launching a binary the app ships next to itself (`bin/ffmpeg.exe`)
+-//   - passing a filename to a child process, which cannot see engine mounts
+-//   - printing a path for the user, or writing one into a config file
+-//
+-// For those you need a real filesystem path, and the obvious guesses are both
+-// wrong. `process.cwd()` is wherever the user launched bro from — usually not
+-// the app directory, and never guaranteed to be. `__dirname` exists only inside
+-// modules loaded through require(), not in app scripts or ES modules.
+-//
+-//   bro.appDir                  // absolute path of the app's own root
+-//   bro.resolvePath(path)       // any accepted spelling → absolute path
+-//
+-// Both use native separators (backslashes on Windows), because their whole
+-// purpose is to be handed to something outside the engine.
++/**
++ * =============================================================================
++ * bro.paths (bro.appDir / bro.resolvePath) — Application Filesystem Path Resolution
++ * =============================================================================
++ *
++ * Resolves virtual asset mount paths and relative application asset paths into
++ * absolute native filesystem paths suitable for external child processes and tools.
++ *
++ * @example
++ *   // Resolve application asset path to absolute filesystem path
++ *   const absPath = bro.resolvePath('bin/ffmpeg.exe');
++ *   console.log('App dir:', bro.appDir, 'resolved path:', absPath);
++ *
++ * @example
++ *   // Resolve mount path
++ *   const configPath = bro.resolvePath('/app/preset.json');
++ *   console.log('Real config path:', configPath);
++ */
++
++// ── Namespaces ───────────────────────────────────────────────────────────────
++
++/**
++ * Engine asset and application filesystem path resolution namespace.
++ */
++/**
++ * Absolute native filesystem path of the running application's root directory.
++ * @readonly
++ * @type {string}
++ */
++bro.paths.appDir;
++
++/**
++ * Resolves a virtual mount path or relative application path to an absolute native filesystem path.
++ *
++ * @param {string} path - Input path string
++ * @returns {string} Resolved absolute filesystem path
++ */
++bro.paths.resolvePath = function(path) {};
+ 
+-
+-// -----------------------------------------------------------------------------
+-// bro.appDir
+-// -----------------------------------------------------------------------------
+-//
+-// The directory the running app was loaded from. Empty string when there isn't
+-// one (a bare `bro-headless -e "..."` session), so test it before joining onto
+-// it if your code can run that way.
+-
+-const path = require('path');
+-const bundledFfmpeg = path.join(bro.appDir, 'bin', 'ffmpeg.exe');
+-
+-
+-// -----------------------------------------------------------------------------
+-// bro.resolvePath(path)
+-// -----------------------------------------------------------------------------
+-//
+-// Applies the same rules every path-taking binding uses, and returns the result
+-// instead of opening it. Four spellings go in; an absolute path comes out.
+-//
+-//   bro.resolvePath('bin/ffmpeg.exe')   // relative → against the APP dir,
+-//                                       //   not the cwd
+-//   bro.resolvePath('/app/preset.json') // mount path → real location
+-//   bro.resolvePath('/app')             // a bare mount root → the directory
+-//                                       //   itself (=== bro.appDir)
+-//   bro.resolvePath('C:/media/in.mov')  // already absolute → unchanged
+-//
+-// The last case is what makes it safe to pass user input straight in: you do
+-// not have to work out which shape you were given first.
+-//
+-// Resolution is textual, so a path that does not exist yet resolves fine. Use
+-// it for a file you are about to write, or to check whether an optional sidecar
+-// binary is actually present:
+-
+-const fs = require('fs');
+-const ffmpeg = fs.existsSync(bundledFfmpeg) ? bundledFfmpeg : 'ffmpeg';   // else PATH
+-
+-
+-// -----------------------------------------------------------------------------
+-// Worked example: driving an external tool
+-// -----------------------------------------------------------------------------
+-//
+-// The pieces that make this work together: resolvePath turns the user's file
+-// and the app's own binary into real paths, and cp.execFile passes them as
+-// literal argv so a name like `mix & master (final).mov` survives intact.
+-// (See docs/brokit-api.js — exec takes a shell string, execFile does not.)
+-
+-const cp = require('child_process');
+-
+-async function probe(userFile) {
+-    const { stdout } = await cp.execFile(ffmpeg.replace('ffmpeg', 'ffprobe'), [
+-        '-v', 'quiet',
+-        '-print_format', 'json',
+-        '-show_streams',
+-        bro.resolvePath(userFile),
+-    ]);
+-    return JSON.parse(stdout);
+-}
+diff --git a/src/js/asset_path.cpp b/src/js/asset_path.cpp
+index ed3958b5..e414cd2b 100644
+--- a/src/js/asset_path.cpp
++++ b/src/js/asset_path.cpp
+@@ -1,9 +1,11 @@
+ #include "js/asset_path.h"
+-
+ #include "util/asset_mounts.h"
+-
+ #include <filesystem>
+ 
++extern "C" {
++#include "quickjs.h"
++}
++
+ namespace bro::js {
+ 
+ namespace {
+@@ -17,13 +19,12 @@ void setAssetPathContext(const std::string& basePath, const util::AssetMounts* m
+ }
+ 
+ std::string resolveAssetPath(const std::string& src) {
+-    if (src.size() >= 2 && src[1] == ':') return src;           // C:\... drive
++    if (src.size() >= 2 && src[1] == ':') return src;
+     if (!src.empty() && (src[0] == '/' || src[0] == '\\')) {
+         if (s_mounts) {
+             std::string m = s_mounts->resolve(src);
+             if (!m.empty()) return m;
+         }
+-        // An unmounted absolute path is already a filesystem path.
+         return src;
+     }
+     if (s_basePath.empty()) return src;
+@@ -40,32 +41,31 @@ JSValue js_resolvePath(JSContext* ctx, JSValueConst, int argc, JSValueConst* arg
+     if (!s) return JS_EXCEPTION;
+     std::string resolved = resolveAssetPath(s);
+     JS_FreeCString(ctx, s);
+-    // Hand back a native-separator path: the caller's next move is usually to
+-    // spawn a process with it, and Windows tools are happier with backslashes.
+     return JS_NewString(ctx, std::filesystem::path(resolved).make_preferred().string().c_str());
+ }
+ 
+-} // namespace
++}
++
++// ---------------------------------------------------------------------------
++// Install
++// ---------------------------------------------------------------------------
+ 
+ void installAssetPathBindings(JSContext* ctx) {
+     JSValue global = JS_GetGlobalObject(ctx);
+     JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
+     if (JS_IsUndefined(broObj)) {
+-        JS_FreeValue(ctx, broObj);
+         broObj = JS_NewObject(ctx);
+         JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
+     }
+-
++    
+     JS_SetPropertyStr(ctx, broObj, "resolvePath",
+                       JS_NewCFunction(ctx, js_resolvePath, "resolvePath", 1));
+-
+-    // The app's own root. Empty when there is no app directory (a bare
+-    // `bro-headless -e` session), which callers can test for.
++    
+     std::string dir = s_basePath.empty()
+                           ? std::string()
+                           : std::filesystem::path(s_basePath).make_preferred().string();
+     JS_SetPropertyStr(ctx, broObj, "appDir", JS_NewString(ctx, dir.c_str()));
+-
++    
+     JS_FreeValue(ctx, broObj);
+     JS_FreeValue(ctx, global);
+ }
+@@ -73,14 +73,10 @@ void installAssetPathBindings(JSContext* ctx) {
+ std::string resolveAssetWritePath(const std::string& src) {
+     namespace fs = std::filesystem;
+     fs::path p(src);
+-    // No parent to resolve (a bare filename), or already absolute: the read
+-    // rules are exactly right.
+     if (p.is_absolute() || !p.has_parent_path()) return resolveAssetPath(src);
+-    // Resolve the DIRECTORY and rejoin the filename. Resolving the whole path
+-    // would ask a mount to resolve a file that does not exist yet, which is
+-    // the one thing the read path cannot answer.
+     std::string dir = resolveAssetPath(p.parent_path().generic_string());
+     return (fs::path(dir) / p.filename()).generic_string();
+ }
+ 
++
+ } // namespace bro::js

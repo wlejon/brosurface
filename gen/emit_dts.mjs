@@ -242,6 +242,13 @@ interface Plane { normal: vec3; distance: number; }
 /** 3D Capsule. */
 interface Capsule { a: vec3; b: vec3; radius: number; }
 
+/** Ambient DOM Document. */
+interface Document { [key: string]: any; }
+/** Ambient DOM Element. */
+interface Element { [key: string]: any; }
+/** Ambient DOM Node. */
+interface Node { [key: string]: any; }
+
 `);
 
   // Collect all definitions

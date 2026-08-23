@@ -1,0 +1,122 @@
+/**
+ * =============================================================================
+ * bro.motion — Text-to-Motion Generation (NVIDIA ARDY, Unitree G1 Skeleton)
+ * =============================================================================
+ *
+ * Generates humanoid motion clips from text prompts using the NVIDIA ARDY-G1
+ * autoregressive diffusion motion model at 25 fps.
+ *
+ * @example
+ *   // Load ARDY motion pipeline and generate walking clip
+ *   const m = bro.motion.load({
+ *     checkpoint: '../brodiffusion/weights/ardy-g152',
+ *     textEncoder: '../brolm/weights/llm2vec-llama3-8b'
+ *   });
+ *   const clip = m.generate('a person walks forward and waves', {
+ *     frames: 104,
+ *     steps: 10,
+ *     cfg: 2.5,
+ *     seed: 0
+ *   });
+ *   console.log('Generated frames:', clip.frames, 'joints:', clip.joints, 'fps:', clip.fps);
+ *
+ * @example
+ *   // Probe runtime backends
+ *   bro.motion.init();
+ */
+
+/**
+ * Configuration options for loading an ARDY motion model pipeline.
+ */
+dictionary MotionLoadOptions {
+  /** Path to ARDY g152 weights directory (denoiser, tokenizer, stats) */
+  DOMString checkpoint;
+  /** Path to merged LLM2Vec Llama-3-8B text encoder weights directory */
+  DOMString textEncoder;
+  /** Optional target device ('cuda', 'metal', or 'cpu') */
+  DOMString device;
+};
+
+/**
+ * Generation options for ARDY text-to-motion inference.
+ */
+dictionary MotionGenerateOptions {
+  /** Requested clip length in frames at 25 fps (rounded to multiple of 52) */
+  long frames = 104;
+  /** DDIM denoising steps per window */
+  long steps = 10;
+  /** Classifier-free guidance weight */
+  double cfg = 2.5;
+  /** RNG seed for noise reproducibility */
+  long seed = 0;
+  /** Frame-0 heading angle in radians */
+  double heading = 0.0;
+};
+
+/**
+ * Generated motion clip containing skeletal transforms and foot contact state.
+ */
+dictionary MotionClip {
+  /** Actual frame count */
+  long frames;
+  /** Joint count (34 for Unitree G1) */
+  long joints;
+  /** Frames per second (25) */
+  double fps;
+  /** World joint positions (frames * joints * 3 floats in meters) */
+  Float32Array positions;
+  /** Joint parent indices (34 entries, -1 for root) */
+  Int32Array parents;
+  /** Foot contact indicator flags (frames * 4 floats: L-heel, L-toe, R-heel, R-toe) */
+  Float32Array footContacts;
+};
+
+/**
+ * ARDY text-to-motion generation pipeline instance.
+ */
+[
+  cpp_file="motion_bindings.cpp",
+  cpp_header="js/motion_bindings.h",
+  cpp_namespace="bro::js",
+  wrapper_struct="ArdyMotionWrapper",
+  unwrap_call="qjsbind::unwrap<ArdyMotionWrapper>(ctx, this_val)"
+]
+interface ArdyMotionPipeline {
+  /** Execution device ('CUDA', 'Metal', or 'CPU') */
+  readonly attribute DOMString device;
+
+  /**
+   * Generates a motion clip from a text prompt.
+   * @param text Motion prompt description
+   * @param opts Generation configuration options
+   * @returns Generated motion clip object
+   */
+  MotionClip generate(DOMString text, optional MotionGenerateOptions opts);
+};
+
+/**
+ * Motion generation engine namespace.
+ */
+[
+  gate="BRO_WITH_DIFFUSION && BRO_WITH_LM",
+  cpp_file="motion_bindings.cpp",
+  cpp_header="js/motion_bindings.h",
+  cpp_includes="\"util/interrupt.h\"\n<qjsbind/qjsbind.h>\n<brolm/llama3_tokenizer.h>\n<brolm/llm2vec.h>\n<brodiffusion/ardy/denoiser.h>\n<brodiffusion/ardy/fsq_decoder.h>\n<brodiffusion/ardy/sampler.h>\n<brodiffusion/ardy/motion_rep.h>\n<brodiffusion/ardy/text_conditioner.h>\n<brotensor/runtime.h>\n<brotensor/safetensors.h>\n<brotensor/tensor.h>\n<cstdint>\n<cstdio>\n<fstream>\n<memory>\n<random>\n<stdexcept>\n<string>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="installMotionBindings",
+  prefix="bro.",
+  install_body="mtRegisterClass(ctx);\n\nJSValue global = JS_GetGlobalObject(ctx);\nJSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\nif (JS_IsUndefined(broObj)) {\n    broObj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n}\n\nJSValue ns = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, ns, \"init\", JS_NewCFunction(ctx, mtInit, \"init\", 0));\nJS_SetPropertyStr(ctx, ns, \"load\", JS_NewCFunction(ctx, mtLoad, \"load\", 1));\nJS_SetPropertyStr(ctx, broObj, \"motion\", ns);\n\nJS_FreeValue(ctx, broObj);\nJS_FreeValue(ctx, global);",
+  cpp_prologue="namespace bt   = ::brotensor;\nnamespace st   = ::brotensor::safetensors;\nnamespace ardy = ::brodiffusion::ardy;\n\nnamespace {\n\nbool mtGetStr(JSContext* ctx, JSValueConst obj, const char* key, std::string& out) {\n    if (!JS_IsObject(obj)) return false;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool ok = false;\n    if (JS_IsString(v)) {\n        const char* s = JS_ToCString(ctx, v);\n        if (s) { out = s; JS_FreeCString(ctx, s); ok = true; }\n    }\n    JS_FreeValue(ctx, v);\n    return ok;\n}\n\nvoid mtGetInt(JSContext* ctx, JSValueConst obj, const char* key, int& dst) {\n    if (!JS_IsObject(obj)) return;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { int32_t t = dst; JS_ToInt32(ctx, &t, v); dst = t; }\n    JS_FreeValue(ctx, v);\n}\n\nvoid mtGetFloat(JSContext* ctx, JSValueConst obj, const char* key, float& dst) {\n    if (!JS_IsObject(obj)) return;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { double t = dst; JS_ToFloat64(ctx, &t, v); dst = (float)t; }\n    JS_FreeValue(ctx, v);\n}\n\nbt::Device mtAutoDevice() {\n    if (bt::is_available(bt::Device::CUDA))  return bt::Device::CUDA;\n    if (bt::is_available(bt::Device::Metal)) return bt::Device::Metal;\n    return bt::Device::CPU;\n}\n\nstd::vector<float> loadNpyF32(const std::string& path, int n) {\n    std::ifstream in(path, std::ios::binary);\n    if (!in) throw std::runtime_error(\"cannot open \" + path);\n    char magic[8]; in.read(magic, 8);\n    unsigned char hl[2]; in.read(reinterpret_cast<char*>(hl), 2);\n    in.seekg(10 + (hl[0] | (hl[1] << 8)), std::ios::beg);\n    std::vector<float> v(n);\n    in.read(reinterpret_cast<char*>(v.data()), static_cast<std::streamsize>(n * sizeof(float)));\n    if (!in) throw std::runtime_error(\"short read from \" + path);\n    return v;\n}\nstd::vector<float> loadNpyF64AsF32(const std::string& path, int n) {\n    std::ifstream in(path, std::ios::binary);\n    if (!in) throw std::runtime_error(\"cannot open \" + path);\n    char magic[8]; in.read(magic, 8);\n    unsigned char hl[2]; in.read(reinterpret_cast<char*>(hl), 2);\n    in.seekg(10 + (hl[0] | (hl[1] << 8)), std::ios::beg);\n    std::vector<double> d(n);\n    in.read(reinterpret_cast<char*>(d.data()), static_cast<std::streamsize>(n * sizeof(double)));\n    if (!in) throw std::runtime_error(\"short read from \" + path);\n    std::vector<float> v(n);\n    for (int i = 0; i < n; ++i) v[i] = static_cast<float>(d[i]);\n    return v;\n}\n\nJSValue mtFloat32Array(JSContext* ctx, const float* d, std::size_t n) {\n    JSValue ab = JS_NewArrayBufferCopy(ctx, reinterpret_cast<const std::uint8_t*>(d), n * sizeof(float));\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue ctor = JS_GetPropertyStr(ctx, global, \"Float32Array\");\n    JSValue arr = JS_CallConstructor(ctx, ctor, 1, &ab);\n    JS_FreeValue(ctx, ctor);\n    JS_FreeValue(ctx, global);\n    JS_FreeValue(ctx, ab);\n    return arr;\n}\n\nJSValue mtInt32Array(JSContext* ctx, const std::int32_t* d, std::size_t n) {\n    JSValue ab = JS_NewArrayBufferCopy(ctx, reinterpret_cast<const std::uint8_t*>(d), n * sizeof(std::int32_t));\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue ctor = JS_GetPropertyStr(ctx, global, \"Int32Array\");\n    JSValue arr = JS_CallConstructor(ctx, ctor, 1, &ab);\n    JS_FreeValue(ctx, ctor);\n    JS_FreeValue(ctx, global);\n    JS_FreeValue(ctx, ab);\n    return arr;\n}\n\nstruct ArdyMotionWrapper {\n    std::unique_ptr<brolm::llama3::Tokenizer>   tok;\n    std::unique_ptr<brolm::llm2vec::Encoder>    enc;\n    std::unique_ptr<ardy::ArdyDenoiser>         denoiser;\n    std::unique_ptr<ardy::FsqMotionDecoder>     fsq;\n    std::unique_ptr<ardy::ArdyMotionGenerator>  gen;\n    ardy::ArdyMotionRep                         rep{25.0};\n    bt::Device device = bt::Device::CPU;\n};\n\nJSValue mtGenerate(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* w = qjsbind::unwrap<ArdyMotionWrapper>(ctx, this_val);\n    if (!w || !w->gen || !w->enc || !w->tok)\n        return JS_ThrowTypeError(ctx, \"motion: pipeline not loaded\");\n    if (argc < 1 || !JS_IsString(argv[0]))\n        return JS_ThrowTypeError(ctx, \"generate(text, opts): text (string) required\");\n\n    const char* cstr = JS_ToCString(ctx, argv[0]);\n    std::string text = cstr ? cstr : \"\";\n    if (cstr) JS_FreeCString(ctx, cstr);\n\n    int   frames = 104, steps = 10, seed = 0;\n    float cfg = 2.5f, heading = 0.0f;\n    if (argc > 1 && JS_IsObject(argv[1])) {\n        mtGetInt(ctx, argv[1], \"frames\", frames);\n        mtGetInt(ctx, argv[1], \"steps\", steps);\n        mtGetInt(ctx, argv[1], \"seed\", seed);\n        mtGetFloat(ctx, argv[1], \"cfg\", cfg);\n        mtGetFloat(ctx, argv[1], \"heading\", heading);\n    }\n    if (frames < 1) frames = 1;\n\n    try {\n        std::vector<float> feat;\n        ardy::ardy_text_feat(*w->tok, *w->enc, text, feat);\n        if (bro::util::interrupted()) return JS_ThrowInternalError(ctx, \"motion.generate interrupted\");\n\n        const int hyb = w->denoiser->hybrid_dim();\n        const int fpt = w->denoiser->config().num_frames_per_token;\n        const int G   = 52 / fpt;\n        const int W   = w->gen->num_windows(frames);\n        std::mt19937_64 rng(static_cast<std::uint64_t>(static_cast<std::uint32_t>(seed)));\n        std::normal_distribution<float> norm(0.0f, 1.0f);\n        std::vector<float> noise(static_cast<std::size_t>(W) * G * hyb);\n        for (float& v : noise) v = norm(rng);\n\n        std::vector<float> hybrid;\n        int T_tok = 0;\n        w->gen->generate_hybrid(feat.data(), frames, heading, steps, cfg,\n                                noise.data(), hybrid, T_tok);\n        if (bro::util::interrupted()) return JS_ThrowInternalError(ctx, \"motion.generate interrupted\");\n\n        std::vector<float> motion;\n        w->gen->detokenize_to_motion(hybrid.data(), T_tok, motion);\n        const int mrd = w->denoiser->config().motion_rep_dim;\n        const int F   = T_tok * fpt;\n\n        std::vector<double> mdbl(motion.begin(), motion.end());\n        ardy::ArdyMotionRep::Decoded dec =\n            w->rep.inverse(mdbl.data(), F, /*is_normalized=*/true);\n        const int J = ardy::ArdyMotionRep::kNumJoints;\n\n        std::vector<float> pos(static_cast<std::size_t>(F) * J * 3);\n        for (std::size_t i = 0; i < pos.size(); ++i)\n            pos[i] = static_cast<float>(dec.posed_joints[i]);\n        std::vector<float> contacts(static_cast<std::size_t>(F) * 4);\n        for (std::size_t i = 0; i < contacts.size() && i < dec.foot_contacts.size(); ++i)\n            contacts[i] = static_cast<float>(dec.foot_contacts[i]);\n\n        std::vector<std::int32_t> parents(J);\n        const int* jp = ardy::G1Skeleton::joint_parents();\n        for (int j = 0; j < J; ++j) parents[j] = jp[j];\n\n        JSValue out = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, out, \"frames\",      JS_NewInt32(ctx, F));\n        JS_SetPropertyStr(ctx, out, \"joints\",      JS_NewInt32(ctx, J));\n        JS_SetPropertyStr(ctx, out, \"fps\",         JS_NewFloat64(ctx, w->rep.fps()));\n        JS_SetPropertyStr(ctx, out, \"positions\",   mtFloat32Array(ctx, pos.data(), pos.size()));\n        JS_SetPropertyStr(ctx, out, \"parents\",     mtInt32Array(ctx, parents.data(), parents.size()));\n        JS_SetPropertyStr(ctx, out, \"footContacts\", mtFloat32Array(ctx, contacts.data(), contacts.size()));\n        (void)mrd;\n        return out;\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"motion.generate failed: %s\", e.what());\n    }\n}\n\nvoid mtRegisterClass(JSContext* ctx) {\n    qjsbind::Class<ArdyMotionWrapper>(ctx, \"ArdyMotionPipeline\", qjsbind::NoGlobal)\n        .get(\"device\", [](ArdyMotionWrapper* w) {\n            switch (w->device.type) {\n                case bt::DeviceType::CUDA:  return std::string(\"CUDA\");\n                case bt::DeviceType::Metal: return std::string(\"Metal\");\n                default:                    return std::string(\"CPU\");\n            }\n        })\n        .method_raw(\"generate\", mtGenerate, 2);\n}\n\nJSValue mtLoad(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1 || !JS_IsObject(argv[0]))\n        return JS_ThrowTypeError(ctx, \"load({ checkpoint, textEncoder }) requires an options object\");\n\n    std::string ckpt, tenc, dev;\n    if (!mtGetStr(ctx, argv[0], \"checkpoint\", ckpt) || !mtGetStr(ctx, argv[0], \"textEncoder\", tenc))\n        return JS_ThrowTypeError(ctx, \"load: checkpoint and textEncoder paths are required\");\n\n    try {\n        bt::init();\n        bt::Device device = mtAutoDevice();\n        if (mtGetStr(ctx, argv[0], \"device\", dev)) {\n            if (dev == \"cpu\") device = bt::Device::CPU;\n            else if (dev == \"cuda\") device = bt::Device::CUDA;\n            else if (dev == \"metal\") device = bt::Device::Metal;\n        }\n        bt::set_default_device(device);\n\n        auto w = std::make_unique<ArdyMotionWrapper>();\n        w->device = device;\n\n        w->denoiser = std::make_unique<ardy::ArdyDenoiser>();\n        { st::File f = st::File::open(ckpt + \"/denoiser.safetensors\"); w->denoiser->load_weights(f); }\n        const int sdim = w->denoiser->stats_dim();\n        auto mean = loadNpyF64AsF32(ckpt + \"/stats/motion/mean.npy\", sdim);\n        auto std_ = loadNpyF64AsF32(ckpt + \"/stats/motion/std.npy\",  sdim);\n        w->denoiser->set_motion_stats(mean.data(), std_.data(), sdim);\n        w->rep.set_motion_stats(mean.data(), std_.data(), sdim);\n\n        w->fsq = std::make_unique<ardy::FsqMotionDecoder>();\n        { st::File f = st::File::open(ckpt + \"/tokenizer.safetensors\"); w->fsq->load_weights(f); }\n        const int td = w->fsq->config().token_dim;\n        auto qmean = loadNpyF32(ckpt + \"/stats/post_quantization/mean.npy\", td);\n        auto qstd  = loadNpyF32(ckpt + \"/stats/post_quantization/std.npy\",  td);\n        w->fsq->set_post_quant_stats(qmean.data(), qstd.data(), td);\n\n        w->gen = std::make_unique<ardy::ArdyMotionGenerator>(*w->denoiser, *w->fsq);\n\n        w->tok = std::make_unique<brolm::llama3::Tokenizer>(\n            brolm::llama3::Tokenizer::load(tenc + \"/tokenizer.json\"));\n        brolm::llm2vec::Config lcfg = brolm::llm2vec::Config::load(tenc + \"/config.json\");\n        w->enc = std::make_unique<brolm::llm2vec::Encoder>(lcfg);\n        { st::File f = st::File::open(tenc + \"/model.safetensors\"); w->enc->load_weights(f); }\n\n        return qjsbind::wrap<ArdyMotionWrapper>(ctx, w.release());\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"motion.load failed: %s\", e.what());\n    }\n}\n\nJSValue mtInit(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    try { bt::init(); } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"motion.init failed: %s\", e.what());\n    }\n    return JS_UNDEFINED;\n}\n}\n"]
+namespace motion {
+  /**
+   * Initializes the brotensor runtime backend probe.
+   */
+  void init();
+
+  /**
+   * Loads an ARDY motion model pipeline.
+   * @param opts Configuration paths and device
+   * @returns Loaded motion generation pipeline
+   */
+  ArdyMotionPipeline load(MotionLoadOptions opts);
+};

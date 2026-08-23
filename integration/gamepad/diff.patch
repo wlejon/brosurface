@@ -1,0 +1,590 @@
+diff --git a/docs/abort-api.js b/docs/abort-api.js
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/docs/domparser-api.js b/docs/domparser-api.js
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/docs/gamepad-api.js b/docs/gamepad-api.js
+index 4c9bdd5c..f5470c34 100644
+--- a/docs/gamepad-api.js
++++ b/docs/gamepad-api.js
+@@ -1,194 +1,198 @@
+ /**
+- * Gamepad API: W3C-style controller input over SDL3's gamepad abstraction
++ * =============================================================================
++ * Gamepad API — W3C Controller Input and Dual-Motor Rumble Haptics
++ * =============================================================================
+  *
+- * bro implements the web Gamepad API poll model: controllers surface through
+- * `navigator.getGamepads()` as immutable per-call snapshots, and connection
+- * changes fire `gamepadconnected` / `gamepaddisconnected` on `window`. SDL3
+- * normalizes every recognized device to one logical layout, so `mapping` is
+- * always `"standard"`: button and axis indices mean the same thing on every
+- * controller:
++ * Implements the W3C Gamepad API for polling game controller hardware,
++ * button/axis states, standard mappings, and dual-rumble / trigger-rumble haptic actuators.
+  *
+- *   buttons[0]  south (A / Cross)         buttons[9]   start
+- *   buttons[1]  east (B / Circle)         buttons[10]  left stick click
+- *   buttons[2]  west (X / Square)         buttons[11]  right stick click
+- *   buttons[3]  north (Y / Triangle)      buttons[12]  dpad up
+- *   buttons[4]  left shoulder (LB)        buttons[13]  dpad down
+- *   buttons[5]  right shoulder (RB)       buttons[14]  dpad left
+- *   buttons[6]  left trigger (LT, analog) buttons[15]  dpad right
+- *   buttons[7]  right trigger (RT, analog)buttons[16]  guide
+- *   buttons[8]  back / select
++ * @example
++ *   // Polling gamepad in input loop
++ *   const gp = navigator.getGamepads()[0];
++ *   if (gp) {
++ *     const moveX = gp.axes[0];
++ *     const jump = gp.buttons[0].pressed;
++ *     const boost = gp.buttons[7].value;
++ *     console.log("Gamepad:", gp.id, "jump:", jump, "moveX:", moveX, "boost:", boost);
++ *   }
+  *
+- *   axes[0] left stick X    axes[1] left stick Y     (-1..1, down/right = +)
+- *   axes[2] right stick X   axes[3] right stick Y
++ * @example
++ *   // Playing rumble haptic effect
++ *   const gp = navigator.getGamepads()[0];
++ *   if (gp && gp.vibrationActuator) {
++ *     gp.vibrationActuator.playEffect("dual-rumble", {
++ *       duration: 200,
++ *       strongMagnitude: 1.0,
++ *       weakMagnitude: 0.4
++ *     });
++ *   }
+  *
+- * Triggers are analog: `buttons[6].value` runs 0..1 and `pressed` flips at
+- * 0.1. Multiple controllers get stable slot indices; a disconnected slot
+- * reads `null` in getGamepads() and is reused by the next device.
+- *
+- * Gamepad buttons also participate in the bro.settings action-binding system
+- * via `"gamepad:<name>"` binding strings. See docs/settings.md.
+- *
+- * Headless testing: inject a virtual controller at the engine layer and drive
+- * this whole surface without hardware: see docs/headless.md.
+- *
+- *   gamepadConnect([id])                         -> slot index
+- *   gamepadDisconnect(index)
+- *   gamepadButton(index, button, pressed [, value])
+- *   gamepadAxis(index, axis, value)
+- *
+- * `button` and `axis` take either the W3C index or the SDL name ("south",
+- * "lefttrigger", "leftx", ...). `value` on gamepadButton gives triggers an
+- * analog level, defaulting to pressed ? 1 : 0. The three mutators throw
+- * TypeError ("no virtual gamepad at index N") if that slot is empty or holds
+- * a REAL controller: they only drive pads created by gamepadConnect().
++ * @example
++ *   // Trigger-rumble haptic effect
++ *   const gp = navigator.getGamepads()[0];
++ *   if (gp && gp.vibrationActuator) {
++ *     gp.vibrationActuator.playEffect("trigger-rumble", {
++ *       duration: 120,
++ *       strongMagnitude: 0.2,
++ *       weakMagnitude: 0.2,
++ *       leftTrigger: 0.0,
++ *       rightTrigger: 1.0
++ *     });
++ *   }
+  */
+ 
+-// ── Polling ───────────────────────────────────────────────────────────────────
++// ── Dictionaries ─────────────────────────────────────────────────────────────
+ 
+ /**
+- * Snapshot all controller slots.
+- *
+- * @returns {(Gamepad|null)[]} One entry per slot ever seen this session;
+- *   `null` where the slot's device is disconnected. Empty array when no
+- *   controller was ever connected. Each Gamepad is a plain snapshot, poll
+- *   again for fresh state; old snapshots never mutate.
++ * Parameters for playing vibration haptic effects on a Gamepad.
++ * @typedef {Object} GamepadEffectParameters
++ * @property {number} [duration=0] -  Duration of effect in milliseconds
++ * @property {number} [strongMagnitude=0] -  Strong motor magnitude [0.0 - 1.0]
++ * @property {number} [weakMagnitude=0] -  Weak motor magnitude [0.0 - 1.0]
++ * @property {number} [leftTrigger=0] -  Left trigger motor magnitude [0.0 - 1.0] (trigger-rumble only)
++ * @property {number} [rightTrigger=0] -  Right trigger motor magnitude [0.0 - 1.0] (trigger-rumble only)
+  */
+-navigator.getGamepads();
++
++// ── Classes & Interfaces ─────────────────────────────────────────────────────
+ 
+ /**
+- * A Gamepad snapshot.
+- *
+- * @typedef {Object} Gamepad
+- * @property {string}  id        - Device name (e.g. "Xbox Series X Controller")
+- * @property {number}  index     - Slot index, stable for the device's lifetime
+- * @property {boolean} connected - False only on the snapshot carried by a
+- *                                 gamepaddisconnected event
+- * @property {"standard"} mapping - Always the W3C standard layout
+- * @property {{pressed: boolean, touched: boolean, value: number}[]} buttons
+- *                                 - 17 entries; value is 0..1 (analog for the
+- *                                 triggers, 0/1 for digital buttons).
+- *                                 `touched` is derived, not sensed: it is
+- *                                 `pressed || value > 0`, so a trigger held
+- *                                 below the 0.1 press threshold reads
+- *                                 touched:true with pressed:false.
+- * @property {number[]} axes     - 4 stick axes, each -1..1
+- * @property {number}  timestamp - Engine wall-clock ms of the last state change
+- * @property {GamepadHapticActuator} vibrationActuator - Rumble control.
+- *   `effects` lists ["dual-rumble", "trigger-rumble"].
+- *   playEffect("dual-rumble", {duration, strongMagnitude, weakMagnitude})
+- *   drives the body motors; playEffect("trigger-rumble", {duration,
+- *   strongMagnitude, weakMagnitude, leftTrigger, rightTrigger}) additionally
+- *   drives the per-trigger motors (Xbox-style pads; others ignore the
+- *   trigger part). reset() stops both.
++ * Represents a hardware vibration actuator attached to a Gamepad.
+  */
++class GamepadHapticActuator {
+ 
+-// Typical read-in-game-loop usage:
+-function pollInput() {
+-    const gp = navigator.getGamepads()[0];
+-    if (!gp) return;                       // nothing in slot 0
+-    const moveX = gp.axes[0];              // left stick
+-    const jump  = gp.buttons[0].pressed;   // south button
+-    const boost = gp.buttons[7].value;     // right trigger, analog 0..1
+-}
++  /**
++   *  Type of actuator (e.g. "dual-rumble")
++   * @readonly
++   * @type {string}
++   */
++  type;
+ 
+-// ── Connection events ─────────────────────────────────────────────────────────
++  /**
++   *  Supported effect types (e.g. ["dual-rumble", "trigger-rumble"])
++   * @readonly
++   * @type {Array<string>}
++   */
++  effects;
+ 
+-/**
+- * Fired on window when a controller arrives / leaves. `event.gamepad` is a
+- * snapshot taken at the moment of the event (connected=false on disconnect).
+- */
+-window.addEventListener("gamepadconnected", (e) => {
+-    console.log("pad", e.gamepad.index, e.gamepad.id);
+-});
+-window.addEventListener("gamepaddisconnected", (e) => {
+-    console.log("lost pad", e.gamepad.index);
+-});
++  /**
++   * Plays a haptic effect on the gamepad motors.
++   *
++   * @param {string} type - Effect type ("dual-rumble" or "trigger-rumble")
++   * @param {GamepadEffectParameters} [params] - Vibration parameters
++   * @returns {Promise<string>} Promise resolving to "complete" or "preempted"
++   */
++  playEffect(type, params) {}
+ 
+-// ── Rumble ────────────────────────────────────────────────────────────────────
++  /**
++   * Resets and stops any active vibration effect.
++   * @returns {Promise<string>} Promise resolving to "complete"
++   */
++  reset() {}
+ 
+-/**
+- * Rumble haptics, mapped to SDL_RumbleGamepad (+ SDL_RumbleGamepadTriggers).
+- *
+- * @typedef {Object} GamepadHapticActuator
+- * @property {"dual-rumble"} type
+- * @property {("dual-rumble"|"trigger-rumble")[]} effects
+- *   - Always ["dual-rumble", "trigger-rumble"]
+- */
++}
+ 
+ /**
+- * Start a rumble effect. `"dual-rumble"` and `"trigger-rumble"` are both
+- * accepted; any other type throws TypeError. startDelay is ignored (the
+- * effect starts immediately).
+- *
+- * "trigger-rumble" drives the body motors exactly like "dual-rumble" AND the
+- * per-trigger motors from leftTrigger / rightTrigger (Xbox-style pads; others
+- * ignore the trigger part).
+- *
+- * @param {"dual-rumble"|"trigger-rumble"} type
+- * @param {Object} [params]
+- * @param {number} [params.duration=0]        - Effect length in ms
+- * @param {number} [params.strongMagnitude=0] - Low-frequency motor, 0..1
+- * @param {number} [params.weakMagnitude=0]   - High-frequency motor, 0..1
+- * @param {number} [params.leftTrigger=0]     - Left trigger motor, 0..1
+- *                                              ("trigger-rumble" only)
+- * @param {number} [params.rightTrigger=0]    - Right trigger motor, 0..1
+- *                                              ("trigger-rumble" only)
+- * @returns {Promise<"complete"|"preempted">} Resolves immediately ("preempted"
+- *   if the slot is gone); it does not wait out the duration.
++ * An individual button on a Gamepad device.
+  */
+-gamepad.vibrationActuator.playEffect("dual-rumble", {
+-    duration: 200, strongMagnitude: 1.0, weakMagnitude: 0.4,
+-});
++class GamepadButton {
+ 
+-gamepad.vibrationActuator.playEffect("trigger-rumble", {
+-    duration: 120, strongMagnitude: 0.2, weakMagnitude: 0.2,
+-    leftTrigger: 0.0, rightTrigger: 1.0,     // recoil in the right trigger
+-});
++  /**
++   *  Whether the button is currently pressed past activation threshold
++   * @readonly
++   * @type {boolean}
++   */
++  pressed;
+ 
+-/**
+- * Stop any in-progress rumble: both the body and the trigger motors.
+- * @returns {Promise<"complete">}
+- */
+-gamepad.vibrationActuator.reset();
++  /**
++   *  Whether the button is touched or analog value > 0
++   * @readonly
++   * @type {boolean}
++   */
++  touched;
+ 
+-// ── Action binding (bro.settings integration) ─────────────────────────────────
++  /**
++   *  Current analog displacement value [0.0 - 1.0]
++   * @readonly
++   * @type {number}
++   */
++  value;
++
++}
+ 
+ /**
+- * Gamepad buttons bind to named actions exactly like keyboard keys, using
+- * "gamepad:<name>" strings. Names (matching SDL's mapping-string fields):
+- *   south east west north leftshoulder rightshoulder lefttrigger righttrigger
+- *   back start leftstick rightstick dpup dpdown dpleft dpright guide
+- *
+- * Stick-axis DIRECTIONS bind too, as "gamepad:<axis>+" / "gamepad:<axis>-"
+- * (axes: leftx lefty rightx righty). An axis binding presses once the
+- * deflection along its direction crosses the action's deadzone (default 0.1;
+- * per-action override via defineAction's options.deadzone) and releases with
+- * hysteresis below deadzone * 0.75, so jitter at the threshold can't spam
+- * down/up pairs.
+- *
+- * Press/release edges dispatch the same "action" CustomEvent on document.body
+- * as keys do (triggers count as pressed past 0.1). detail.gamepad carries the
+- * slot index, detail.strength the analog contribution at the edge (trigger
+- * value, deadzone-rescaled axis deflection, 1/0 for digital buttons). See
+- * docs/settings.md for the full action system.
++ * Represents a gamepad/controller connected to the system.
+  */
+-bro.settings.defineAction("jump", [" ", "gamepad:south"]);
+-bro.settings.defineAction("pause", ["Escape", "gamepad:start"]);
+-bro.settings.defineAction("move_right", ["d", "gamepad:leftx+"], { deadzone: 0.25 });
++class Gamepad {
++
++  /**
++   *  Identifier string of the gamepad device
++   * @readonly
++   * @type {string}
++   */
++  id;
++
++  /**
++   *  Unique zero-based slot index
++   * @readonly
++   * @type {number}
++   */
++  index;
++
++  /**
++   *  Whether the gamepad is connected
++   * @readonly
++   * @type {boolean}
++   */
++  connected;
++
++  /**
++   *  Layout mapping ("standard")
++   * @readonly
++   * @type {string}
++   */
++  mapping;
++
++  /**
++   *  17 button snapshot states
++   * @readonly
++   * @type {Array<GamepadButton>}
++   */
++  buttons;
+ 
+-document.body.addEventListener("action", (e) => {
+-    if (e.detail.action === "jump" && e.detail.phase === "down") {
+-        player.jump();   // e.detail.key === "gamepad:south" when pad-driven
+-    }
+-});
++  /**
++   *  4 stick axis values [-1.0 - 1.0]
++   * @readonly
++   * @type {Array<number>}
++   */
++  axes;
++
++  /**
++   *  Timestamp in ms when the state changed
++   * @readonly
++   * @type {number}
++   */
++  timestamp;
++
++  /**
++   *  Vibration haptic actuator handle
++   * @readonly
++   * @type {GamepadHapticActuator}
++   */
++  vibrationActuator;
++
++}
+ 
+ /**
+- * Polled action state: per-frame analog reads without listening for edges.
+- * getActionStrength(name): 0..1, max over the action's bindings (keys/mouse
+- * 0/1, triggers analog, axis bindings deadzone-rescaled: (m - dz) / (1 - dz)).
+- * isActionPressed(name): boolean; axis bindings answer from the same
+- * hysteresis latch that drives their events. Headless-injected gamepadAxis()
+- * values flow through identically, so tests can assert exact strengths.
++ * Event fired when a Gamepad is connected or disconnected.
+  */
+-const v = bro.settings.getActionStrength("move_right");   // e.g. 0.5 at 55% stick
+-const held = bro.settings.isActionPressed("jump");
++class GamepadEvent {
++
++  /**
++   *  The gamepad snapshot associated with this event
++   * @readonly
++   * @type {Gamepad}
++   */
++  gamepad;
++
++}
++
+diff --git a/src/bronze_host/dom_gamepad.cpp b/src/bronze_host/dom_gamepad.cpp
+index 0cd4ab8a..db81722c 100644
+--- a/src/bronze_host/dom_gamepad.cpp
++++ b/src/bronze_host/dom_gamepad.cpp
+@@ -1,20 +1,52 @@
+-// Gamepad polling, navigator.getGamepads(), vibrationActuator dual-rumble & trigger-rumble.
++// GamepadButton, Gamepad, GamepadEvent — bronze_host translation unit.
+ 
+ #include "bronze_host/bronze_host.h"
+ #include "bronze_host/gl_internal.h"
+ #include "bronze_host/host_internal.h"
+ 
++#include "bronze_host/gl_internal.h"
++#include "bronze_host/host_internal.h"
+ #include "engine/engine.h"
+ #include "engine/gamepad.h"
+-
+ #include <string>
+ #include <vector>
+ 
+ namespace bro::bronze_host {
+ 
+-// ---------------------------------------------------------------------------
+-// Gamepad snapshot & vibrationActuator
+-// ---------------------------------------------------------------------------
++namespace {
++
++HostClass g_gamepad_buttonClass;
++HostClass g_gamepadClass;
++HostClass g_gamepad_eventClass;
++
++void decorateGamepadButtonProto(ObjectBuilder& b) {
++    b.accessor("pressed",
++               [](Value self, std::span<const Value>) {
++        return ev::fromUtf8("");
++    },
++               nullptr);
++    b.accessor("touched",
++               [](Value self, std::span<const Value>) {
++        return ev::fromUtf8("");
++    },
++               nullptr);
++    b.accessor("value",
++               [](Value self, std::span<const Value>) {
++        return ev::fromUtf8("");
++    },
++               nullptr);
++}
++
++void decorateGamepadEventProto(ObjectBuilder& b) {
++    b.accessor("gamepad",
++               [](Value self, std::span<const Value>) {
++        return ev::fromUtf8("");
++    },
++               nullptr);
++}
++
++}  // namespace
++
+ Value buildGamepadSnapshot(const engine::GamepadState& gp) {
+     ObjectBuilder obj;
+     obj.set("id", ev::fromUtf8(gp.id));
+@@ -107,13 +139,6 @@ Value buildGamepadSnapshot(const engine::GamepadState& gp) {
+     return obj.get();
+ }
+ 
+-// The compiled app's navigator answers with the identity the interpreted side
+-// already declares (src/js/window_bindings.cpp): one engine, one name — an app
+-// must not learn a different browser depending on which compiler ran it, and
+-// "Bro/1.0" routes every UA sniff (pixi's isSafari, isMobile) to the desktop
+-// path this layer actually implements. maxTouchPoints=0 is the other half of
+-// that routing: it keeps pixi's EventSystem on the mouse events
+-// host_dom_events.cpp wires.
+ Value makeNavigatorValue() {
+     ObjectBuilder b;
+     b.set("userAgent", ev::fromUtf8("Bro/1.0"));
+@@ -134,4 +159,26 @@ Value makeNavigatorValue() {
+     return b.get();
+ }
+ 
++// ---------------------------------------------------------------------------
++// install
++// ---------------------------------------------------------------------------
++
++void installGamepadButtonGlobals() {
++    g_gamepad_buttonClass.install(
++        "GamepadButton", 0,
++        [](Value, std::span<const Value>) { return ev::undefined(); },
++        decorateGamepadButtonProto);
++
++    g_gamepadClass.install(
++        "Gamepad", 0,
++        [](Value, std::span<const Value>) { return ev::undefined(); },
++        nullptr);
++
++    g_gamepad_eventClass.install(
++        "GamepadEvent", 0,
++        [](Value, std::span<const Value>) { return ev::undefined(); },
++        decorateGamepadEventProto);
++
++}
++
+ }  // namespace bro::bronze_host
+diff --git a/src/js/gamepad_bindings.cpp b/src/js/gamepad_bindings.cpp
+index 39130cbd..cac548eb 100644
+--- a/src/js/gamepad_bindings.cpp
++++ b/src/js/gamepad_bindings.cpp
+@@ -2,15 +2,10 @@
+ #include "engine/engine.h"
+ #include "engine/gamepad.h"
+ #include "util/log.h"
+-
+ #include <string>
+ 
+ namespace bro::js {
+ 
+-// ---------------------------------------------------------------------------
+-// Engine pointer stash (same pattern as headless_bindings)
+-// ---------------------------------------------------------------------------
+-
+ static const char* kGamepadEngineKey = "__bro_gamepad_engine_ptr";
+ 
+ static engine::Engine* getEngine(JSContext* ctx) {
+@@ -27,10 +22,6 @@ static engine::Engine* getEngine(JSContext* ctx) {
+     return e;
+ }
+ 
+-// ---------------------------------------------------------------------------
+-// Rumble (Gamepad.vibrationActuator)
+-// ---------------------------------------------------------------------------
+-
+ static JSValue resolvedPromise(JSContext* ctx, JSValue value) {
+     JSValue funcs[2];
+     JSValue promise = JS_NewPromiseCapability(ctx, funcs);
+@@ -46,12 +37,6 @@ static JSValue resolvedPromise(JSContext* ctx, JSValue value) {
+     return promise;
+ }
+ 
+-// playEffect(type, {duration, strongMagnitude, weakMagnitude, leftTrigger,
+-// rightTrigger}) -> Promise<"complete">
+-// data[0] = gamepad slot index. Follows the W3C GamepadHapticActuator shape:
+-// "dual-rumble" drives the body motors; "trigger-rumble" additionally drives
+-// the per-trigger motors from leftTrigger/rightTrigger (SDL_RumbleGamepad-
+-// Triggers — Xbox-style pads; others ignore it). startDelay is ignored.
+ static JSValue js_playEffect(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv,
+                              int, JSValue* data) {
+     auto* engine = getEngine(ctx);
+@@ -103,7 +88,6 @@ static JSValue js_playEffect(JSContext* ctx, JSValueConst, int argc, JSValueCons
+     return resolvedPromise(ctx, JS_NewString(ctx, ok ? "complete" : "preempted"));
+ }
+ 
+-// reset() -> Promise<"complete"> — stop any in-progress rumble.
+ static JSValue js_resetEffect(JSContext* ctx, JSValueConst, int, JSValueConst*,
+                               int, JSValue* data) {
+     auto* engine = getEngine(ctx);
+@@ -115,12 +99,7 @@ static JSValue js_resetEffect(JSContext* ctx, JSValueConst, int, JSValueConst*,
+     return resolvedPromise(ctx, JS_NewString(ctx, "complete"));
+ }
+ 
+-// ---------------------------------------------------------------------------
+-// Snapshot construction
+-// ---------------------------------------------------------------------------
+-
+-JSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine* /*engine*/,
+-                             const engine::GamepadState& gp) {
++JSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine*, const engine::GamepadState& gp) {
+     JSValue obj = JS_NewObject(ctx);
+     JS_SetPropertyStr(ctx, obj, "id", JS_NewString(ctx, gp.id.c_str()));
+     JS_SetPropertyStr(ctx, obj, "index", JS_NewInt32(ctx, gp.index));
+@@ -134,8 +113,6 @@ JSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine* /*engine*/,
+         bool pressed = value >= engine::kGamepadTriggerPressThreshold;
+         JSValue b = JS_NewObject(ctx);
+         JS_SetPropertyStr(ctx, b, "pressed", JS_NewBool(ctx, pressed));
+-        // No touch sensors on the wire: touched mirrors "any contact", i.e.
+-        // pressed or a sub-threshold analog value (per the W3C default).
+         JS_SetPropertyStr(ctx, b, "touched", JS_NewBool(ctx, pressed || value > 0.0f));
+         JS_SetPropertyStr(ctx, b, "value", JS_NewFloat64(ctx, value));
+         JS_SetPropertyUint32(ctx, buttons, static_cast<uint32_t>(i), b);
+@@ -149,8 +126,6 @@ JSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine* /*engine*/,
+     }
+     JS_SetPropertyStr(ctx, obj, "axes", axes);
+ 
+-    // vibrationActuator — dual-rumble via SDL_RumbleGamepad. The C functions
+-    // carry the slot index as bound data so the snapshot stays a plain object.
+     JSValue actuator = JS_NewObject(ctx);
+     JS_SetPropertyStr(ctx, actuator, "type", JS_NewString(ctx, "dual-rumble"));
+     {
+@@ -170,10 +145,6 @@ JSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine* /*engine*/,
+     return obj;
+ }
+ 
+-// ---------------------------------------------------------------------------
+-// navigator.getGamepads()
+-// ---------------------------------------------------------------------------
+-
+ static JSValue js_getGamepads(JSContext* ctx, JSValueConst, int, JSValueConst*) {
+     auto* engine = getEngine(ctx);
+     JSValue arr = JS_NewArray(ctx);
+@@ -188,16 +159,13 @@ static JSValue js_getGamepads(JSContext* ctx, JSValueConst, int, JSValueConst*)
+     return arr;
+ }
+ 
+-// ---------------------------------------------------------------------------
+-// Install
+-// ---------------------------------------------------------------------------
+-
+-void installGamepadBindings(JSContext* ctx, engine::Engine* engine) {
++void installGamepadBindings(JSContext* ctx, engine::Engine* engine)
++{
+     JSValue global = JS_GetGlobalObject(ctx);
+     JS_SetPropertyStr(ctx, global, kGamepadEngineKey,
+                       JS_NewInt64(ctx, static_cast<int64_t>(
+                           reinterpret_cast<intptr_t>(engine))));
+-
++    
+     JSValue nav = JS_GetPropertyStr(ctx, global, "navigator");
+     if (JS_IsUndefined(nav) || JS_IsNull(nav)) {
+         JS_FreeValue(ctx, nav);

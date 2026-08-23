@@ -98,10 +98,10 @@ export function emitBronzeHostTU(defs, options = {}) {
   if (activeDefs.length === 0) return '';
 
   const primary = activeDefs[0];
-  const bhHeader = getAttr(primary, 'bh_header') || 'bronze_host/bronze_host.h';
-  const bhNamespace = getAttr(primary, 'bh_namespace') || 'bro::bronze_host';
-  const bhIncludes = getAttr(primary, 'bh_includes') || '';
-  const bhInstall = getAttr(primary, 'bh_install') || `install${toPascalCase(primary.name)}Globals`;
+  const bhHeader = activeDefs.map(d => getAttr(d, 'bh_header')).find(Boolean) || 'bronze_host/bronze_host.h';
+  const bhNamespace = activeDefs.map(d => getAttr(d, 'bh_namespace')).find(Boolean) || 'bro::bronze_host';
+  const bhIncludes = activeDefs.map(d => getAttr(d, 'bh_includes')).filter(Boolean).join('\n');
+  const bhInstall = activeDefs.map(d => getAttr(d, 'bh_install')).find(Boolean) || `install${toPascalCase(primary.name)}Globals`;
 
   const lines = [];
 
@@ -128,7 +128,16 @@ export function emitBronzeHostTU(defs, options = {}) {
   lines.push('namespace {');
   lines.push('');
 
-  // 2. Prologue Blocks (custom helpers / parser state machines / structs)
+  // 2. HostClass Variable Declarations
+  for (const def of activeDefs) {
+    if (def.type === 'Interface') {
+      const classVar = getAttr(def, 'bh_class_var') || `g_${toSnakeCase(def.name)}Class`;
+      lines.push(`HostClass ${classVar};`);
+    }
+  }
+  lines.push('');
+
+  // 3. Prologue Blocks (custom helpers / parser state machines / structs)
   for (const def of activeDefs) {
     const prologue = getAttr(def, 'bh_prologue');
     if (prologue) {
@@ -146,15 +155,6 @@ export function emitBronzeHostTU(defs, options = {}) {
       lines.push('');
     }
   }
-
-  // 3. HostClass Variable Declarations
-  for (const def of activeDefs) {
-    if (def.type === 'Interface') {
-      const classVar = getAttr(def, 'bh_class_var') || `g_${toSnakeCase(def.name)}Class`;
-      lines.push(`HostClass ${classVar};`);
-    }
-  }
-  lines.push('');
 
   // 4. Prototype Decoration Functions
   for (const def of activeDefs) {
@@ -254,6 +254,16 @@ export function emitBronzeHostTU(defs, options = {}) {
   lines.push('');
   lines.push(`void ${bhInstall}() {`);
 
+  const customInstallBody = activeDefs.map(d => getAttr(d, 'bh_install_body')).find(Boolean);
+  if (customInstallBody) {
+    lines.push(indent(customInstallBody));
+    lines.push('}');
+    lines.push('');
+    lines.push(`}  // namespace ${bhNamespace}`);
+    lines.push('');
+    return lines.join('\n');
+  }
+
   for (const def of activeDefs) {
     if (def.type !== 'Interface') continue;
 
@@ -266,7 +276,7 @@ export function emitBronzeHostTU(defs, options = {}) {
       : 0;
     const ctorBody = ctor ? (getAttr(ctor, 'bh_body') || getAttr(ctor, 'bh_ctor') || getAttr(ctor, 'cpp_body')) : null;
     const hasNoProtoMethods = hasAttr(def, 'bh_no_proto_methods');
-    const decorateFn = hasNoProtoMethods ? 'nullptr' : `decorate${toPascalCase(def.name)}Proto`;
+    const decorateFn = getAttr(def, 'bh_decorate') || (hasNoProtoMethods ? 'nullptr' : `decorate${toPascalCase(def.name)}Proto`);
 
     lines.push(`    ${classVar}.install(`);
     lines.push(`        "${def.name}", ${arity},`);

@@ -1,0 +1,142 @@
+/**
+ * =============================================================================
+ * Gamepad API — W3C Controller Input and Dual-Motor Rumble Haptics
+ * =============================================================================
+ *
+ * Implements the W3C Gamepad API for polling game controller hardware,
+ * button/axis states, standard mappings, and dual-rumble / trigger-rumble haptic actuators.
+ *
+ * @example
+ *   // Polling gamepad in input loop
+ *   const gp = navigator.getGamepads()[0];
+ *   if (gp) {
+ *     const moveX = gp.axes[0];
+ *     const jump = gp.buttons[0].pressed;
+ *     const boost = gp.buttons[7].value;
+ *     console.log("Gamepad:", gp.id, "jump:", jump, "moveX:", moveX, "boost:", boost);
+ *   }
+ *
+ * @example
+ *   // Playing rumble haptic effect
+ *   const gp = navigator.getGamepads()[0];
+ *   if (gp && gp.vibrationActuator) {
+ *     gp.vibrationActuator.playEffect("dual-rumble", {
+ *       duration: 200,
+ *       strongMagnitude: 1.0,
+ *       weakMagnitude: 0.4
+ *     });
+ *   }
+ *
+ * @example
+ *   // Trigger-rumble haptic effect
+ *   const gp = navigator.getGamepads()[0];
+ *   if (gp && gp.vibrationActuator) {
+ *     gp.vibrationActuator.playEffect("trigger-rumble", {
+ *       duration: 120,
+ *       strongMagnitude: 0.2,
+ *       weakMagnitude: 0.2,
+ *       leftTrigger: 0.0,
+ *       rightTrigger: 1.0
+ *     });
+ *   }
+ */
+
+/**
+ * Parameters for playing vibration haptic effects on a Gamepad.
+ */
+dictionary GamepadEffectParameters {
+  /** Duration of effect in milliseconds */
+  double duration = 0.0;
+  /** Strong motor magnitude [0.0 - 1.0] */
+  double strongMagnitude = 0.0;
+  /** Weak motor magnitude [0.0 - 1.0] */
+  double weakMagnitude = 0.0;
+  /** Left trigger motor magnitude [0.0 - 1.0] (trigger-rumble only) */
+  double leftTrigger = 0.0;
+  /** Right trigger motor magnitude [0.0 - 1.0] (trigger-rumble only) */
+  double rightTrigger = 0.0;
+};
+
+/**
+ * Represents a hardware vibration actuator attached to a Gamepad.
+ */
+interface GamepadHapticActuator {
+  /** Type of actuator (e.g. "dual-rumble") */
+  readonly attribute DOMString type;
+  /** Supported effect types (e.g. ["dual-rumble", "trigger-rumble"]) */
+  readonly attribute sequence<DOMString> effects;
+
+  /**
+   * Plays a haptic effect on the gamepad motors.
+   * @param type Effect type ("dual-rumble" or "trigger-rumble")
+   * @param params Vibration parameters
+   * @returns Promise resolving to "complete" or "preempted"
+   */
+  Promise<DOMString> playEffect(DOMString type, optional GamepadEffectParameters params);
+
+  /**
+   * Resets and stops any active vibration effect.
+   * @returns Promise resolving to "complete"
+   */
+  Promise<DOMString> reset();
+};
+
+/**
+ * An individual button on a Gamepad device.
+ */
+[bh_file="dom_gamepad.cpp"]
+interface GamepadButton {
+  /** Whether the button is currently pressed past activation threshold */
+  readonly attribute boolean pressed;
+  /** Whether the button is touched or analog value > 0 */
+  readonly attribute boolean touched;
+  /** Current analog displacement value [0.0 - 1.0] */
+  readonly attribute double value;
+};
+
+/**
+ * Represents a gamepad/controller connected to the system.
+ */
+[
+  cpp_file="gamepad_bindings.cpp",
+  cpp_header="js/gamepad_bindings.h",
+  cpp_includes="\"engine/engine.h\"\n\"engine/gamepad.h\"\n\"util/log.h\"\n<string>",
+  cpp_namespace="bro::js",
+  cpp_install="installGamepadBindings",
+  install_signature="void installGamepadBindings(JSContext* ctx, engine::Engine* engine)",
+  install_body="JSValue global = JS_GetGlobalObject(ctx);\nJS_SetPropertyStr(ctx, global, kGamepadEngineKey,\n                  JS_NewInt64(ctx, static_cast<int64_t>(\n                      reinterpret_cast<intptr_t>(engine))));\n\nJSValue nav = JS_GetPropertyStr(ctx, global, \"navigator\");\nif (JS_IsUndefined(nav) || JS_IsNull(nav)) {\n    JS_FreeValue(ctx, nav);\n    nav = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, global, \"navigator\", JS_DupValue(ctx, nav));\n}\nJS_SetPropertyStr(ctx, nav, \"getGamepads\",\n                  JS_NewCFunction(ctx, js_getGamepads, \"getGamepads\", 0));\nJS_FreeValue(ctx, nav);\nJS_FreeValue(ctx, global);",
+  cpp_prologue="static const char* kGamepadEngineKey = \"__bro_gamepad_engine_ptr\";\n\nstatic engine::Engine* getEngine(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kGamepadEngineKey);\n    engine::Engine* e = nullptr;\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        e = reinterpret_cast<engine::Engine*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_FreeValue(ctx, global);\n    return e;\n}\n\nstatic JSValue resolvedPromise(JSContext* ctx, JSValue value) {\n    JSValue funcs[2];\n    JSValue promise = JS_NewPromiseCapability(ctx, funcs);\n    if (JS_IsException(promise)) {\n        JS_FreeValue(ctx, value);\n        return promise;\n    }\n    JSValue r = JS_Call(ctx, funcs[0], JS_UNDEFINED, 1, &value);\n    JS_FreeValue(ctx, r);\n    JS_FreeValue(ctx, funcs[0]);\n    JS_FreeValue(ctx, funcs[1]);\n    JS_FreeValue(ctx, value);\n    return promise;\n}\n\nstatic JSValue js_playEffect(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv,\n                             int, JSValue* data) {\n    auto* engine = getEngine(ctx);\n    if (!engine) return JS_ThrowInternalError(ctx, \"No engine\");\n    int32_t index = 0;\n    JS_ToInt32(ctx, &index, data[0]);\n\n    bool triggerRumble = false;\n    if (argc >= 1 && JS_IsString(argv[0])) {\n        const char* type = JS_ToCString(ctx, argv[0]);\n        std::string t = type ? type : \"\";\n        if (type) JS_FreeCString(ctx, type);\n        triggerRumble = (t == \"trigger-rumble\");\n        if (!triggerRumble && t != \"dual-rumble\") {\n            return JS_ThrowTypeError(ctx,\n                \"playEffect: only \\\"dual-rumble\\\" and \\\"trigger-rumble\\\" are supported\");\n        }\n    }\n\n    double duration = 0.0, strong = 0.0, weak = 0.0;\n    double leftTrigger = 0.0, rightTrigger = 0.0;\n    if (argc >= 2 && JS_IsObject(argv[1])) {\n        JSValue v = JS_GetPropertyStr(ctx, argv[1], \"duration\");\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &duration, v);\n        JS_FreeValue(ctx, v);\n        v = JS_GetPropertyStr(ctx, argv[1], \"strongMagnitude\");\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &strong, v);\n        JS_FreeValue(ctx, v);\n        v = JS_GetPropertyStr(ctx, argv[1], \"weakMagnitude\");\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &weak, v);\n        JS_FreeValue(ctx, v);\n        v = JS_GetPropertyStr(ctx, argv[1], \"leftTrigger\");\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &leftTrigger, v);\n        JS_FreeValue(ctx, v);\n        v = JS_GetPropertyStr(ctx, argv[1], \"rightTrigger\");\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &rightTrigger, v);\n        JS_FreeValue(ctx, v);\n    }\n\n    bool ok = engine->gamepadRumble(index, static_cast<float>(strong),\n                                    static_cast<float>(weak),\n                                    static_cast<int>(duration));\n    if (triggerRumble) {\n        ok = engine->gamepadRumbleTriggers(index,\n                                           static_cast<float>(leftTrigger),\n                                           static_cast<float>(rightTrigger),\n                                           static_cast<int>(duration)) && ok;\n    }\n    return resolvedPromise(ctx, JS_NewString(ctx, ok ? \"complete\" : \"preempted\"));\n}\n\nstatic JSValue js_resetEffect(JSContext* ctx, JSValueConst, int, JSValueConst*,\n                              int, JSValue* data) {\n    auto* engine = getEngine(ctx);\n    if (!engine) return JS_ThrowInternalError(ctx, \"No engine\");\n    int32_t index = 0;\n    JS_ToInt32(ctx, &index, data[0]);\n    engine->gamepadRumble(index, 0.0f, 0.0f, 0);\n    engine->gamepadRumbleTriggers(index, 0.0f, 0.0f, 0);\n    return resolvedPromise(ctx, JS_NewString(ctx, \"complete\"));\n}\n\nJSValue buildGamepadSnapshot(JSContext* ctx, engine::Engine*, const engine::GamepadState& gp) {\n    JSValue obj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, obj, \"id\", JS_NewString(ctx, gp.id.c_str()));\n    JS_SetPropertyStr(ctx, obj, \"index\", JS_NewInt32(ctx, gp.index));\n    JS_SetPropertyStr(ctx, obj, \"connected\", JS_NewBool(ctx, gp.connected));\n    JS_SetPropertyStr(ctx, obj, \"mapping\", JS_NewString(ctx, \"standard\"));\n    JS_SetPropertyStr(ctx, obj, \"timestamp\", JS_NewFloat64(ctx, gp.timestampMs));\n\n    JSValue buttons = JS_NewArray(ctx);\n    for (int i = 0; i < engine::kGamepadButtonCount; i++) {\n        float value = gp.buttons[i];\n        bool pressed = value >= engine::kGamepadTriggerPressThreshold;\n        JSValue b = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, b, \"pressed\", JS_NewBool(ctx, pressed));\n        JS_SetPropertyStr(ctx, b, \"touched\", JS_NewBool(ctx, pressed || value > 0.0f));\n        JS_SetPropertyStr(ctx, b, \"value\", JS_NewFloat64(ctx, value));\n        JS_SetPropertyUint32(ctx, buttons, static_cast<uint32_t>(i), b);\n    }\n    JS_SetPropertyStr(ctx, obj, \"buttons\", buttons);\n\n    JSValue axes = JS_NewArray(ctx);\n    for (int i = 0; i < engine::kGamepadAxisCount; i++) {\n        JS_SetPropertyUint32(ctx, axes, static_cast<uint32_t>(i),\n                             JS_NewFloat64(ctx, gp.axes[i]));\n    }\n    JS_SetPropertyStr(ctx, obj, \"axes\", axes);\n\n    JSValue actuator = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, actuator, \"type\", JS_NewString(ctx, \"dual-rumble\"));\n    {\n        JSValue effects = JS_NewArray(ctx);\n        JS_SetPropertyUint32(ctx, effects, 0, JS_NewString(ctx, \"dual-rumble\"));\n        JS_SetPropertyUint32(ctx, effects, 1, JS_NewString(ctx, \"trigger-rumble\"));\n        JS_SetPropertyStr(ctx, actuator, \"effects\", effects);\n    }\n    JSValue indexVal = JS_NewInt32(ctx, gp.index);\n    JS_SetPropertyStr(ctx, actuator, \"playEffect\",\n        JS_NewCFunctionData(ctx, js_playEffect, 2, 0, 1, &indexVal));\n    JS_SetPropertyStr(ctx, actuator, \"reset\",\n        JS_NewCFunctionData(ctx, js_resetEffect, 0, 0, 1, &indexVal));\n    JS_FreeValue(ctx, indexVal);\n    JS_SetPropertyStr(ctx, obj, \"vibrationActuator\", actuator);\n\n    return obj;\n}\n\nstatic JSValue js_getGamepads(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* engine = getEngine(ctx);\n    JSValue arr = JS_NewArray(ctx);\n    if (!engine) return arr;\n    const auto& pads = engine->gamepads();\n    for (size_t i = 0; i < pads.size(); i++) {\n        JSValue entry = pads[i].connected\n            ? buildGamepadSnapshot(ctx, engine, pads[i])\n            : JS_NULL;\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), entry);\n    }\n    return arr;\n}",
+  bh_file="dom_gamepad.cpp",
+  bh_header="bronze_host/bronze_host.h",
+  bh_includes="#include \"bronze_host/gl_internal.h\"\n#include \"bronze_host/host_internal.h\"\n\n#include \"engine/engine.h\"\n#include \"engine/gamepad.h\"\n\n#include <string>\n#include <vector>",
+  bh_namespace="bro::bronze_host",
+  bh_epilogue="Value buildGamepadSnapshot(const engine::GamepadState& gp) {\n    ObjectBuilder obj;\n    obj.set(\"id\", ev::fromUtf8(gp.id));\n    obj.set(\"index\", ev::fromDouble(gp.index));\n    obj.set(\"connected\", ev::fromBool(gp.connected));\n    obj.set(\"mapping\", ev::fromUtf8(\"standard\"));\n    obj.set(\"timestamp\", ev::fromDouble(gp.timestampMs));\n\n    Value buttonsArr = hostArrayOf(engine::kGamepadButtonCount, [&gp](size_t i) -> Value {\n        float value = gp.buttons[i];\n        bool pressed = value >= engine::kGamepadTriggerPressThreshold;\n        bool touched = pressed || (value > 0.0f);\n        ObjectBuilder b;\n        b.set(\"pressed\", ev::fromBool(pressed));\n        b.set(\"touched\", ev::fromBool(touched));\n        b.set(\"value\", ev::fromDouble(value));\n        return b.get();\n    });\n    obj.set(\"buttons\", buttonsArr);\n\n    Value axesArr = hostArrayOf(engine::kGamepadAxisCount, [&gp](size_t i) -> Value {\n        return ev::fromDouble(gp.axes[i]);\n    });\n    obj.set(\"axes\", axesArr);\n\n    int index = gp.index;\n    ObjectBuilder actuator;\n    actuator.set(\"type\", ev::fromUtf8(\"dual-rumble\"));\n    Value effectsArr = hostArrayOf(2, [](size_t i) -> Value {\n        return ev::fromUtf8(i == 0 ? \"dual-rumble\" : \"trigger-rumble\");\n    });\n    actuator.set(\"effects\", effectsArr);\n\n    actuator.def(\"playEffect\", 2, [index](Value, std::span<const Value> a) -> Value {\n        auto* engine = hostEngine();\n        if (!engine) return ev::throwError(\"playEffect: no engine\");\n\n        bool triggerRumble = false;\n        if (a.size() >= 1 && !ev::isObject(a[0]) && !ev::isUndefined(a[0])) {\n            std::string t = ev::toUtf8(a[0]);\n            triggerRumble = (t == \"trigger-rumble\");\n            if (!triggerRumble && t != \"dual-rumble\") {\n                return ev::throwTypeError(\n                    \"playEffect: only \\\"dual-rumble\\\" and \\\"trigger-rumble\\\" are supported\");\n            }\n        }\n\n        double duration = 0.0, strong = 0.0, weak = 0.0;\n        double leftTrigger = 0.0, rightTrigger = 0.0;\n        if (a.size() >= 2 && ev::isObject(a[1])) {\n            Value params = a[1];\n            Value v = ev::getProperty(params, \"duration\");\n            if (!ev::isUndefined(v) && !ev::isObject(v)) duration = ev::toDouble(v);\n            v = ev::getProperty(params, \"strongMagnitude\");\n            if (!ev::isUndefined(v) && !ev::isObject(v)) strong = ev::toDouble(v);\n            v = ev::getProperty(params, \"weakMagnitude\");\n            if (!ev::isUndefined(v) && !ev::isObject(v)) weak = ev::toDouble(v);\n            v = ev::getProperty(params, \"leftTrigger\");\n            if (!ev::isUndefined(v) && !ev::isObject(v)) leftTrigger = ev::toDouble(v);\n            v = ev::getProperty(params, \"rightTrigger\");\n            if (!ev::isUndefined(v) && !ev::isObject(v)) rightTrigger = ev::toDouble(v);\n        }\n\n        bool ok = engine->gamepadRumble(index, static_cast<float>(strong),\n                                        static_cast<float>(weak),\n                                        static_cast<int>(duration));\n        if (triggerRumble) {\n            ok = engine->gamepadRumbleTriggers(index,\n                                               static_cast<float>(leftTrigger),\n                                               static_cast<float>(rightTrigger),\n                                               static_cast<int>(duration)) && ok;\n        }\n\n        ev::Persistent p{ev::createPromise()};\n        ev::resolvePromise(p.get(), ev::fromUtf8(ok ? \"complete\" : \"preempted\"));\n        return p.get();\n    });\n\n    actuator.def(\"reset\", 0, [index](Value, std::span<const Value>) -> Value {\n        if (auto* engine = hostEngine()) {\n            engine->gamepadRumble(index, 0.0f, 0.0f, 0);\n            engine->gamepadRumbleTriggers(index, 0.0f, 0.0f, 0);\n        }\n        ev::Persistent p{ev::createPromise()};\n        ev::resolvePromise(p.get(), ev::fromUtf8(\"complete\"));\n        return p.get();\n    });\n\n    obj.set(\"vibrationActuator\", actuator.get());\n    return obj.get();\n}\n\nValue makeNavigatorValue() {\n    ObjectBuilder b;\n    b.set(\"userAgent\", ev::fromUtf8(\"Bro/1.0\"));\n    b.set(\"platform\", ev::fromUtf8(\"Win32\"));\n    b.set(\"language\", ev::fromUtf8(\"en-US\"));\n    b.set(\"maxTouchPoints\", ev::fromDouble(0));\n    b.def(\"getGamepads\", 0, [](Value, std::span<const Value>) {\n        auto* engine = hostEngine();\n        if (!engine) {\n            return hostArrayOf(0, [](size_t) { return ev::null(); });\n        }\n        const auto& pads = engine->gamepads();\n        return hostArrayOf(pads.size(), [&pads](size_t i) -> Value {\n            if (!pads[i].connected) return ev::null();\n            return buildGamepadSnapshot(pads[i]);\n        });\n    });\n    return b.get();\n}",
+  bh_no_proto_methods=true
+]
+interface Gamepad {
+  /** Identifier string of the gamepad device */
+  readonly attribute DOMString id;
+  /** Unique zero-based slot index */
+  readonly attribute long index;
+  /** Whether the gamepad is connected */
+  readonly attribute boolean connected;
+  /** Layout mapping ("standard") */
+  readonly attribute DOMString mapping;
+  /** 17 button snapshot states */
+  readonly attribute sequence<GamepadButton> buttons;
+  /** 4 stick axis values [-1.0 - 1.0] */
+  readonly attribute sequence<double> axes;
+  /** Timestamp in ms when the state changed */
+  readonly attribute double timestamp;
+  /** Vibration haptic actuator handle */
+  readonly attribute GamepadHapticActuator vibrationActuator;
+};
+
+/**
+ * Event fired when a Gamepad is connected or disconnected.
+ */
+[bh_file="dom_gamepad.cpp"]
+interface GamepadEvent {
+  /** The gamepad snapshot associated with this event */
+  readonly attribute Gamepad gamepad;
+};

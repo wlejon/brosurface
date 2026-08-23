@@ -56,6 +56,15 @@ export const BUILTIN_TYPES = new Set([
   // Callbacks & Events
   'EventListener',
   'EventHandler',
+  'Event',
+
+  // DOM core & streams
+  'Document',
+  'Element',
+  'Node',
+  'Blob',
+  'File',
+  'AsyncHandle',
 
   // Bro math / geometric vocabulary
   'vec2',

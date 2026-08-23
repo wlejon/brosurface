@@ -286,7 +286,7 @@ export class Parser {
 
     if (this.matchKeyword('attribute')) {
       const dataType = this.parseType();
-      const name = this.consumeIdentifier('Expected attribute name');
+      const name = this.consumeIdentifierOrKeyword('Expected attribute name');
       this.consume(TokenType.SEMICOLON, "Expected ';' after attribute declaration");
       return ast.createAttributeMember(name, dataType, {
         readonly,
@@ -300,7 +300,7 @@ export class Parser {
     // If it's static operation: static ReturnType name(args...);
     // Or regular operation: ReturnType name(args...);
     const returnType = this.parseType();
-    const name = this.consumeIdentifier('Expected operation or attribute name');
+    const name = this.consumeIdentifierOrKeyword('Expected operation or attribute name');
 
     this.consume(TokenType.LPAREN, "Expected '(' after operation name");
     const parameters = this.parseParameterList();
@@ -323,7 +323,7 @@ export class Parser {
     // Constant: const Type NAME = value;
     if (this.matchKeyword('const')) {
       const dataType = this.parseType();
-      const name = this.consumeIdentifier('Expected constant name');
+      const name = this.consumeIdentifierOrKeyword('Expected constant name');
       this.consume(TokenType.EQUALS, "Expected '=' after constant name");
       const value = this.parseConstantValue();
       this.consume(TokenType.SEMICOLON, "Expected ';' after constant declaration");
@@ -337,7 +337,7 @@ export class Parser {
 
     if (this.matchKeyword('attribute')) {
       const dataType = this.parseType();
-      const name = this.consumeIdentifier('Expected attribute name');
+      const name = this.consumeIdentifierOrKeyword('Expected attribute name');
       this.consume(TokenType.SEMICOLON, "Expected ';' after attribute declaration");
       return ast.createAttributeMember(name, dataType, {
         readonly,
@@ -349,7 +349,7 @@ export class Parser {
     }
 
     const returnType = this.parseType();
-    const name = this.consumeIdentifier('Expected operation name');
+    const name = this.consumeIdentifierOrKeyword('Expected operation name');
 
     this.consume(TokenType.LPAREN, "Expected '(' after operation name");
     const parameters = this.parseParameterList();
