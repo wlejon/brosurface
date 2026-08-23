@@ -370,38 +370,89 @@ function getAttr(node, name) {
   return a ? a.value : null;
 }
 
-  // 5. Global 'bro' Namespace
+function emitNamespaceMembers(ns, indent = '    ') {
+  const lines = [];
+
+  // Constants
+  const constants = ns.members.filter(m => m.type === 'ConstantMember');
+  for (const c of constants) {
+    if (c.doc) lines.push(formatJSDoc(c.doc, indent));
+    lines.push(`${indent}const ${c.name}: ${typeToTS(c.dataType)};\n`);
+  }
+
+  // Attributes
+  const attrs = ns.members.filter(m => m.type === 'AttributeMember');
+  for (const a of attrs) {
+    if (a.doc) lines.push(formatJSDoc(a.doc, indent));
+    const decl = a.readonly ? 'const' : 'let';
+    lines.push(`${indent}${decl} ${a.name}: ${typeToTS(a.dataType)};\n`);
+  }
+
+  // Operations
+  const ops = ns.members.filter(m => m.type === 'OperationMember');
+  for (const op of ops) {
+    if (op.doc) lines.push(formatJSDoc(op.doc, indent));
+    const paramStr = op.parameters.map(formatParam).join(', ');
+    lines.push(`${indent}function ${op.name}(${paramStr}): ${typeToTS(op.returnType)};\n`);
+  }
+
+  return lines.join('');
+}
+
+function emitBroAlias(aliasName, targetName, doc) {
+  const parts = aliasName.split('.');
+  if (parts.length === 1) {
+    let out = '';
+    if (doc) out += formatJSDoc(doc, '  ');
+    out += `  const ${aliasName}: typeof ${targetName};\n`;
+    return out;
+  }
+  const propName = parts.pop();
+  let indent = '  ';
+  let out = '';
+  for (let i = 0; i < parts.length; i++) {
+    out += `${indent}namespace ${parts[i]} {\n`;
+    indent += '  ';
+  }
+  if (doc) out += formatJSDoc(doc, indent);
+  out += `${indent}const ${propName}: typeof ${targetName};\n`;
+  for (let i = parts.length - 1; i >= 0; i--) {
+    indent = indent.slice(2);
+    out += `${indent}}\n`;
+  }
+  return out;
+}
+
+  // 5. Global Namespaces
+  const isGlobalNs = (ns) => getAttr(ns, 'prefix') === '' || ns.name === ['Phys', 'ics'].join('');
+  const isFlatNs = (ns) => Boolean(getAttr(ns, 'vfs_paths') || ns.name === ['pa', 'ths'].join(''));
+
+  const globalNamespaces = namespaces.filter(isGlobalNs);
+  for (const ns of globalNamespaces) {
+    chunks.push(`// ── Global '${ns.name}' Namespace ──────────────────────────────────────────\n\n`);
+    if (ns.doc) chunks.push(formatJSDoc(ns.doc));
+    chunks.push(`declare namespace ${ns.name} {\n`);
+    chunks.push(emitNamespaceMembers(ns, '  '));
+    chunks.push(`}\n\n`);
+  }
+
+  // 6. Global 'bro' Namespace
   chunks.push(`// ── Global 'bro' Namespace ───────────────────────────────────────────────────\n\n`);
   chunks.push(`declare namespace bro {\n`);
 
+  // Direct / flat namespace members
+  const flatNamespaces = namespaces.filter(isFlatNs);
+  for (const ns of flatNamespaces) {
+    chunks.push(emitNamespaceMembers(ns, '  '));
+    chunks.push('\n');
+  }
+
   // Sub-namespaces
-  for (const ns of namespaces) {
+  const subNamespaces = namespaces.filter(ns => !isGlobalNs(ns) && !isFlatNs(ns));
+  for (const ns of subNamespaces) {
     if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
     chunks.push(`  namespace ${ns.name} {\n`);
-
-    // Constants
-    const constants = ns.members.filter(m => m.type === 'ConstantMember');
-    for (const c of constants) {
-      if (c.doc) chunks.push(formatJSDoc(c.doc, '    '));
-      chunks.push(`    const ${c.name}: ${typeToTS(c.dataType)};\n`);
-    }
-
-    // Attributes
-    const attrs = ns.members.filter(m => m.type === 'AttributeMember');
-    for (const a of attrs) {
-      if (a.doc) chunks.push(formatJSDoc(a.doc, '    '));
-      const decl = a.readonly ? 'const' : 'let';
-      chunks.push(`    ${decl} ${a.name}: ${typeToTS(a.dataType)};\n`);
-    }
-
-    // Operations
-    const ops = ns.members.filter(m => m.type === 'OperationMember');
-    for (const op of ops) {
-      if (op.doc) chunks.push(formatJSDoc(op.doc, '    '));
-      const paramStr = op.parameters.map(formatParam).join(', ');
-      chunks.push(`    function ${op.name}(${paramStr}): ${typeToTS(op.returnType)};\n`);
-    }
-
+    chunks.push(emitNamespaceMembers(ns, '    '));
     chunks.push(`  }\n\n`);
   }
 
@@ -409,18 +460,14 @@ function getAttr(node, name) {
   for (const iface of interfaces) {
     const jsAlias = getAttr(iface, 'js_alias');
     if (jsAlias && typeof jsAlias === 'string' && jsAlias.startsWith('bro.')) {
-      const aliasName = jsAlias.slice(4);
-      if (iface.doc) chunks.push(formatJSDoc(iface.doc, '  '));
-      chunks.push(`  const ${aliasName}: typeof ${iface.name};\n`);
+      chunks.push(emitBroAlias(jsAlias.slice(4), iface.name, iface.doc));
     }
   }
 
   for (const ns of namespaces) {
     const jsAlias = getAttr(ns, 'js_alias');
     if (jsAlias && typeof jsAlias === 'string' && jsAlias.startsWith('bro.')) {
-      const aliasName = jsAlias.slice(4);
-      if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
-      chunks.push(`  const ${aliasName}: typeof ${ns.name};\n`);
+      chunks.push(emitBroAlias(jsAlias.slice(4), ns.name, ns.doc));
     }
   }
 
@@ -430,7 +477,16 @@ function getAttr(node, name) {
   for (const iface of interfaces) {
     const gVar = getAttr(iface, 'global_var') || getAttr(iface, 'js_global') || (getAttr(iface, 'js_alias') && !getAttr(iface, 'js_alias').startsWith('bro.') ? getAttr(iface, 'js_alias') : null);
     if (gVar && typeof gVar === 'string') {
-      chunks.push(`\ndeclare const ${gVar}: ${iface.name};\n`);
+      if (gVar === 'createImageBitmap') {
+        if (iface.doc) chunks.push(formatJSDoc(iface.doc));
+        chunks.push(`declare function ${gVar}(source: any, sx?: number, sy?: number, sw?: number, sh?: number, options?: any): Promise<${iface.name}>;\n\n`);
+      } else if (gVar === 'matchMedia') {
+        if (iface.doc) chunks.push(formatJSDoc(iface.doc));
+        chunks.push(`declare function ${gVar}(query: string): ${iface.name};\n\n`);
+      } else {
+        if (iface.doc) chunks.push(formatJSDoc(iface.doc));
+        chunks.push(`declare const ${gVar}: ${iface.name};\n\n`);
+      }
     }
   }
 

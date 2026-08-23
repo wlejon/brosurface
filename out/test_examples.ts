@@ -44,8 +44,6 @@ declare var loadFn: () => void;
 declare var unetDir: string;
 declare namespace bro {
   var diffusion: any;
-  var appDir: string;
-  function resolvePath(path: string): string;
 }
 
 
@@ -92,9 +90,28 @@ async function example_3() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 4: idl/custom_elements.idl (Header Doc) — Example 1
+// Snippet 4: idl/ai.idl (AIAgent) — AIAgent example
 // -----------------------------------------------------------------------------
 async function example_4() {
+  const world = bro.ai.game.createWorld();
+    const agent = bro.ai.game.createAgent(world, { radius: 0.5, maxSpeed: 5.0 });
+    agent.setPosition(0, 0, 0);
+    world.step(1 / 60);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 5: idl/canvas.idl (CanvasGradient) — CanvasGradient example
+// -----------------------------------------------------------------------------
+async function example_5() {
+  const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(10, 10, 100, 100);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 6: idl/custom_elements.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_6() {
   // Define and register a custom element
     class MyCounter extends HTMLElement {
       count: number = 0;
@@ -117,18 +134,50 @@ async function example_4() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 5: idl/custom_elements.idl (Header Doc) — Example 2
+// Snippet 7: idl/custom_elements.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_5() {
+async function example_7() {
   // Instantiate custom element via document.createElement
     const el = document.createElement("my-counter");
     document.body.appendChild(el);
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 6: idl/domparser.idl (Header Doc) — Example 1
+// Snippet 8: idl/dialogs.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_6() {
+async function example_8() {
+  const files = showOpenFileDialog('Audio Files|wav;flac;mp3;ogg;opus');
+    if (files.length) {
+      console.log('Selected file:', files[0]);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 9: idl/dialogs.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_9() {
+  if (confirm('Are you sure you want to proceed?')) {
+      alert('Action confirmed');
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 10: idl/diar.idl (diar) — diar example
+// -----------------------------------------------------------------------------
+async function example_10() {
+  bro.diar.loadSortformer("weights/sortformer", {
+      onReady: (model) => {
+        const session = model.createSession();
+        const res = session.feed(pcm16kAudio, true);
+        console.log(`Detected ${res.numSpeakers} speakers across ${res.numFrames} frames`);
+      }
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 11: idl/domparser.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_11() {
   // Parse HTML markup into a new Document
     const parser = new DOMParser();
     const doc = parser.parseFromString(
@@ -143,9 +192,9 @@ async function example_6() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 7: idl/domparser.idl (Header Doc) — Example 2
+// Snippet 12: idl/domparser.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_7() {
+async function example_12() {
   // Parse SVG markup fragment
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString('<svg><circle cx="50" cy="50" r="40"/></svg>', 'image/svg+xml');
@@ -154,18 +203,39 @@ async function example_7() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 8: idl/file.idl (Header Doc) — Example 1
+// Snippet 13: idl/events.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_8() {
+async function example_13() {
+  // Unified pointer handling
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      console.log('Pointer down:', e.pointerType, e.pointerId, e.clientX, e.clientY);
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 14: idl/events.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_14() {
+  // Two-finger pinch gesture
+    el.addEventListener('gesturechange', (e) => {
+      console.log('Scale:', e.scale, 'Rotation:', e.rotation);
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 15: idl/file.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_15() {
   // --- Blob / File Example ------------------------------------------------
     const blob = new Blob([bytes], { type: 'image/png' });
     const png  = await blob.arrayBuffer();
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 9: idl/file.idl (Header Doc) — Example 2
+// Snippet 16: idl/file.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_9() {
+async function example_16() {
   // --- FileReader Example -------------------------------------------------
     function readModel(file) {
       return new Promise((resolve, reject) => {
@@ -178,9 +248,9 @@ async function example_9() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 10: idl/file.idl (Header Doc) — Example 3
+// Snippet 17: idl/file.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_10() {
+async function example_17() {
   // --- Object URLs Example ------------------------------------------------
     // Resolve a model's texture that only exists in memory.
     const url = URL.createObjectURL(textureFile);
@@ -191,9 +261,9 @@ async function example_10() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 11: idl/file.idl (Header Doc) — Example 4
+// Snippet 18: idl/file.idl (Header Doc) — Example 4
 // -----------------------------------------------------------------------------
-async function example_11() {
+async function example_18() {
   // --- Dropped Files Example ----------------------------------------------
     document.addEventListener('drop', async (event) => {
       event.preventDefault();
@@ -207,9 +277,9 @@ async function example_11() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 12: idl/file.idl (Header Doc) — Example 5
+// Snippet 19: idl/file.idl (Header Doc) — Example 5
 // -----------------------------------------------------------------------------
-async function example_12() {
+async function example_19() {
   // --- Input File Example -------------------------------------------------
     // The standard hidden-input pattern.
     const input = document.createElement('input');
@@ -220,9 +290,9 @@ async function example_12() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 13: idl/file.idl (Header Doc) — Example 6
+// Snippet 20: idl/file.idl (Header Doc) — Example 6
 // -----------------------------------------------------------------------------
-async function example_13() {
+async function example_20() {
   // --- Downloading Example (<a download>) ---------------------------------
     function exportScene(text) {
       const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
@@ -235,9 +305,9 @@ async function example_13() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 14: idl/file.idl (Header Doc) — Example 7
+// Snippet 21: idl/file.idl (Header Doc) — Example 7
 // -----------------------------------------------------------------------------
-async function example_14() {
+async function example_21() {
   // --- Dragging inside page (DataTransfer) --------------------------------
     row.draggable = true;
     row.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', row.id));
@@ -251,9 +321,24 @@ async function example_14() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 15: idl/gamepad.idl (Header Doc) — Example 1
+// Snippet 22: idl/flora.idl (flora) — flora example
 // -----------------------------------------------------------------------------
-async function example_15() {
+async function example_22() {
+  const world = bro.flora.createWorld({ rngSeed: 42 });
+    const protoIdx = world.addPrototype(bro.flora.prototypes.monopodial(3, 0.6));
+    const plantIdx = world.addPlant({
+      origin: [0, 0, 0],
+      prototypeIndex: protoIdx,
+      species: { maxAge: 50.0, apicalControl: 0.8 }
+    });
+    world.step(1.0);
+    const mesh = world.emitMesh(6);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 23: idl/gamepad.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_23() {
   // Polling gamepad in input loop
     const gp = navigator.getGamepads()[0];
     if (gp) {
@@ -265,9 +350,9 @@ async function example_15() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 16: idl/gamepad.idl (Header Doc) — Example 2
+// Snippet 24: idl/gamepad.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_16() {
+async function example_24() {
   // Playing rumble haptic effect
     const gp = navigator.getGamepads()[0];
     if (gp && gp.vibrationActuator) {
@@ -280,9 +365,9 @@ async function example_16() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 17: idl/gamepad.idl (Header Doc) — Example 3
+// Snippet 25: idl/gamepad.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_17() {
+async function example_25() {
   // Trigger-rumble haptic effect
     const gp = navigator.getGamepads()[0];
     if (gp && gp.vibrationActuator) {
@@ -297,9 +382,9 @@ async function example_17() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 18: idl/gizmo.idl (Header Doc) — Example 1
+// Snippet 26: idl/gizmo.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_18() {
+async function example_26() {
   // Basic display and mode
     bro.gizmo.show();
     bro.gizmo.setMode("translate");
@@ -307,9 +392,9 @@ async function example_18() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 19: idl/gizmo.idl (Header Doc) — Example 2
+// Snippet 27: idl/gizmo.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_19() {
+async function example_27() {
   // Attach interactive transform handlers
     let target = { x: 0, y: 0, z: 0 };
     bro.gizmo.attach({
@@ -321,9 +406,9 @@ async function example_19() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 20: idl/gizmo.idl (Header Doc) — Example 3
+// Snippet 28: idl/gizmo.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_20() {
+async function example_28() {
   // Configure appearance
     bro.gizmo.configure({
       size: 100,
@@ -332,9 +417,9 @@ async function example_20() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 21: idl/gpu.idl (Header Doc) — Example 1
+// Snippet 29: idl/gpu.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_21() {
+async function example_29() {
   // Typical use: warn before loading a large model on CPU
     if (!bro.gpu.available) {
       // Non-blocking warning, the model still loads and runs, just slowly.
@@ -343,9 +428,9 @@ async function example_21() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 22: idl/gpu.idl (Header Doc) — Example 2
+// Snippet 30: idl/gpu.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_22() {
+async function example_30() {
   // Drive a backend badge honestly in any build:
     const badge = document.querySelector('#backend');
     badge.textContent = bro.gpu.backend.toUpperCase();      // 'CUDA' | 'METAL' | 'CPU'
@@ -353,9 +438,9 @@ async function example_22() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 23: idl/gpu.idl (Header Doc) — Example 3
+// Snippet 31: idl/gpu.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_23() {
+async function example_31() {
   // Confirm-gate a heavy load:
     function maybeLoad(loadFn) {
       if (!bro.gpu.available &&
@@ -367,9 +452,9 @@ async function example_23() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 24: idl/gpu.idl (gpu.deviceCount) — gpu.deviceCount example
+// Snippet 32: idl/gpu.idl (gpu.deviceCount) — gpu.deviceCount example
 // -----------------------------------------------------------------------------
-async function example_24() {
+async function example_32() {
   for (let i = 0; i < bro.gpu.deviceCount('cuda'); i++) {
       const mem = bro.gpu.memoryInfo('cuda:' + i);
       if (mem) {
@@ -380,9 +465,9 @@ async function example_24() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 25: idl/gpu.idl (gpu.memoryInfo) — gpu.memoryInfo example
+// Snippet 33: idl/gpu.idl (gpu.memoryInfo) — gpu.memoryInfo example
 // -----------------------------------------------------------------------------
-async function example_25() {
+async function example_33() {
   const mem = bro.gpu.memoryInfo();
     if (mem && mem.freeBytes < 4e9) {
       status('Less than 4 GB VRAM free: model may not fit.', 'warn');
@@ -390,9 +475,9 @@ async function example_25() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 26: idl/gpu.idl (gpu.deviceName) — gpu.deviceName example
+// Snippet 34: idl/gpu.idl (gpu.deviceName) — gpu.deviceName example
 // -----------------------------------------------------------------------------
-async function example_26() {
+async function example_34() {
   const card = bro.gpu.deviceName() || bro.gpu.backend.toUpperCase();
     const mem = bro.gpu.memoryInfo();
     if (mem) {
@@ -401,18 +486,84 @@ async function example_26() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 27: idl/gpu.idl (gpu.trim) — gpu.trim example
+// Snippet 35: idl/gpu.idl (gpu.trim) — gpu.trim example
 // -----------------------------------------------------------------------------
-async function example_27() {
+async function example_35() {
   const unet = bro.diffusion.loadModel(unetDir);
     // ... run denoise steps ...
     bro.gpu.trim(); // release U-Net scratch before the VAE decode allocates
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 28: idl/lm.idl (Header Doc) — Example 1
+// Snippet 36: idl/iframe.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_28() {
+async function example_36() {
+  // Create dynamic iframe and capture its rendered output
+    const frame = document.createElement('iframe');
+    frame.src = './embedded_app/';
+    frame.addEventListener('load', () => {
+      const image = frame.capture();
+      console.log('Captured frame dimensions:', image.width, image.height);
+    });
+    document.body.appendChild(frame);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 37: idl/image.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_37() {
+  // FastNoise2 colormap pipeline
+    const lut = bro.image.gradient([
+      [0.00,  10,  30,  80],
+      [0.45, 230, 220, 150],
+      [0.55, 100, 170,  90],
+      [0.75, 250, 250, 250],
+    ]);
+    const noise = bro.image.alloc(w, h, 1);
+    const {min, max} = bro.image.reduce(noise, 'minmax');
+    bro.image.lookup(imgData.data, noise, lut, {lo: min, hi: max});
+    ctx.putImageData(imgData, 0, 0);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 38: idl/imagebitmap.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_38() {
+  const bmp = await createImageBitmap({ width: 4, height: 4, data: rgbaData });
+    ctx.drawImage(bmp, 0, 0);
+    bmp.close();
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 39: idl/imagebitmap.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_39() {
+  const imgData = new ImageData(new Uint8ClampedArray(64), 4, 4);
+    const bmpFromData = await createImageBitmap(imgData);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 40: idl/intl.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_40() {
+  // Number formatting with locale separators
+    const nf = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    console.log(nf.format(123456.78)); // '$123,456.78'
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 41: idl/intl.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_41() {
+  // Date formatting
+    const df = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' });
+    console.log(df.format(new Date()));
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 42: idl/lm.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_42() {
   // --- Qwen3 Text Generation ----------------------------------------------
     const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
     const prompt = tokenizer.applyChatTemplate([
@@ -431,9 +582,9 @@ async function example_28() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 29: idl/lm.idl (Header Doc) — Example 2
+// Snippet 43: idl/lm.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_29() {
+async function example_43() {
   // --- Streaming Generation -----------------------------------------------
     const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
     const prompt = tokenizer.applyChatTemplate([
@@ -457,9 +608,9 @@ async function example_29() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 30: idl/lm.idl (Header Doc) — Example 3
+// Snippet 44: idl/lm.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_30() {
+async function example_44() {
   // --- Async Generation (All Families) ------------------------------------
     const { model, tokenizer } = bro.lm.loadQwen('../brolm/weights/Qwen3-0.6B-GGUF/Qwen3-0.6B-BF16.gguf');
     const promptIds = tokenizer.encode('Hello world');
@@ -476,9 +627,9 @@ async function example_30() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 31: idl/lm.idl (Header Doc) — Example 4
+// Snippet 45: idl/lm.idl (Header Doc) — Example 4
 // -----------------------------------------------------------------------------
-async function example_31() {
+async function example_45() {
   // --- Mistral 3.1 --------------------------------------------------------
     const mis = bro.lm.loadMistral(
       '../brolm/weights/Mistral-Small-3.1-24B-Instruct-2503-GGUF/mistralai_Mistral-Small-3.1-24B-Instruct-2503-Q4_K_M.gguf',
@@ -494,9 +645,9 @@ async function example_31() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 32: idl/lm.idl (Header Doc) — Example 5
+// Snippet 46: idl/lm.idl (Header Doc) — Example 5
 // -----------------------------------------------------------------------------
-async function example_32() {
+async function example_46() {
   // --- Gemma-2 ------------------------------------------------------------
     const gem = bro.lm.loadGemma2('../brolm/weights/gemma-2-2b');
     const gIds = gem.model.generate(
@@ -509,9 +660,9 @@ async function example_32() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 33: idl/lm.idl (Header Doc) — Example 6
+// Snippet 47: idl/lm.idl (Header Doc) — Example 6
 // -----------------------------------------------------------------------------
-async function example_33() {
+async function example_47() {
   // --- Qwen3.5 & Vision ---------------------------------------------------
     const q35 = bro.lm.loadQwen35('../brolm/weights/Qwen3.5-0.8B');
     const ids35 = q35.generate(
@@ -521,18 +672,18 @@ async function example_33() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 34: idl/lm.idl (Header Doc) — Example 7
+// Snippet 48: idl/lm.idl (Header Doc) — Example 7
 // -----------------------------------------------------------------------------
-async function example_34() {
+async function example_48() {
   // --- NLLB-200 Machine Translation ---------------------------------------
     const nllb = bro.lm.loadNllb('../brolm/weights/nllb-200-distilled-600M');
     console.log(nllb.translate('Hello, world!', 'eng_Latn', 'fra_Latn'));
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 35: idl/lm.idl (Header Doc) — Example 8
+// Snippet 49: idl/lm.idl (Header Doc) — Example 8
 // -----------------------------------------------------------------------------
-async function example_35() {
+async function example_49() {
   // --- CLIP Cross-Modal Scoring -------------------------------------------
     const clip = bro.lm.loadClip({
       vocabPath: '../clip-vit-large-patch14/vocab.json',
@@ -544,9 +695,9 @@ async function example_35() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 36: idl/lm.idl (Header Doc) — Example 9
+// Snippet 50: idl/lm.idl (Header Doc) — Example 9
 // -----------------------------------------------------------------------------
-async function example_36() {
+async function example_50() {
   // --- T5 Encoder ---------------------------------------------------------
     const t5 = bro.lm.loadT5({
       tokenizerPath: '../FLUX.1-schnell/tokenizer_2/tokenizer.json',
@@ -561,9 +712,86 @@ async function example_36() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 37: idl/mic.idl (Header Doc) — Example 1
+// Snippet 51: idl/matchmedia.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_37() {
+async function example_51() {
+  const mql = window.matchMedia('(max-width: 600px)');
+    console.log('Matches:', mql.matches, 'Media:', mql.media);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 52: idl/matchmedia.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_52() {
+  const dark = matchMedia('(prefers-color-scheme: dark)');
+    dark.addEventListener('change', (ev) => {
+      console.log('dark mode:', ev.matches, 'query:', ev.media);
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 53: idl/math.idl (math) — math example
+// -----------------------------------------------------------------------------
+async function example_53() {
+  const hash = new bro.math.SpatialHash3D(2.0, 4096);
+    hash.insert(1, 10.0, 5.0, -2.0);
+    const nearby = hash.queryRadius(10.0, 5.0, -2.0, 5.0);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 54: idl/math.idl (math) — math example
+// -----------------------------------------------------------------------------
+async function example_54() {
+  const rng = new bro.math.Rng(12345);
+    const p = rng.inUnitSphere();
+    const v = bro.math.lerp(0.0, 100.0, 0.5);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 55: idl/media.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_55() {
+  // Encode WebM video from canvas
+    const enc = new VideoEncoder({
+      path: 'output.webm',
+      width: 640,
+      height: 480,
+      fps: 30,
+      quality: 'good'
+    });
+    enc.addCanvasFrame(canvas);
+    enc.finish();
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 56: idl/media.idl (Header Doc) — Example 2
+// -----------------------------------------------------------------------------
+async function example_56() {
+  // Extract waveform peaks
+    const peaks = bro.media.peaks('audio.wav', { buckets: 1024 });
+    console.log('Sample rate:', peaks.sampleRate, 'Duration:', peaks.duration);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 57: idl/menu.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_57() {
+  bro.menu.show();
+    bro.menu.set([
+      { id: 'file', label: 'File', items: [
+        { id: 'file.new', label: 'New', accel: 'Ctrl+N' },
+        { id: '__system.quit', label: 'Quit', accel: 'Ctrl+Q' }
+      ]}
+    ]);
+    bro.menu.on('file.new', () => {
+      console.log('New file requested');
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 58: idl/mic.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_58() {
   // Start live mic capture delivering 10ms chunks
     bro.mic.start({
       chunkFrames: 160,
@@ -574,9 +802,9 @@ async function example_37() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 38: idl/mic.idl (Header Doc) — Example 2
+// Snippet 59: idl/mic.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_38() {
+async function example_59() {
   // Headless / synthetic feed
     bro.mic.start({ chunkFrames: 160, targetRate: 16000, live: false });
     const synth = new Float32Array(16000);
@@ -586,9 +814,9 @@ async function example_38() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 39: idl/motion.idl (Header Doc) — Example 1
+// Snippet 60: idl/motion.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_39() {
+async function example_60() {
   // Load ARDY motion pipeline and generate walking clip
     const m = bro.motion.load({
       checkpoint: '../brodiffusion/weights/ardy-g152',
@@ -604,17 +832,26 @@ async function example_39() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 40: idl/motion.idl (Header Doc) — Example 2
+// Snippet 61: idl/motion.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_40() {
+async function example_61() {
   // Probe runtime backends
     bro.motion.init();
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 41: idl/noise.idl (Header Doc) — Example 1
+// Snippet 62: idl/net.idl (net) — net example
 // -----------------------------------------------------------------------------
-async function example_41() {
+async function example_62() {
+  bro.net.onconnect = (peerId) => console.log('Peer connected:', peerId);
+    bro.net.onmessage = (peerId, data) => console.log('Received message:', data);
+    bro.net.host(7777);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 63: idl/noise.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_63() {
   // --- Terrain heightmap with FBm -----------------------------------------
     const terrainSrc = FastNoise.create("Simplex");
     const terrain = FastNoise.create("FractalFBm");
@@ -627,9 +864,9 @@ async function example_41() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 42: idl/noise.idl (Header Doc) — Example 2
+// Snippet 64: idl/noise.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_42() {
+async function example_64() {
   // --- Ridged mountains blended with plains -------------------------------
     const plains = FastNoise.create("FractalFBm");
     plains.set("Source", FastNoise.create("Simplex"));
@@ -651,9 +888,9 @@ async function example_42() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 43: idl/noise.idl (Header Doc) — Example 3
+// Snippet 65: idl/noise.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_43() {
+async function example_65() {
   // --- 3D voxel density field for caves -----------------------------------
     const caveShape = FastNoise.create("FractalRidged");
     caveShape.set("Source", FastNoise.create("Perlin"));
@@ -669,9 +906,9 @@ async function example_43() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 44: idl/noise.idl (Header Doc) — Example 4
+// Snippet 66: idl/noise.idl (Header Doc) — Example 4
 // -----------------------------------------------------------------------------
-async function example_44() {
+async function example_66() {
   // --- Domain warp fractal for organic terrain ----------------------------
     const dwGrad = FastNoise.create("DomainWarpGradient");
     dwGrad.set("Source", FastNoise.create("Simplex"));
@@ -686,9 +923,9 @@ async function example_44() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 45: idl/noise.idl (Header Doc) — Example 5
+// Snippet 67: idl/noise.idl (Header Doc) — Example 5
 // -----------------------------------------------------------------------------
-async function example_45() {
+async function example_67() {
   // --- Cellular biome map -------------------------------------------------
     const biomes = FastNoise.create("CellularValue");
     biomes.set("Distance Function", "Euclidean");
@@ -698,9 +935,9 @@ async function example_45() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 46: idl/noise.idl (Header Doc) — Example 6
+// Snippet 68: idl/noise.idl (Header Doc) — Example 6
 // -----------------------------------------------------------------------------
-async function example_46() {
+async function example_68() {
   // --- Terraced plateaus --------------------------------------------------
     const baseTerrain = FastNoise.create("FractalFBm");
     baseTerrain.set("Source", FastNoise.create("Simplex"));
@@ -715,36 +952,49 @@ async function example_46() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 47: idl/noise.idl (Header Doc) — Example 7
+// Snippet 69: idl/noise.idl (Header Doc) — Example 7
 // -----------------------------------------------------------------------------
-async function example_47() {
+async function example_69() {
   // --- Runtime introspection ----------------------------------------------
     const allTypes = FastNoise.types();
     const fbmInfo = FastNoise.create("FractalFBm").getMembers();
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 48: idl/paths.idl (Header Doc) — Example 1
+// Snippet 70: idl/paths.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_48() {
+async function example_70() {
   // Resolve application asset path to absolute filesystem path
     const absPath = bro.resolvePath('bin/ffmpeg.exe');
     console.log('App dir:', bro.appDir, 'resolved path:', absPath);
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 49: idl/paths.idl (Header Doc) — Example 2
+// Snippet 71: idl/paths.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_49() {
+async function example_71() {
   // Resolve mount path
     const configPath = bro.resolvePath('/app/preset.json');
     console.log('Real config path:', configPath);
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 50: idl/rave.idl (Header Doc) — Example 1
+// Snippet 72: idl/physics.idl (PhysicsWorldHandle) — PhysicsWorldHandle example
 // -----------------------------------------------------------------------------
-async function example_50() {
+async function example_72() {
+  Physics.setGravity(0, -9.81, 0);
+    const body = Physics.createBody({
+      shape: { type: 'box', halfExtents: [1, 1, 1] },
+      position: [0, 10, 0],
+      motionType: 'dynamic'
+    });
+    Physics.addImpulse(body, 0, 5, 0);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 73: idl/rave.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_73() {
   // Load model and encode/decode audio
     const audio = new Float32Array(48000);
     const rave = bro.rave.loadRave('../brosoundml-data/rave/magnets_z8');
@@ -754,9 +1004,9 @@ async function example_50() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 51: idl/rave.idl (Header Doc) — Example 2
+// Snippet 74: idl/rave.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_51() {
+async function example_74() {
   // Decode with noise synthesis
     const rave = bro.rave.loadRave('../brosoundml-data/rave/magnets_z8');
     const latent = new Float32Array(8 * 100);
@@ -764,9 +1014,9 @@ async function example_51() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 52: idl/rave.idl (Header Doc) — Example 3
+// Snippet 75: idl/rave.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_52() {
+async function example_75() {
   // Stereo decode with decorrelated channels
     const rave = bro.rave.loadRave('../brosoundml-data/rave/magnets_z8');
     const latent = new Float32Array(8 * 100);
@@ -775,40 +1025,41 @@ async function example_52() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 53: idl/settings.idl (Header Doc) — Example 1
+// Snippet 76: idl/server.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_53() {
-  // Read and write settings
-    const vol = bro.settings.get("audio.masterVolume");
-    bro.settings.set("audio.masterVolume", 0.8);
-    bro.settings.setDefault("graphics.width", 1280);
+async function example_76() {
+  bro.server.tickrate = 120.0;
+    console.log('Server tickrate:', bro.server.tickrate, 'Uptime:', bro.server.uptime);
+    // Gracefully request shutdown
+    bro.server.stop();
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 54: idl/settings.idl (Header Doc) — Example 2
+// Snippet 77: idl/steam.idl (steam) — steam example
 // -----------------------------------------------------------------------------
-async function example_54() {
-  // Action bindings
-    bro.settings.defineAction("jump", [" ", "ArrowUp"]);
-    const keys = bro.settings.getActionKeys("jump");
-    bro.settings.rebindAction("jump", [" ", "w"]);
-}
-
-// -----------------------------------------------------------------------------
-// Snippet 55: idl/settings.idl (Header Doc) — Example 3
-// -----------------------------------------------------------------------------
-async function example_55() {
-  // Display modes
-    const modes = bro.settings.getDisplayModes();
-    for (const m of modes) {
-      console.log(m.width + "x" + m.height + " @" + m.refreshRate + "Hz");
+async function example_77() {
+  if (bro.steam.available) {
+      console.log('Logged into Steam as:', bro.steam.personaName);
+      bro.steam.setAchievement('ACH_FIRST_WIN');
     }
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 56: idl/terrain.idl (Header Doc) — Example 1
+// Snippet 78: idl/tensor.idl (GpuTensor) — GpuTensor example
 // -----------------------------------------------------------------------------
-async function example_56() {
+async function example_78() {
+  if (bro.tensor.available) {
+      bro.tensor.init();
+      const t = bro.tensor.createTensor(3, 4);
+      t.zero();
+      const data = t.download();
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 79: idl/terrain.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_79() {
   // Create and initialize terrain in scene
     const terrain = scene.createTerrain({
       chunkSize: [64, 48, 64],
@@ -823,9 +1074,9 @@ async function example_56() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 57: idl/terrain.idl (Header Doc) — Example 2
+// Snippet 80: idl/terrain.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_57() {
+async function example_80() {
   // Per-frame camera update
     function onFrame(camPos) {
       const loadedCount = terrain.update(camPos.x, camPos.y, camPos.z);
@@ -834,9 +1085,9 @@ async function example_57() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 58: idl/terrain.idl (Header Doc) — Example 3
+// Snippet 81: idl/terrain.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_58() {
+async function example_81() {
   // Raycasting and surface editing
     const hit = terrain.raycast([0, 50, 0], [0, -1, 0], 100);
     if (hit) {
@@ -846,9 +1097,9 @@ async function example_58() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 59: idl/text.idl (Header Doc) — Example 1
+// Snippet 82: idl/text.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_59() {
+async function example_82() {
   // Shape text with font options
     const res = bro.text.shape("Hello World", { family: "Arial", size: 16 });
     if (res && res.clusters) {
@@ -860,9 +1111,9 @@ async function example_59() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 60: idl/text.idl (Header Doc) — Example 2
+// Snippet 83: idl/text.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_60() {
+async function example_83() {
   // Caret cluster positioning
     const pos = bro.text.byteOffsetToX("Hello", { family: "Arial", size: 16 }, 2);
     if (pos) {
@@ -871,9 +1122,9 @@ async function example_60() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 61: idl/text.idl (Header Doc) — Example 3
+// Snippet 84: idl/text.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_61() {
+async function example_84() {
   // UAX #9 Bidirectional resolution
     const para = bro.text.bidi("Hello Arabic", "auto");
     if (para) {
@@ -882,9 +1133,9 @@ async function example_61() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 62: idl/time.idl (Header Doc) — Example 1
+// Snippet 85: idl/time.idl (Header Doc) — Example 1
 // -----------------------------------------------------------------------------
-async function example_62() {
+async function example_85() {
   // Pause menu idiom
     window.addEventListener('action', (e) => {
       if (e.name === 'pause') bro.time.paused = !bro.time.paused;
@@ -892,22 +1143,95 @@ async function example_62() {
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 63: idl/time.idl (Header Doc) — Example 2
+// Snippet 86: idl/time.idl (Header Doc) — Example 2
 // -----------------------------------------------------------------------------
-async function example_63() {
+async function example_86() {
   // Slow-motion effect
     bro.time.scale = 0.25;                           // bullet time
     setTimeout(() => { bro.time.scale = 1; }, 500);  // 500 scaled ms = 2000 wall ms
 }
 
 // -----------------------------------------------------------------------------
-// Snippet 64: idl/time.idl (Header Doc) — Example 3
+// Snippet 87: idl/time.idl (Header Doc) — Example 3
 // -----------------------------------------------------------------------------
-async function example_64() {
+async function example_87() {
   // Headless testing
     bro.time.scale = 0.5;
     advanceTime(100);        // scaled clock advances 50ms; timers/rAF/physics see 50ms
     bro.time.paused = true;
     advanceTime(1000);       // gameplay time does not move at all
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 88: idl/vendor_globals.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_88() {
+  // Access vendored global library from compiled realm
+    if (typeof CodeMirror !== 'undefined') {
+      console.log('CodeMirror loaded');
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 89: idl/vision.idl (DepthEstimator) — DepthEstimator example
+// -----------------------------------------------------------------------------
+async function example_89() {
+  bro.vision.init();
+    const depth = bro.vision.loadDepth('weights/depth-anything-v2-small');
+    const result = depth.estimate(imageBitmap);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 90: idl/webgl2.idl (WebGLBuffer) — WebGLBuffer example
+// -----------------------------------------------------------------------------
+async function example_90() {
+  const gl = canvas.getContext('webgl2');
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 91: idl/web_animations.idl (Animation) — Animation example
+// -----------------------------------------------------------------------------
+async function example_91() {
+  const anim = element.animate([
+      { transform: 'translateY(0px)', opacity: 1 },
+      { transform: 'translateY(100px)', opacity: 0 }
+    ], { duration: 1000, iterations: Infinity });
+    anim.pause();
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 92: idl/window.idl (Header Doc) — Example 1
+// -----------------------------------------------------------------------------
+async function example_92() {
+  bro.window.borderless = true;
+    bro.window.alwaysOnTop = true;
+    const pos = bro.window.getPosition();
+    console.log('Window position:', pos.x, pos.y);
+    const displays = bro.window.getDisplays();
+    console.log('Displays attached:', displays.length);
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 93: idl/worker.idl (Worker) — Worker example
+// -----------------------------------------------------------------------------
+async function example_93() {
+  const worker = new Worker('worker.js');
+    worker.onmessage = (e) => console.log('From worker:', e.data);
+    worker.postMessage({ task: 'compute', count: 1000 });
+}
+
+// -----------------------------------------------------------------------------
+// Snippet 94: idl/worldgen.idl (worldgen) — worldgen example
+// -----------------------------------------------------------------------------
+async function example_94() {
+  bro.worldgen.loadWorld("weights/terrain", {
+      seed: 42,
+      onReady: (world) => {
+        const tile = world.elevationSync(0, 0, 256, 256);
+        console.log(`Generated ${tile.width}x${tile.height} tile with cell size ${tile.cellSize}m`);
+      }
+    });
 }
 

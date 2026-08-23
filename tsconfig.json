@@ -2,14 +2,15 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "strict": true,
     "noImplicitAny": false,
     "noEmit": true,
     "skipLibCheck": false
   },
   "files": [
-    "out/bro.d.ts",
-    "out/test_examples.ts"
+    "out/bro.d.ts"
   ]
 }

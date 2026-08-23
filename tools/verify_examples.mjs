@@ -178,8 +178,6 @@ declare var loadFn: () => void;
 declare var unetDir: string;
 declare namespace bro {
   var diffusion: any;
-  var appDir: string;
-  function resolvePath(path: string): string;
 }
 
 
