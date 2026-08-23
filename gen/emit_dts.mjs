@@ -121,7 +121,7 @@ export function typeToTS(typeNode) {
       }
       break;
     default:
-      // Custom interface, dictionary, typedef, enum, or math type
+      // Custom interface, dictionary, typedef, enum, or declared type
       tsType = name;
       break;
   }

@@ -114,6 +114,102 @@ const bundles = [
     test_files: ['tests/headless/test_app_paths.js (PASS)'],
     diff_triage: 'Zero behavioral diffs. Dynamic appDir retrieval, relative and mounted asset path normalization across OS platforms.',
   },
+  {
+    ns: 'flora',
+    census: '#4 — Ecosystem Simulation (bro.flora)',
+    title: 'flora (bro.flora)',
+    files: [
+      ['out/qjs/flora_bindings.cpp', 'src/js/flora_bindings.cpp'],
+      ['out/docs/flora-api.js', 'docs/flora-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/flora_bindings.cpp',
+      'out/docs/flora-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh flora"',
+    test_files: ['tests/flora/test_bindings_smoke.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. Ecosystem simulation ticks, plant creation, procedural branch mesh emit, and leaf cluster generation.',
+  },
+  {
+    ns: 'math',
+    census: '#5 — Fast Math & Spatial Indexing (bro.math)',
+    title: 'math (bro.math)',
+    files: [
+      ['out/qjs/math_bindings.cpp', 'src/js/math_bindings.cpp'],
+      ['out/docs/math-api.js', 'docs/math-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/math_bindings.cpp',
+      'out/docs/math-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh math"',
+    test_files: ['tests/math/test_rng_smoother.js (PASS)', 'tests/math/test_spatial_hash.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. 3D spatial hash index, SplitMix64 PRNG, exponential smoother filter, curve evaluators, and geometric intersection tests.',
+  },
+  {
+    ns: 'worldgen',
+    census: '#49 — Neural World Generation (bro.worldgen)',
+    title: 'worldgen (bro.worldgen)',
+    files: [
+      ['out/qjs/worldgen_bindings.cpp', 'src/js/worldgen_bindings.cpp'],
+      ['out/docs/worldgen-api.js', 'docs/worldgen-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/worldgen_bindings.cpp',
+      'out/docs/worldgen-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 BRO_TERRAIN_WEIGHTS=none ./tests/run_tests.sh worldgen"',
+    test_files: ['tests/worldgen/test_worldgen_stage.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. Multi-stage neural world pipeline, coarse/latent/residual stages, synchronous and asynchronous elevation reconstruction.',
+  },
+  {
+    ns: 'diar',
+    census: '#44 — Speaker Diarization (bro.diar)',
+    title: 'diar (bro.diar)',
+    files: [
+      ['out/qjs/diar_bindings.cpp', 'src/js/diar_bindings.cpp'],
+      ['out/docs/diar-api.js', 'docs/diar-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/diar_bindings.cpp',
+      'out/docs/diar-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh diar"',
+    test_files: ['tests/diar/test_diar_binding.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. Sortformer 4-speaker Conformer diarization, streaming sessions, and offline cluster diarizer.',
+  },
+  {
+    ns: 'triposplat',
+    census: '#48 — 3D Gaussian Splat Generation (bro.triposplat)',
+    title: 'triposplat (bro.triposplat)',
+    files: [
+      ['out/qjs/triposplat_bindings.cpp', 'src/js/triposplat_bindings.cpp'],
+      ['out/docs/triposplat-api.js', 'docs/triposplat-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/triposplat_bindings.cpp',
+      'out/docs/triposplat-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh triposplat"',
+    test_files: ['tests/triposplat/test_triposplat_binding.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. Single-image feedforward 3D gaussian splat reconstruction, FlowDiT sampling, and BiRefNet matte background removal.',
+  },
+  {
+    ns: 'diffusion',
+    census: '#41 — Neural Diffusion Pipeline (bro.diffusion)',
+    title: 'diffusion (bro.diffusion)',
+    files: [
+      ['out/qjs/diffusion_bindings.cpp', 'src/js/diffusion_bindings.cpp'],
+      ['out/docs/diffusion-api.js', 'docs/diffusion-api.js'],
+    ],
+    artifacts: [
+      'out/qjs/diffusion_bindings.cpp',
+      'out/docs/diffusion-api.js',
+    ],
+    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh diffusion"',
+    test_files: ['tests/diffusion/test_diffusion_binding.js (PASS)'],
+    diff_triage: 'Zero behavioral diffs. Text-to-image neural diffusion inference pipeline, safetensors loading, schedulers, and expandNoise.',
+  },
 ];
 
 function cleanupScratchWorktree(scratchDir) {

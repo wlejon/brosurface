@@ -1,0 +1,67 @@
+/**
+ * =============================================================================
+ * bro.triposplat — single-image to 3D Gaussian Splat pipeline
+ * =============================================================================
+ *
+ * Feedforward 3D reconstruction pipeline assembling DINOv3 ViT-H, Flux.2 VAE encoder,
+ * FlowDiT diffusion transformer, and Octree Gaussian Decoder into real-time 3D Gaussian splats.
+ *
+ * @example
+ *   const pipeline = bro.triposplat.load({
+ *     dinov3: "weights/dinov3.safetensors",
+ *     vae: "weights/vae.safetensors",
+ *     flow: "weights/flow.safetensors",
+ *     decoder: "weights/decoder.safetensors"
+ *   });
+ *   const cloud = pipeline.generate(imageBitmap, { steps: 25 });
+ *   scene.createGaussianSplat({ cloud, scale: 1.0 });
+ */
+
+[
+  cpp_file="triposplat_bindings.cpp",
+  cpp_header="js/triposplat_bindings.h",
+  cpp_includes="\"js/imagebitmap_bindings.h\"\n\"util/interrupt.h\"\n<brovisionml/dinov3.h>\n<brovisionml/birefnet.h>\n<brodiffusion/triposplat/vae_encoder.h>\n<brodiffusion/triposplat/flow_model.h>\n<brodiffusion/triposplat/octree_decoder.h>\n<brodiffusion/triposplat/sampler.h>\n<brotensor/runtime.h>\n<brotensor/safetensors.h>\n<brotensor/tensor.h>\n<broimage/encode.h>\n<include/core/SkData.h>\n<include/core/SkImage.h>\n<include/core/SkImageInfo.h>\n<algorithm>\n<atomic>\n<chrono>\n<cmath>\n<cstdint>\n<cstdio>\n<cstdlib>\n<memory>\n<random>\n<stdexcept>\n<string>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="installTriposplatBindings",
+  feature_gate="BRO_WITH_TRIPOSPLAT",
+  prefix="bro.",
+  cpp_prologue="namespace bt  = ::brotensor;\nnamespace st  = ::brotensor::safetensors;\nnamespace tsp = ::brodiffusion::triposplat;\nnamespace dv3 = ::brovisionml::dinov3;\nnamespace brn = ::brovisionml::birefnet;\n\nnamespace {\n\nbool tsGetStr(JSContext* ctx, JSValueConst obj, const char* key, std::string& out) {\n    if (!JS_IsObject(obj)) return false;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool ok = false;\n    if (JS_IsString(v)) {\n        const char* s = JS_ToCString(ctx, v);\n        if (s) { out = s; JS_FreeCString(ctx, s); ok = true; }\n    }\n    JS_FreeValue(ctx, v);\n    return ok;\n}\n\nvoid tsGetInt(JSContext* ctx, JSValueConst obj, const char* key, int& dst) {\n    if (!JS_IsObject(obj)) return;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { int32_t t = dst; JS_ToInt32(ctx, &t, v); dst = t; }\n    JS_FreeValue(ctx, v);\n}\n\nvoid tsGetFloat(JSContext* ctx, JSValueConst obj, const char* key, float& dst) {\n    if (!JS_IsObject(obj)) return;\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { double t = dst; JS_ToFloat64(ctx, &t, v); dst = (float)t; }\n    JS_FreeValue(ctx, v);\n}\n\nstd::atomic<bool> g_cancelRequested{false};\n\nstruct TripoSplatWrapper {\n    bt::Device device = bt::Device::CPU;\n    std::unique_ptr<dv3::Backbone> dino;\n    std::unique_ptr<tsp::Flux2VaeEncoder> vae;\n    std::unique_ptr<tsp::FlowDiT> flow;\n    std::unique_ptr<tsp::OctreeGaussianDecoder> decoder;\n    std::unique_ptr<brn::BiRefNet> rmbg;\n};\n\nbt::Device tsAutoDevice() {\n    if (bt::is_available(bt::Device::CUDA))  return bt::Device::CUDA;\n    if (bt::is_available(bt::Device::Metal)) return bt::Device::Metal;\n    return bt::Device::CPU;\n}\n\nJSValue tsFloat32Array(JSContext* ctx, const float* data, size_t count) {\n    size_t bytes = count * sizeof(float);\n    JSValue abuf = JS_NewArrayBufferCopy(ctx, reinterpret_cast<const uint8_t*>(data), bytes);\n    if (JS_IsException(abuf)) return abuf;\n    JSValue lenVal = JS_NewInt64(ctx, static_cast<int64_t>(count));\n    JSValue arr = JS_NewTypedArrayWithBuffer(ctx, abuf, 0, 1, &lenVal, JS_TYPED_ARRAY_FLOAT32);\n    JS_FreeValue(ctx, lenVal);\n    JS_FreeValue(ctx, abuf);\n    return arr;\n}\n\nJSValue tsGenerate(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* w = qjsbind::unwrap<TripoSplatWrapper>(ctx, this_val);\n    if (!w || !w->dino || !w->vae || !w->flow || !w->decoder)\n        return JS_ThrowTypeError(ctx, \"TripoSplat pipeline is not loaded\");\n    if (argc < 1) return JS_ThrowTypeError(ctx, \"generate(image, opts?): image required\");\n    int width = 0, height = 0;\n    const uint8_t* rgba = nullptr;\n    std::vector<uint8_t> rgbaStorage;\n    if (auto* ib = qjsbind::unwrap<ImageBitmap>(ctx, argv[0])) {\n        if (ib->isClosed()) return JS_ThrowTypeError(ctx, \"ImageBitmap is closed\");\n        if (!ib->image()) return JS_ThrowTypeError(ctx, \"ImageBitmap has no backing image\");\n        auto sk = ib->image();\n        width = sk->width(); height = sk->height();\n        rgbaStorage.resize(static_cast<size_t>(width) * height * 4);\n        SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kUnpremul_SkAlphaType);\n        if (!sk->readPixels(info, rgbaStorage.data(), width * 4, 0, 0))\n            return JS_ThrowInternalError(ctx, \"failed to read ImageBitmap pixels\");\n        rgba = rgbaStorage.data();\n    } else if (JS_IsObject(argv[0])) {\n        tsGetInt(ctx, argv[0], \"width\", width);\n        tsGetInt(ctx, argv[0], \"height\", height);\n        JSValue dataV = JS_GetPropertyStr(ctx, argv[0], \"data\");\n        size_t byteOff = 0, byteLen = 0;\n        JSValue abuf = JS_GetTypedArrayBuffer(ctx, dataV, &byteOff, &byteLen, nullptr);\n        if (!JS_IsException(abuf)) {\n            size_t abufLen = 0;\n            uint8_t* ptr = JS_GetArrayBuffer(ctx, &abufLen, abuf);\n            if (ptr && byteOff + byteLen <= abufLen) rgba = ptr + byteOff;\n            JS_FreeValue(ctx, abuf);\n        }\n        JS_FreeValue(ctx, dataV);\n    }\n    if (!rgba || width <= 0 || height <= 0)\n        return JS_ThrowTypeError(ctx, \"expected an ImageBitmap or { width, height, data: Uint8Array|Uint8ClampedArray }\");\n    tsp::SamplerConfig cfg;\n    if (argc > 1 && JS_IsObject(argv[1])) {\n        JSValueConst opts = argv[1];\n        int seed = 42, steps = 25, numG = 0;\n        float cfgScale = 3.0f, shift = 1.0f;\n        tsGetInt(ctx, opts, \"seed\", seed);\n        tsGetInt(ctx, opts, \"steps\", steps);\n        tsGetInt(ctx, opts, \"numGaussians\", numG);\n        tsGetFloat(ctx, opts, \"guidanceScale\", cfgScale);\n        tsGetFloat(ctx, opts, \"shift\", shift);\n        cfg.seed = static_cast<uint64_t>(seed);\n        cfg.steps = steps;\n        cfg.guidance_scale = cfgScale;\n        cfg.shift = shift;\n        if (numG > 0) cfg.num_gaussians = numG;\n    }\n    try {\n        bt::DeviceScope scope(w->device);\n        g_cancelRequested.store(false, std::memory_order_relaxed);\n        tsp::GaussianSplats splats = tsp::sample_image(rgba, width, height, *w->dino, *w->vae, *w->flow, *w->decoder, w->rmbg.get(), cfg, []() { return g_cancelRequested.load(std::memory_order_relaxed); });\n        JSValue out = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, out, \"positions\", tsFloat32Array(ctx, splats.positions.data(), splats.positions.size()));\n        JS_SetPropertyStr(ctx, out, \"scales\",    tsFloat32Array(ctx, splats.scales.data(), splats.scales.size()));\n        JS_SetPropertyStr(ctx, out, \"rotations\", tsFloat32Array(ctx, splats.rotations.data(), splats.rotations.size()));\n        JS_SetPropertyStr(ctx, out, \"opacities\", tsFloat32Array(ctx, splats.opacities.data(), splats.opacities.size()));\n        JS_SetPropertyStr(ctx, out, \"sh\",        tsFloat32Array(ctx, splats.sh.data(), splats.sh.size()));\n        JS_SetPropertyStr(ctx, out, \"shDegree\",  JS_NewInt32(ctx, splats.shDegree));\n        JS_SetPropertyStr(ctx, out, \"count\",     JS_NewInt64(ctx, static_cast<int64_t>(splats.count())));\n        return out;\n    } catch (const tsp::SampleCancelled&) {\n        JSValue out = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, out, \"cancelled\", JS_TRUE);\n        return out;\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"triposplat.generate failed: %s\", e.what());\n    }\n}\n\nJSValue tsCancel(JSContext*, JSValueConst, int, JSValueConst*) {\n    g_cancelRequested.store(true, std::memory_order_relaxed);\n    return JS_UNDEFINED;\n}\n\nstatic void tsRegisterClass(JSContext* ctx) {\n    qjsbind::Class<TripoSplatWrapper>(ctx, \"TripoSplatPipeline\", qjsbind::NoGlobal)\n        .get(\"device\", [](TripoSplatWrapper* w) {\n            switch (w->device.type) {\n                case bt::DeviceType::CUDA:  return std::string(\"CUDA\");\n                case bt::DeviceType::Metal: return std::string(\"Metal\");\n                default:                    return std::string(\"CPU\");\n            }\n        })\n        .get(\"backgroundRemoval\", [](TripoSplatWrapper* w) { return w->rmbg != nullptr; })\n        .method_raw(\"generate\", tsGenerate, 2);\n}\n\nJSValue tsInit(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    try { bt::init(); } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"triposplat.init failed: %s\", e.what());\n    }\n    return JS_UNDEFINED;\n}\n\nJSValue tsLoad(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1 || !JS_IsObject(argv[0]))\n        return JS_ThrowTypeError(ctx, \"load({ dinov3, vae, flow, decoder }) requires an options object\");\n    std::string p_dino, p_vae, p_flow, p_dec, dev;\n    if (!tsGetStr(ctx, argv[0], \"dinov3\", p_dino) || !tsGetStr(ctx, argv[0], \"vae\", p_vae) ||\n        !tsGetStr(ctx, argv[0], \"flow\", p_flow)   || !tsGetStr(ctx, argv[0], \"decoder\", p_dec))\n        return JS_ThrowTypeError(ctx, \"load: dinov3, vae, flow and decoder paths are all required\");\n    try {\n        bt::init();\n        bt::Device device = tsAutoDevice();\n        if (tsGetStr(ctx, argv[0], \"device\", dev)) {\n            if (dev == \"cpu\") device = bt::Device::CPU;\n            else if (dev == \"cuda\") device = bt::Device::CUDA;\n            else if (dev == \"metal\") device = bt::Device::Metal;\n        }\n        bt::set_default_device(device);\n        auto w = std::make_unique<TripoSplatWrapper>();\n        w->device = device;\n        w->dino = std::make_unique<dv3::Backbone>(dv3::Config::vit_h());\n        w->dino->load_file(p_dino);\n        w->dino->to(device);\n        w->vae = std::make_unique<tsp::Flux2VaeEncoder>();\n        { st::File f = st::File::open(p_vae); w->vae->load_weights(f); }\n        w->flow = std::make_unique<tsp::FlowDiT>();\n        { st::File f = st::File::open(p_flow); w->flow->load_weights(f); }\n        w->decoder = std::make_unique<tsp::OctreeGaussianDecoder>();\n        { st::File f = st::File::open(p_dec); w->decoder->load_weights(f); }\n        std::string p_rmbg;\n        if (tsGetStr(ctx, argv[0], \"birefnet\", p_rmbg) && !p_rmbg.empty()) {\n            w->rmbg = std::make_unique<brn::BiRefNet>();\n            w->rmbg->load(p_rmbg);\n            w->rmbg->to(device);\n        }\n        return qjsbind::wrap<TripoSplatWrapper>(ctx, w.release());\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"triposplat.load failed: %s\", e.what());\n    }\n}\n\n} // namespace",
+  install_body="tsRegisterClass(ctx);\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj)) {\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n\n    JSValue ns = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, ns, \"init\", JS_NewCFunction(ctx, tsInit, \"init\", 0));\n    JS_SetPropertyStr(ctx, ns, \"load\", JS_NewCFunction(ctx, tsLoad, \"load\", 1));\n    JS_SetPropertyStr(ctx, ns, \"cancel\", JS_NewCFunction(ctx, tsCancel, \"cancel\", 0));\n    JS_SetPropertyStr(ctx, broObj, \"triposplat\", ns);\n\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);"
+]
+namespace triposplat {
+  /**
+   * Initialize brotensor acceleration subsystem.
+   */
+  void init();
+
+  /**
+   * Load TripoSplat model checkpoint pipelines.
+   */
+  TripoSplatPipeline load(object opts);
+
+  /**
+   * Request cancellation of active reconstruction generation.
+   */
+  void cancel();
+};
+
+[
+  custom,
+  wrapper_struct="TripoSplatWrapper"
+]
+interface TripoSplatPipeline {
+  /**
+   * Generate 3D Gaussian Splat cloud from input image.
+   */
+  object generate(any image, optional object opts);
+
+  /**
+   * Target execution device name.
+   */
+  readonly attribute DOMString device;
+
+  /**
+   * True if BiRefNet background matte removal preprocessor is active.
+   */
+  readonly attribute boolean backgroundRemoval;
+};

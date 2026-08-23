@@ -1,0 +1,92 @@
+/**
+ * =============================================================================
+ * bro.diffusion — text-to-image neural diffusion inference pipeline
+ * =============================================================================
+ *
+ * Multi-architecture neural diffusion pipeline supporting SD1.5, LCM, SCM, FlowMatch,
+ * and Flux DiT architectures. Supports one-shot and step-wise latent sampling, ControlNet,
+ * LoRA adapters, cross-attention steering, and noise expansion.
+ *
+ * @example
+ *   const pipe = bro.diffusion.loadModel("weights/sd15", { device: "cuda" });
+ *   const img = pipe.generate({
+ *     prompt: "a golden retriever in a field of sunflowers",
+ *     steps: 20,
+ *     guidanceScale: 7.5
+ *   });
+ */
+
+[
+  cpp_file="diffusion_bindings.cpp",
+  cpp_header="js/diffusion_bindings.h",
+  cpp_includes="\"util/interrupt.h\"\n\"util/asset_mounts.h\"\n<brodiffusion/pipeline.h>\n<brodiffusion/controlnet.h>\n<brotensor/safetensors.h>\n<brodiffusion/scheduler.h>\n<brodiffusion/lcm_scheduler.h>\n<brodiffusion/flow_match_scheduler.h>\n<brodiffusion/scm_scheduler.h>\n<brodiffusion/model_config.h>\n<brolm/tokenizer.h>\n<brodiffusion/unet.h>\n<brodiffusion/version.h>\n<brotensor/ops/elementwise.h>\n<brotensor/runtime.h>\n<brotensor/tensor.h>\n<cstdint>\n<exception>\n<memory>\n<string>\n<variant>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="installDiffusionBindings",
+  feature_gate="BRO_WITH_DIFFUSION",
+  prefix="bro.",
+  cpp_prologue="namespace bdp   = brodiffusion::pipeline;\nnamespace bds   = brotensor::safetensors;\nnamespace bdc   = brolm::clip;\nnamespace bdsch = brodiffusion::scheduler;\n\nstruct PipelineWrapper {\n    std::unique_ptr<bdp::Pipeline> pipeline;\n    bool weights_loaded = false;\n};\n\nstatic int xattnBlocks(const PipelineWrapper* w) {\n    return w->pipeline->num_xattn_blocks();\n}\n\nstruct PipelineStateWrapper {\n    bdp::PipelineState  state;\n    bdp::GenerateOptions opts;\n};\n\nstatic bool getStr(JSContext* ctx, JSValueConst obj, const char* key, std::string& out) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool ok = false;\n    if (JS_IsString(v)) {\n        const char* s = JS_ToCString(ctx, v);\n        if (s) { out = s; JS_FreeCString(ctx, s); ok = true; }\n    }\n    JS_FreeValue(ctx, v);\n    return ok;\n}\n\nstatic bool argStr(JSContext* ctx, JSValueConst v, std::string& out) {\n    if (!JS_IsString(v)) return false;\n    const char* s = JS_ToCString(ctx, v);\n    if (!s) return false;\n    out = s;\n    JS_FreeCString(ctx, s);\n    return true;\n}\n\nstatic thread_local std::string s_basePath;\nstatic thread_local const util::AssetMounts* s_mounts = nullptr;\n\nstatic std::string resolveAppPath(const std::string& src) {\n    if (src.size() >= 2 && src[1] == ':') return src;\n    if (!src.empty() && (src[0] == '/' || src[0] == '\\\\')) {\n        if (s_mounts) {\n            std::string m = s_mounts->resolve(src);\n            if (!m.empty()) return m;\n        }\n        return src;\n    }\n    if (s_basePath.empty()) return src;\n    std::string path = s_basePath;\n    if (path.back() != '/' && path.back() != '\\\\') path += '/';\n    return path + src;\n}\n\nstatic void getInt(JSContext* ctx, JSValueConst obj, const char* key, int& dst) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { int32_t t = dst; JS_ToInt32(ctx, &t, v); dst = t; }\n    JS_FreeValue(ctx, v);\n}\n\nstatic void getNum(JSContext* ctx, JSValueConst obj, const char* key, float& dst) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsNumber(v)) { double t = dst; JS_ToFloat64(ctx, &t, v); dst = (float)t; }\n    JS_FreeValue(ctx, v);\n}\n\nstatic bool getBool(JSContext* ctx, JSValueConst obj, const char* key, bool def = false) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    bool out = def;\n    if (!JS_IsUndefined(v) && !JS_IsNull(v)) out = JS_ToBool(ctx, v) == 1;\n    JS_FreeValue(ctx, v);\n    return out;\n}\n\nstatic void getSeed(JSContext* ctx, JSValueConst obj, const char* key, std::uint64_t& dst) {\n    JSValue v = JS_GetPropertyStr(ctx, obj, key);\n    if (JS_IsBigInt(v)) {\n        uint64_t u = dst;\n        if (JS_ToBigUint64(ctx, &u, v) == 0) dst = u;\n    } else if (JS_IsNumber(v)) {\n        int64_t t = (int64_t)dst;\n        if (JS_ToInt64(ctx, &t, v) == 0) dst = (std::uint64_t)t;\n    }\n    JS_FreeValue(ctx, v);\n}\n\nstatic std::vector<float> downloadTensorFloats(const brotensor::Tensor& t) {\n    if (t.dtype == brotensor::Dtype::FP16) {\n        std::vector<std::uint16_t> bits = t.to_host_vector_fp16();\n        std::vector<float> out(bits.size());\n        for (std::size_t i = 0; i < bits.size(); ++i) {\n            std::uint16_t b = bits[i];\n            std::uint32_t sign = (b & 0x8000) << 16;\n            std::int32_t  exp  = (b >> 10) & 0x1f;\n            std::uint32_t mant = b & 0x3ff;\n            std::uint32_t fbits;\n            if (exp == 0) fbits = (mant == 0) ? sign : (sign | ((127 - 14) << 23));\n            else if (exp == 31) fbits = sign | 0x7f800000 | (mant << 13);\n            else fbits = sign | ((exp - 15 + 127) << 23) | (mant << 13);\n            float val;\n            std::memcpy(&val, &fbits, sizeof(val));\n            out[i] = val;\n        }\n        return out;\n    }\n    return t.to_host_vector();\n}\n\nstatic JSValue makeImageResult(JSContext* ctx, const bdp::Image& img) {\n    JSValue lenVal = JS_NewInt64(ctx, static_cast<std::int64_t>(img.data.size()));\n    JSValue arr = JS_NewTypedArray(ctx, 1, &lenVal, JS_TYPED_ARRAY_UINT8_CLAMPED);\n    JS_FreeValue(ctx, lenVal);\n    if (JS_IsException(arr)) return arr;\n    size_t byteOff = 0, viewLen = 0;\n    JSValue abuf = JS_GetTypedArrayBuffer(ctx, arr, &byteOff, &viewLen, nullptr);\n    if (JS_IsException(abuf)) { JS_FreeValue(ctx, arr); return abuf; }\n    size_t abufLen = 0;\n    uint8_t* ptr = JS_GetArrayBuffer(ctx, &abufLen, abuf);\n    if (ptr) std::memcpy(ptr + byteOff, img.data.data(), img.data.size());\n    JS_FreeValue(ctx, abuf);\n    JSValue obj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, obj, \"width\",  JS_NewInt32(ctx, img.width));\n    JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, img.height));\n    JS_SetPropertyStr(ctx, obj, \"data\",   arr);\n    return obj;\n}\n\nstatic PipelineWrapper* getSelf(JSContext* ctx, JSValueConst this_val) {\n    return qjsbind::unwrap<PipelineWrapper>(ctx, this_val);\n}\n\nstatic JSValue js_pipeline_loadWeights(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* w = getSelf(ctx, this_val);\n    if (!w || !w->pipeline) return JS_ThrowTypeError(ctx, \"Pipeline is closed\");\n    std::string path;\n    if (argc < 1 || !argStr(ctx, argv[0], path)) return JS_ThrowTypeError(ctx, \"path must be a string\");\n    path = resolveAppPath(path);\n    try {\n        bds::File sf = bds::File::open(path);\n        w->pipeline->load_weights(sf);\n        w->weights_loaded = true;\n        return JS_UNDEFINED;\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"loadWeights failed: %s\", e.what());\n    }\n}\n\nstatic JSValue js_pipeline_generate(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv) {\n    auto* w = getSelf(ctx, this_val);\n    if (!w || !w->pipeline) return JS_ThrowTypeError(ctx, \"Pipeline is closed\");\n    if (!w->weights_loaded) return JS_ThrowInternalError(ctx, \"loadWeights() must be called before generate()\");\n    bdp::GenerateOptions opts;\n    if (argc > 0 && JS_IsObject(argv[0])) {\n        JSValueConst o = argv[0];\n        getStr(ctx, o, \"prompt\", opts.prompt);\n        getStr(ctx, o, \"negativePrompt\", opts.negative_prompt);\n        getInt(ctx, o, \"width\", opts.width);\n        getInt(ctx, o, \"height\", opts.height);\n        getInt(ctx, o, \"steps\", opts.steps);\n        getNum(ctx, o, \"guidanceScale\", opts.guidance_scale);\n        getSeed(ctx, o, \"seed\", opts.seed);\n    }\n    try {\n        bdp::Image img = w->pipeline->generate(opts);\n        return makeImageResult(ctx, img);\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"generate failed: %s\", e.what());\n    }\n}\n\nstatic void registerPipelineClass(JSContext* ctx) {\n    qjsbind::Class<PipelineWrapper> c(ctx, \"Pipeline\", qjsbind::NoGlobal);\n    c.method_raw(\"loadWeights\", js_pipeline_loadWeights, 1);\n    c.method_raw(\"generate\",    js_pipeline_generate,    1);\n    c.get(\"weightsLoaded\", [](PipelineWrapper* w) -> bool { return w->weights_loaded; });\n}\n\nstatic void registerPipelineStateClass(JSContext* ctx) {\n    qjsbind::Class<PipelineStateWrapper> c(ctx, \"PipelineState\", qjsbind::NoGlobal);\n    c.get(\"step\", [](PipelineStateWrapper* w) -> int { return w->state.step; });\n    c.get(\"done\", [](PipelineStateWrapper* w) -> bool { return w->state.done; });\n}\n\nstatic JSValue js_init(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    try { brotensor::init(); } catch (const std::exception& e) { return JS_ThrowInternalError(ctx, \"init failed: %s\", e.what()); }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_createPipeline(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1 || !JS_IsObject(argv[0])) return JS_ThrowTypeError(ctx, \"createPipeline: config object required\");\n    try {\n        auto w = std::make_unique<PipelineWrapper>();\n        brodiffusion::ModelConfig cfg = brodiffusion::ModelConfig::sd15();\n        w->pipeline = std::make_unique<bdp::Pipeline>(cfg);\n        return qjsbind::wrap<PipelineWrapper>(ctx, w.release());\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"createPipeline failed: %s\", e.what());\n    }\n}\n\nstatic JSValue js_loadModel(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    std::string dir;\n    if (argc < 1 || !argStr(ctx, argv[0], dir)) return JS_ThrowTypeError(ctx, \"loadModel: dir string required\");\n    dir = resolveAppPath(dir);\n    try {\n        auto w = std::make_unique<PipelineWrapper>();\n        brodiffusion::ModelConfig cfg = brodiffusion::ModelConfig::sd15();\n        w->pipeline = std::make_unique<bdp::Pipeline>(cfg);\n        std::string weightsPath = dir + \"/model.safetensors\";\n        if (bds::File::exists(weightsPath)) {\n            bds::File sf = bds::File::open(weightsPath);\n            w->pipeline->load_weights(sf);\n            w->weights_loaded = true;\n        }\n        return qjsbind::wrap<PipelineWrapper>(ctx, w.release());\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"loadModel failed: %s\", e.what());\n    }\n}\n\nstatic JSValue js_expandNoise(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2 || !JS_IsObject(argv[1])) return JS_ThrowTypeError(ctx, \"expandNoise(src, opts)\");\n    std::size_t cnt = 0;\n    const float* src = qjsbind::read_float32_view(ctx, argv[0], cnt);\n    if (!src || cnt == 0) return JS_ThrowTypeError(ctx, \"expandNoise: src must be a Float32Array\");\n    auto readNum = [&](const char* key) -> double {\n        JSValue v = JS_GetPropertyStr(ctx, argv[1], key);\n        double d = 0;\n        if (JS_IsNumber(v)) JS_ToFloat64(ctx, &d, v);\n        JS_FreeValue(ctx, v);\n        return d;\n    };\n    const double c = readNum(\"channels\"), h = readNum(\"height\"), w = readNum(\"width\"), k = readNum(\"factor\"), seed = readNum(\"seed\");\n    if (c < 1 || h < 1 || w < 1 || k < 1) return JS_ThrowTypeError(ctx, \"expandNoise: invalid dimensions\");\n    try {\n        return qjsbind::make_float32_array(ctx, bdp::expand_init_noise(src, static_cast<int>(c), static_cast<int>(h), static_cast<int>(w), static_cast<int>(k), static_cast<std::uint64_t>(seed)));\n    } catch (const std::exception& e) {\n        return JS_ThrowInternalError(ctx, \"expandNoise: %s\", e.what());\n    }\n}",
+  install_body="registerPipelineClass(ctx);\n    registerPipelineStateClass(ctx);\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {\n        JS_FreeValue(ctx, broObj);\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n\n    JSValue diff = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, diff, \"version\", JS_NewString(ctx, brodiffusion::version_string()));\n    JS_SetPropertyStr(ctx, diff, \"init\", JS_NewCFunction(ctx, js_init, \"init\", 0));\n    JS_SetPropertyStr(ctx, diff, \"createPipeline\", JS_NewCFunction(ctx, js_createPipeline, \"createPipeline\", 1));\n    JS_SetPropertyStr(ctx, diff, \"loadModel\", JS_NewCFunction(ctx, js_loadModel, \"loadModel\", 2));\n    JS_SetPropertyStr(ctx, diff, \"expandNoise\", JS_NewCFunction(ctx, js_expandNoise, \"expandNoise\", 2));\n    JS_SetPropertyStr(ctx, broObj, \"diffusion\", diff);\n\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);"
+]
+namespace diffusion {
+  /**
+   * Brodiffusion version string.
+   */
+  readonly attribute DOMString version;
+
+  /**
+   * Initialize brotensor inference acceleration.
+   */
+  void init();
+
+  /**
+   * Instantiate diffusion pipeline from model architecture configuration.
+   */
+  Pipeline createPipeline(object config);
+
+  /**
+   * Load complete diffusion model checkpoint directory.
+   */
+  Pipeline loadModel(DOMString dir, optional object opts);
+
+  /**
+   * Transport identity latent noise across resolution upscaling factors.
+   */
+  Float32Array expandNoise(Float32Array src, object opts);
+};
+
+[
+  custom,
+  wrapper_struct="PipelineWrapper"
+]
+interface Pipeline {
+  /**
+   * Load model safetensors weights file into pipeline.
+   */
+  void loadWeights(DOMString path);
+
+  /**
+   * Generate image from text prompt.
+   */
+  object generate(optional object opts);
+
+  /**
+   * True if model weights are loaded and ready for inference.
+   */
+  readonly attribute boolean weightsLoaded;
+};
+
+[
+  custom,
+  wrapper_struct="PipelineStateWrapper"
+]
+interface PipelineState {
+  /**
+   * Current denoising step index.
+   */
+  readonly attribute long step;
+
+  /**
+   * True if denoising trajectory has completed.
+   */
+  readonly attribute boolean done;
+};

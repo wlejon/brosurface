@@ -1152,6 +1152,85 @@ declare class HTMLElement {
   constructor();
 }
 
+declare class Sortformer {
+  /**
+   * Active execution device ('CPU', 'CUDA', or 'Metal').
+   */
+  readonly device: string;
+  /**
+   * True if an asynchronous inference job is active on this model.
+   */
+  readonly busy: boolean;
+  /**
+   * Synchronously run speaker diarization on 16 kHz mono FP32 PCM audio.
+   */
+  diarize(audio: Float32Array): object;
+  /**
+   * Create an online streaming diarization session.
+   */
+  createSession(): SortformerSession;
+}
+
+declare class SortformerSession {
+  /**
+   * Active execution device.
+   */
+  readonly device: string;
+  /**
+   * True if an asynchronous inference job is active.
+   */
+  readonly busy: boolean;
+  /**
+   * Feed streaming 16 kHz PCM chunk and return rolling speaker probabilities.
+   */
+  feed(audio: Float32Array, isLast?: boolean): object;
+  /**
+   * Reset session cache state.
+   */
+  reset(): void;
+}
+
+declare class ClusterDiarizer {
+  /**
+   * Active execution device.
+   */
+  readonly device: string;
+  /**
+   * True if an asynchronous inference job is active.
+   */
+  readonly busy: boolean;
+  /**
+   * Synchronously run clustering diarization with custom threshold options.
+   */
+  diarize(audio: Float32Array, opts?: object): object;
+}
+
+declare class Pipeline {
+  /**
+   * True if model weights are loaded and ready for inference.
+   */
+  readonly weightsLoaded: boolean;
+  /**
+   * Load model safetensors weights file into pipeline.
+   */
+  loadWeights(path: string): void;
+  /**
+   * Generate image from text prompt.
+   */
+  generate(opts?: object): object;
+}
+
+declare class PipelineState {
+  /**
+   * Current denoising step index.
+   */
+  readonly step: number;
+  /**
+   * True if denoising trajectory has completed.
+   */
+  readonly done: boolean;
+}
+
 /**
  * Interface for parsing XML or HTML source code from a string into a DOM Document.
  */
@@ -1444,6 +1523,77 @@ declare class URL {
    * Returns serialized URL href.
    */
   toString(): string;
+}
+
+declare class FloraWorld {
+  /**
+   * Current simulation time in seconds.
+   */
+  readonly simTime: number;
+  /**
+   * Total number of living plants in the world.
+   */
+  readonly plantCount: number;
+  /**
+   * Total number of registered module prototypes.
+   */
+  readonly prototypeCount: number;
+  /**
+   * Total active module instances across all plants.
+   */
+  readonly moduleCount: number;
+  /**
+   * Register a branch module prototype into the world state.
+   */
+  addPrototype(spec: object): number;
+  /**
+   * Add a voronoi site defining spatial dominance and archetype distribution.
+   */
+  addVoronoiSite(prototypeIndex: number, determinacy?: number, apicalControl?: number): FloraWorld;
+  /**
+   * Add a plant specimen into the ecosystem.
+   */
+  addPlant(spec: object): number;
+  /**
+   * Remove a plant specimen by index (swap-and-pop).
+   */
+  removePlant(plantIdx: number): boolean;
+  /**
+   * Advance the simulation by delta time.
+   */
+  step(dt: number): FloraWorld;
+  /**
+   * Query full runtime and species snapshot for a plant.
+   */
+  plantInfo(plantIdx: number): object | null;
+  /**
+   * Update climate temperature and precipitation parameters in real-time.
+   */
+  setClimate(opts: object): FloraWorld;
+  /**
+   * Sample the world shadow grid at a world-space coordinate [x, y, z].
+   */
+  sampleShadow(pos: number[]): number | null;
+  /**
+   * Verify integrity of world module hierarchy.
+   */
+  validate(): string | null;
+  /**
+   * Emit procedural mesh geometry for all living plant branches.
+   */
+  emitMesh(sides?: number): object;
+  /**
+   * Emit linear branch segments with radii and parent indices.
+   */
+  emitSegments(): object[];
+  /**
+   * Emit foliage particle points.
+   */
+  emitFoliage(): object[];
+  /**
+   * Emit blossom and flowering anchor points.
+   */
+  emitBloomAnchors(): object[];
 }
 
 /**
@@ -1935,6 +2085,131 @@ declare class T5Model {
   encode(text: string, opts?: T5EncodeOptions): T5EncodeResult;
 }
 
+declare class SpatialHash3D {
+  /**
+   * Create a 3D spatial hash index.
+   */
+  constructor(cellSize?: number, bucketCount?: number);
+  /**
+   * Total number of indexed entries.
+   */
+  readonly size: number;
+  /**
+   * Insert point ID into cell at [x, y, z].
+   */
+  insert(id: number, x: number, y: number, z: number): SpatialHash3D;
+  /**
+   * Remove point ID from cell at [x, y, z].
+   */
+  remove(id: number, x: number, y: number, z: number): boolean;
+  /**
+   * Find all point IDs within radius of [x, y, z].
+   */
+  queryRadius(x: number, y: number, z: number, radius: number): number[];
+  /**
+   * Find all point IDs within bounding box.
+   */
+  queryAABB(minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): number[];
+  /**
+   * Find nearest point ID within maxDist.
+   */
+  nearest(x: number, y: number, z: number, maxDist: number): object | null;
+  /**
+   * Clear all index buckets.
+   */
+  clear(): SpatialHash3D;
+}
+
+declare class Rng {
+  /**
+   * Deterministic SplitMix64 pseudo-random number generator.
+   */
+  constructor(seed?: number);
+  /**
+   * Reset seed state.
+   */
+  reseed(seed: number): Rng;
+  /**
+   * Uniform float in [0, 1).
+   */
+  float01(): number;
+  /**
+   * Uniform float in [-1, 1).
+   */
+  signed(): number;
+  /**
+   * Uniform float in [lo, hi).
+   */
+  range(lo: number, hi: number): number;
+  /**
+   * Uniform integer in [lo, hi] inclusive.
+   */
+  _int(lo: number, hi: number): number;
+  /**
+   * 32-bit unsigned random integer.
+   */
+  uint32(): number;
+  /**
+   * Standard normal Gaussian distribution (mean 0, stddev 1).
+   */
+  normal(): number;
+  /**
+   * 2D Gaussian point with standard deviation sigma.
+   */
+  gaussian2D(sigma: number): object;
+  /**
+   * Uniform random point inside unit disc {x, y}.
+   */
+  inUnitDisc(): object;
+  /**
+   * Uniform random point inside unit sphere {x, y, z}.
+   */
+  inUnitSphere(): object;
+  /**
+   * Uniform random point on unit sphere surface {x, y, z}.
+   */
+  onUnitSphere(): object;
+}
+
+declare class Smoother {
+  /**
+   * Single-pole exponential signal filter / ramp.
+   */
+  constructor(timeMs?: number, sampleRate?: number);
+  /**
+   * Current filter output value.
+   */
+  readonly current: number;
+  /**
+   * Target value being chased.
+   */
+  readonly target: number;
+  /**
+   * Exponential decay coefficient.
+   */
+  readonly coeff: number;
+  /**
+   * Set 95% closure time and sample rate.
+   */
+  setTime(timeMs: number, sampleRate: number): Smoother;
+  /**
+   * Snap filter state to value without ramping.
+   */
+  reset(value: number): Smoother;
+  /**
+   * Set target value to chase.
+   */
+  setTarget(t: number): Smoother;
+  /**
+   * Advance one simulation tick.
+   */
+  tick(): number;
+  /**
+   * Advance n simulation ticks.
+   */
+  tickN(n: number): number;
+}
+
 /**
  * ARDY text-to-motion generation pipeline instance.
  */
@@ -2285,9 +2560,189 @@ declare class Terrain {
   destroy(): void;
 }
 
+declare class TripoSplatPipeline {
+  /**
+   * Target execution device name.
+   */
+  readonly device: string;
+  /**
+   * True if BiRefNet background matte removal preprocessor is active.
+   */
+  readonly backgroundRemoval: boolean;
+  /**
+   * Generate 3D Gaussian Splat cloud from input image.
+   */
+  generate(image: any, opts?: object): object;
+}
+
+declare class World {
+  /**
+   * World generation random seed.
+   */
+  readonly seed: number;
+  /**
+   * Model weights filesystem directory.
+   */
+  readonly directory: string;
+  /**
+   * Fine resolution cell size in metres.
+   */
+  readonly cellSize: number;
+  /**
+   * Intermediate latent stage cell size in metres.
+   */
+  readonly latentCellSize: number;
+  /**
+   * Coarse overview stage cell size in metres.
+   */
+  readonly coarseCellSize: number;
+  /**
+   * Asynchronously compute fine elevation in metres for cell region [i1, j1, i2, j2).
+   */
+  elevation(i1: number, j1: number, i2: number, j2: number, opts?: object): AsyncHandle;
+  /**
+   * Synchronously compute fine elevation grid in metres.
+   */
+  elevationSync(i1: number, j1: number, i2: number, j2: number, opts?: object): object;
+  /**
+   * Synchronously compute coarse terrain elevation channel at 7.68 km resolution.
+   */
+  coarse(i1: number, j1: number, i2: number, j2: number, opts?: object): object;
+  /**
+   * Asynchronously compute intermediate DAG stage buffer.
+   */
+  stage(name: string, i1: number, j1: number, i2: number, j2: number, opts?: object): AsyncHandle;
+  /**
+   * Synchronously compute intermediate DAG stage buffer.
+   */
+  stageSync(name: string, i1: number, j1: number, i2: number, j2: number): object;
+  /**
+   * Invalidate cached memoized tiles.
+   */
+  clearCache(): void;
+}
+
 // ── Global 'bro' Namespace ───────────────────────────────────────────────────
 
 declare namespace bro {
+  /**
+   * =============================================================================
+   * bro.diar — neural speaker diarization (Sortformer & Clustering Diarizer)
+   * =============================================================================
+   *
+   * Speaker diarization and audio separation engine using streaming Sortformer (4-speaker
+   * Conformer-Transformer architecture) and offline embedding cluster diarizers.
+   *
+   * @example
+   *   bro.diar.loadSortformer("weights/sortformer", {
+   *     onReady: (model) => {
+   *       const session = model.createSession();
+   *       const res = session.feed(pcm16kAudio, true);
+   *       console.log(`Detected ${res.numSpeakers} speakers across ${res.numFrames} frames`);
+   *     }
+   *   });
+   */
+  namespace diar {
+    /**
+     * Initialize brotensor runtime device handles.
+     */
+    function init(): void;
+    /**
+     * Asynchronously load Sortformer neural diarization model from directory.
+     */
+    function loadSortformer(modelDir: string, opts?: object): AsyncHandle;
+    /**
+     * Asynchronously run offline diarization on audio clip.
+     */
+    function diarize(model: Sortformer, audio: Float32Array, opts?: object): AsyncHandle;
+    /**
+     * Asynchronously load offline cluster diarizer models (embedding + VAD).
+     */
+    function loadClusterDiarizer(embeddingDir: string, vadDir: string, opts?: object): AsyncHandle;
+    /**
+     * Asynchronously run clustering diarization on audio clip.
+     */
+    function clusterDiarize(model: ClusterDiarizer, audio: Float32Array, opts?: object): AsyncHandle;
+  }
+
+  /**
+   * =============================================================================
+   * bro.diffusion — text-to-image neural diffusion inference pipeline
+   * =============================================================================
+   *
+   * Multi-architecture neural diffusion pipeline supporting SD1.5, LCM, SCM, FlowMatch,
+   * and Flux DiT architectures. Supports one-shot and step-wise latent sampling, ControlNet,
+   * LoRA adapters, cross-attention steering, and noise expansion.
+   *
+   * @example
+   *   const pipe = bro.diffusion.loadModel("weights/sd15", { device: "cuda" });
+   *   const img = pipe.generate({
+   *     prompt: "a golden retriever in a field of sunflowers",
+   *     steps: 20,
+   *     guidanceScale: 7.5
+   *   });
+   */
+  namespace diffusion {
+    /**
+     * Brodiffusion version string.
+     */
+    const version: string;
+    /**
+     * Initialize brotensor inference acceleration.
+     */
+    function init(): void;
+    /**
+     * Instantiate diffusion pipeline from model architecture configuration.
+     */
+    function createPipeline(config: object): Pipeline;
+    /**
+     * Load complete diffusion model checkpoint directory.
+     */
+    function loadModel(dir: string, opts?: object): Pipeline;
+    /**
+     * Transport identity latent noise across resolution upscaling factors.
+     */
+    function expandNoise(src: Float32Array, opts: object): Float32Array;
+  }
+
+  /**
+   * =============================================================================
+   * bro.flora — ecosystem simulation (Synthetic Silviculture)
+   * =============================================================================
+   *
+   * Procedural plant and ecosystem growth simulation based on Makowski et al. (2019).
+   * Simulates bud fate, developmental archetypes, hydraulic architecture, and competitive
+   * light interception across multiple species in a shared voxel shadow grid.
+   *
+   * @example
+   *   const world = bro.flora.createWorld({ rngSeed: 42 });
+   *   const protoIdx = world.addPrototype(bro.flora.prototypes.monopodial(3, 0.6));
+   *   const plantIdx = world.addPlant({
+   *     origin: [0, 0, 0],
+   *     prototypeIndex: protoIdx,
+   *     species: { maxAge: 50.0, apicalControl: 0.8 }
+   *   });
+   *   world.step(1.0);
+   *   const mesh = world.emitMesh(6);
+   */
+  namespace flora {
+    /**
+     * Instantiate an ecosystem simulation world.
+     *
+     * @param opts Simulation initialization options (rngSeed, climate, shadow grid).
+     * @return World instance handle.
+     */
+    function createWorld(opts?: object): FloraWorld;
+    /**
+     * Procedural leaf cluster geometry generator.
+     *
+     * @param phyllotaxy Phyllotactic arrangement type.
+     * @param opts Leaf cluster configuration options.
+     * @return Mesh instance containing generated leaf vertices and indices.
+     */
+    function leafCluster(phyllotaxy: any, opts?: object): object;
+  }
+
   /**
    * Engine-level 3D transform gizmo namespace.
    */
@@ -2548,6 +3003,84 @@ declare namespace bro {
      * @returns AsyncHandle for cancellation
      */
     function generate(model: object, prompt: number[] | string, opts?: GenerateOptions): AsyncHandle;
+  }
+
+  /**
+   * =============================================================================
+   * bro.math — fast vector math, curves, RNG, smoothing, and spatial index
+   * =============================================================================
+   *
+   * Comprehensive mathematics and geometry utilities for 2D/3D games and simulations.
+   * Includes SpatialHash3D spatial indexing, SplitMix64 deterministic PRNG, single-pole
+   * exponential signal smoothing, splines/curves, color conversion, and raycast intersection queries.
+   *
+   * @example
+   *   const hash = new bro.math.SpatialHash3D(2.0, 4096);
+   *   hash.insert(1, 10.0, 5.0, -2.0);
+   *   const nearby = hash.queryRadius(10.0, 5.0, -2.0, 5.0);
+   *
+   * @example
+   *   const rng = new bro.math.Rng(12345);
+   *   const p = rng.inUnitSphere();
+   *   const v = bro.math.lerp(0.0, 100.0, 0.5);
+   */
+  namespace math {
+    /**
+     * Linear interpolation between scalars a and b by factor t.
+     */
+    function lerp(a: number, b: number, t: number): number;
+    /**
+     * Clamp scalar x into [lo, hi].
+     */
+    function clamp(x: number, lo: number, hi: number): number;
+    /**
+     * Clamp scalar x into [0, 1].
+     */
+    function saturate(x: number): number;
+    /**
+     * Inverse lerp computing position of x in [a, b].
+     */
+    function invLerp(a: number, b: number, x: number): number;
+    /**
+     * Remap scalar x from input range to output range.
+     */
+    function remap(x: number, inMin: number, inMax: number, outMin: number, outMax: number): number;
+    /**
+     * Smooth Hermite interpolation between edges e0 and e1.
+     */
+    function smoothstep(e0: number, e1: number, x: number): number;
+    /**
+     * Higher-order C2-continuous smoothstep.
+     */
+    function smootherstep(e0: number, e1: number, x: number): number;
+    /**
+     * Convert degrees to radians.
+     */
+    function degToRad(deg: number): number;
+    /**
+     * Convert radians to degrees.
+     */
+    function radToDeg(rad: number): number;
+    /**
+     * Wrap angle in radians to [-PI, PI].
+     */
+    function wrapAngle(a: number): number;
+    /**
+     * Shortest signed angular difference from a to b in radians.
+     */
+    function angleDiff(a: number, b: number): number;
+    /**
+     * 32-bit FNV-1a string hash with optional seed.
+     */
+    function fnv1a32(data: string, seed?: number): number;
+    /**
+     * Integer 32-bit hash.
+     */
+    function hashU32(x: number): number;
+    /**
+     * 2D/3D integer grid cell coordinate hash.
+     */
+    function cellHash(x: number, y: number, z?: number): number;
   }
 
   /**
@@ -2852,6 +3385,72 @@ declare namespace bro {
      * This is the clock timers, rAF, transitions, and physics run on.
      */
     const now: number;
+  }
+
+  /**
+   * =============================================================================
+   * bro.triposplat — single-image to 3D Gaussian Splat pipeline
+   * =============================================================================
+   *
+   * Feedforward 3D reconstruction pipeline assembling DINOv3 ViT-H, Flux.2 VAE encoder,
+   * FlowDiT diffusion transformer, and Octree Gaussian Decoder into real-time 3D Gaussian splats.
+   *
+   * @example
+   *   const pipeline = bro.triposplat.load({
+   *     dinov3: "weights/dinov3.safetensors",
+   *     vae: "weights/vae.safetensors",
+   *     flow: "weights/flow.safetensors",
+   *     decoder: "weights/decoder.safetensors"
+   *   });
+   *   const cloud = pipeline.generate(imageBitmap, { steps: 25 });
+   *   scene.createGaussianSplat({ cloud, scale: 1.0 });
+   */
+  namespace triposplat {
+    /**
+     * Initialize brotensor acceleration subsystem.
+     */
+    function init(): void;
+    /**
+     * Load TripoSplat model checkpoint pipelines.
+     */
+    function load(opts: object): TripoSplatPipeline;
+    /**
+     * Request cancellation of active reconstruction generation.
+     */
+    function cancel(): void;
+  }
+
+  /**
+   * =============================================================================
+   * bro.worldgen — learned neural terrain diffusion pipeline
+   * =============================================================================
+   *
+   * Deterministic, infinite neural world generation using brodiffusion WorldPipeline.
+   * Generates continuous elevation grids in metres from multi-scale UNets with coherent
+   * drainage networks, hydrological ridges, and coarse/latent stage intermediate diagnostics.
+   *
+   * @example
+   *   bro.worldgen.loadWorld("weights/terrain", {
+   *     seed: 42,
+   *     onReady: (world) => {
+   *       const tile = world.elevationSync(0, 0, 256, 256);
+   *       console.log(`Generated ${tile.width}x${tile.height} tile with cell size ${tile.cellSize}m`);
+   *     }
+   *   });
+   */
+  namespace worldgen {
+    /**
+     * Initialize brotensor acceleration runtime for neural terrain generation.
+     */
+    function init(): void;
+    /**
+     * Load a neural terrain world pipeline asynchronously from a model directory.
+     *
+     * @param dir Checkpoint model directory path.
+     * @param opts Seed and callback hooks (onReady, onError).
+     * @return Async job handle.
+     */
+    function loadWorld(dir: string, opts?: object): AsyncHandle;
   }
 
   /**

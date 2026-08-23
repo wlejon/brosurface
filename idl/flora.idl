@@ -1,0 +1,141 @@
+/**
+ * =============================================================================
+ * bro.flora — ecosystem simulation (Synthetic Silviculture)
+ * =============================================================================
+ *
+ * Procedural plant and ecosystem growth simulation based on Makowski et al. (2019).
+ * Simulates bud fate, developmental archetypes, hydraulic architecture, and competitive
+ * light interception across multiple species in a shared voxel shadow grid.
+ *
+ * @example
+ *   const world = bro.flora.createWorld({ rngSeed: 42 });
+ *   const protoIdx = world.addPrototype(bro.flora.prototypes.monopodial(3, 0.6));
+ *   const plantIdx = world.addPlant({
+ *     origin: [0, 0, 0],
+ *     prototypeIndex: protoIdx,
+ *     species: { maxAge: 50.0, apicalControl: 0.8 }
+ *   });
+ *   world.step(1.0);
+ *   const mesh = world.emitMesh(6);
+ */
+
+[
+  cpp_file="flora_bindings.cpp",
+  cpp_header="js/flora_bindings.h",
+  cpp_includes="\"js/flora_bindings_internal.h\"\n\"js/mesh_bindings.h\"\n<broflora/broflora.h>\n<bromath/vec.h>\n<bromesh/mesh_data.h>\n<bromesh/procedural/leaf_scatter.h>\n<algorithm>\n<cmath>\n<cstdint>\n<memory>\n<string>\n<utility>\n<vector>",
+  cpp_namespace="bro::js",
+  cpp_install="FloraBindings::install",
+  feature_gate="BRO_WITH_FLORA",
+  prefix="bro.",
+  cpp_prologue="static JSValue protoStraight(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    return protoToSpec(ctx, broflora::straightModule());\n}\n\nstatic JSValue protoFork(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    return protoToSpec(ctx, broflora::forkModule());\n}\n\nstatic JSValue protoWhorl(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    uint32_t arms = 3; double spread = 0.55;\n    if (argc >= 1 && !JS_IsUndefined(argv[0])) JS_ToUint32(ctx, &arms, argv[0]);\n    if (argc >= 2 && !JS_IsUndefined(argv[1])) JS_ToFloat64(ctx, &spread, argv[1]);\n    return protoToSpec(ctx, broflora::whorlModule(arms, (float)spread));\n}\n\nstatic JSValue protoMonopodial(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    uint32_t lateralBranches = 2; double lateralSpread = 0.7;\n    if (argc >= 1 && !JS_IsUndefined(argv[0])) JS_ToUint32(ctx, &lateralBranches, argv[0]);\n    if (argc >= 2 && !JS_IsUndefined(argv[1])) JS_ToFloat64(ctx, &lateralSpread, argv[1]);\n    return protoToSpec(ctx, broflora::monopodialLeaderModule(lateralBranches, (float)lateralSpread));\n}\n\nstatic JSValue protoSympodial(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    double primarySpread = 0.3; double lateralSpread = 0.7;\n    if (argc >= 1 && !JS_IsUndefined(argv[0])) JS_ToFloat64(ctx, &primarySpread, argv[0]);\n    if (argc >= 2 && !JS_IsUndefined(argv[1])) JS_ToFloat64(ctx, &lateralSpread, argv[1]);\n    return protoToSpec(ctx, broflora::sympodialForkModule((float)primarySpread, (float)lateralSpread));\n}\n\nstatic JSValue protoHorizontalTier(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    uint32_t arms = 3; double spread = 0.85;\n    if (argc >= 1 && !JS_IsUndefined(argv[0])) JS_ToUint32(ctx, &arms, argv[0]);\n    if (argc >= 2 && !JS_IsUndefined(argv[1])) JS_ToFloat64(ctx, &spread, argv[1]);\n    return protoToSpec(ctx, broflora::horizontalTierModule(arms, (float)spread));\n}\n\nstatic JSValue protoWeeping(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    double spread = 0.6; double droop = 0.4;\n    if (argc >= 1 && !JS_IsUndefined(argv[0])) JS_ToFloat64(ctx, &spread, argv[0]);\n    if (argc >= 2 && !JS_IsUndefined(argv[1])) JS_ToFloat64(ctx, &droop, argv[1]);\n    return protoToSpec(ctx, broflora::weepingModule((float)spread, (float)droop));\n}\n\nstatic JSValue jsLeafCluster(JSContext* ctx, JSValueConst,\n                             int argc, JSValueConst* argv) {\n    broflora::Phyllotaxy phyl = broflora::Phyllotaxy::Alternate;\n    broflora::LeafClusterOptions opts;\n    if (argc >= 1) {\n        if (JS_IsObject(argv[0]) && !JS_IsNumber(argv[0]) && !JS_IsString(argv[0])) {\n            readLeafClusterOptions(ctx, argv[0], opts);\n            JSValue pv = JS_GetPropertyStr(ctx, argv[0], \"phyllotaxy\");\n            if (!JS_IsUndefined(pv) && !JS_IsNull(pv)) {\n                phyl = parsePhyllotaxy(ctx, pv);\n            }\n            JS_FreeValue(ctx, pv);\n        } else {\n            phyl = parsePhyllotaxy(ctx, argv[0]);\n            if (argc >= 2 && JS_IsObject(argv[1])) {\n                readLeafClusterOptions(ctx, argv[1], opts);\n            }\n        }\n    }\n    auto md = std::make_unique<bromesh::MeshData>(broflora::leafCluster(phyl, opts));\n    return MeshBindings::wrapMeshData(ctx, std::move(md));\n}\n\nstatic JSValue createWorld(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    auto world = std::make_unique<broflora::WorldState>();\n    if (argc > 0 && JS_IsObject(argv[0])) {\n        JSValueConst opts = argv[0];\n        JSValue seedV = JS_GetPropertyStr(ctx, opts, \"rngSeed\");\n        if (!JS_IsUndefined(seedV) && !JS_IsNull(seedV)) {\n            int64_t seed = 0;\n            if (JS_ToInt64(ctx, &seed, seedV) == 0)\n                world->rngState = (uint64_t)seed;\n        }\n        JS_FreeValue(ctx, seedV);\n        readClimate(ctx, opts, world->climate);\n        readShadow (ctx, opts, world->shadow);\n    }\n    auto* wrap = new FWW{std::move(world)};\n    return qjsbind::wrap<FWW>(ctx, wrap);\n}\n\nstatic void installWorldClass(JSContext* ctx) {\n    qjsbind::Class<FWW> cls(ctx, \"FloraWorld\", qjsbind::NoGlobal);\n    registerFloraWorldEmitMethods(cls);\n    cls\n    .method(\"addPrototype\", [](FWW* w, JSContext* ctx, JSValue spec) -> int {\n        broflora::BranchModulePrototype proto;\n        std::string nameStorage;\n        if (!buildPrototype(ctx, spec, proto, nameStorage))\n            return -1;\n        return (int)broflora::addPrototype(*w->world, std::move(proto));\n    })\n    .method(\"addVoronoiSite\", [](FWW* w, int prototypeIndex,\n                                 double determinacy, double apicalControl) {\n        broflora::addVoronoiSite(*w->world, (uint32_t)prototypeIndex,\n                                 (float)determinacy, (float)apicalControl);\n    }, qjsbind::returns_this)\n    .method(\"addPlant\", [](FWW* w, JSContext* ctx, JSValue spec) -> int {\n        if (!JS_IsObject(spec)) return -1;\n        broflora::Plant p;\n        p.species = {};\n        JSValue speciesV = JS_GetPropertyStr(ctx, spec, \"species\");\n        applySpeciesPartial(ctx, speciesV, p.species);\n        JS_FreeValue(ctx, speciesV);\n        readVec3Prop(ctx, spec, \"origin\", p.origin);\n        readFloatField(ctx, spec, \"age\", p.age);\n        p.effectiveRootVigorMax = p.species.rootVigorMax;\n        uint32_t protoIdx = UINT32_MAX;\n        if (readUint32Field(ctx, spec, \"prototypeIndex\", protoIdx)) {\n            const auto* proto = broflora::prototypeAt(*w->world, protoIdx);\n            if (!proto) return -1;\n            broflora::BranchModuleInstance root;\n            root.prototype = proto;\n            root.parent    = UINT32_MAX;\n            root.age       = 0.0f;\n            float initialVigor = p.species.minVigor * 2.0f;\n            readFloatField(ctx, spec, \"initialVigor\", initialVigor);\n            root.vigor = initialVigor;\n            root.light = 1.0f;\n            p.modules.push_back(root);\n        }\n        broflora::addPlant(*w->world, std::move(p));\n        return (int)(w->world->plants.size() - 1);\n    })\n    .method(\"removePlant\", [](FWW* w, int plantIdx) -> bool {\n        if (plantIdx < 0) return false;\n        return broflora::removePlant(*w->world, (uint32_t)plantIdx);\n    })\n    .method(\"step\", [](FWW* w, double dt) {\n        broflora::step(*w->world, (float)dt);\n    }, qjsbind::returns_this)\n    .method(\"plantInfo\", [](FWW* w, JSContext* ctx, int plantIdx) -> JSValue {\n        if (plantIdx < 0 || (size_t)plantIdx >= w->world->plants.size()) return JS_NULL;\n        const auto& p = w->world->plants[(size_t)plantIdx];\n        JSValue o = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, o, \"origin\",                 makeVec3(ctx, p.origin));\n        JS_SetPropertyStr(ctx, o, \"age\",                    JS_NewFloat64(ctx, p.age));\n        JS_SetPropertyStr(ctx, o, \"flowering\",              JS_NewBool   (ctx, p.flowering));\n        JS_SetPropertyStr(ctx, o, \"senescing\",              JS_NewBool   (ctx, p.senescing));\n        JS_SetPropertyStr(ctx, o, \"moduleCount\",            JS_NewInt32  (ctx, (int32_t)p.modules.size()));\n        JS_SetPropertyStr(ctx, o, \"effectiveRootVigorMax\",  JS_NewFloat64(ctx, p.effectiveRootVigorMax));\n        if (!p.modules.empty()) {\n            JS_SetPropertyStr(ctx, o, \"rootVigor\", JS_NewFloat64(ctx, p.modules.front().vigor));\n            JS_SetPropertyStr(ctx, o, \"rootLight\", JS_NewFloat64(ctx, p.modules.front().light));\n        }\n        const auto& s = p.species;\n        JSValue sp = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, sp, \"maxVigor\",                    JS_NewFloat64(ctx, s.maxVigor));\n        JS_SetPropertyStr(ctx, sp, \"minVigor\",                    JS_NewFloat64(ctx, s.minVigor));\n        JS_SetPropertyStr(ctx, sp, \"rootVigorMax\",                JS_NewFloat64(ctx, s.rootVigorMax));\n        JS_SetPropertyStr(ctx, sp, \"apicalControl\",               JS_NewFloat64(ctx, s.apicalControl));\n        JS_SetPropertyStr(ctx, sp, \"determinacy\",                 JS_NewFloat64(ctx, s.determinacy));\n        JS_SetPropertyStr(ctx, sp, \"shadeTolerance\",              JS_NewFloat64(ctx, s.shadeTolerance));\n        JS_SetPropertyStr(ctx, sp, \"apicalControlMature\",         JS_NewFloat64(ctx, s.apicalControlMature));\n        JS_SetPropertyStr(ctx, sp, \"determinacyMature\",           JS_NewFloat64(ctx, s.determinacyMature));\n        JS_SetPropertyStr(ctx, sp, \"tropismDir\",                  makeVec3     (ctx, s.tropismDir));\n        JS_SetPropertyStr(ctx, sp, \"tropismG1\",                   JS_NewFloat64(ctx, s.tropismG1));\n        JS_SetPropertyStr(ctx, sp, \"tropismG2\",                   JS_NewFloat64(ctx, s.tropismG2));\n        JS_SetPropertyStr(ctx, sp, \"growthScale\",                 JS_NewFloat64(ctx, s.growthScale));\n        JS_SetPropertyStr(ctx, sp, \"climateOptT\",                 JS_NewFloat64(ctx, s.climateOptT));\n        JS_SetPropertyStr(ctx, sp, \"climateOptP\",                 JS_NewFloat64(ctx, s.climateOptP));\n        JS_SetPropertyStr(ctx, sp, \"climateSigT\",                 JS_NewFloat64(ctx, s.climateSigT));\n        JS_SetPropertyStr(ctx, sp, \"climateSigP\",                 JS_NewFloat64(ctx, s.climateSigP));\n        JS_SetPropertyStr(ctx, sp, \"maxAge\",                      JS_NewFloat64(ctx, s.maxAge));\n        JS_SetPropertyStr(ctx, sp, \"floweringAge\",                JS_NewFloat64(ctx, s.floweringAge));\n        JS_SetPropertyStr(ctx, sp, \"seedingRadius\",               JS_NewFloat64(ctx, s.seedingRadius));\n        JS_SetPropertyStr(ctx, sp, \"moduleMatureAge\",             JS_NewFloat64(ctx, s.moduleMatureAge));\n        JS_SetPropertyStr(ctx, sp, \"pipeExp\",                     JS_NewFloat64(ctx, s.pipeExp));\n        JS_SetPropertyStr(ctx, sp, \"leafDiameter\",                JS_NewFloat64(ctx, s.leafDiameter));\n        JS_SetPropertyStr(ctx, sp, \"terrainAnchorWeight\",         JS_NewFloat64(ctx, s.terrainAnchorWeight));\n        JS_SetPropertyStr(ctx, sp, \"maxSeedingSlope\",             JS_NewFloat64(ctx, s.maxSeedingSlope));\n        JS_SetPropertyStr(ctx, sp, \"distributionWeightCollisions\",JS_NewFloat64(ctx, s.distributionWeightCollisions));\n        JS_SetPropertyStr(ctx, sp, \"distributionWeightTropism\",   JS_NewFloat64(ctx, s.distributionWeightTropism));\n        JS_SetPropertyStr(ctx, sp, \"orthotropy\",                  JS_NewFloat64(ctx, s.orthotropy));\n        JS_SetPropertyStr(ctx, sp, \"individualVariation\",         JS_NewFloat64(ctx, s.individualVariation));\n        JS_SetPropertyStr(ctx, o, \"species\", sp);\n        return o;\n    })\n    .method(\"setClimate\", [](FWW* w, JSContext* ctx, JSValue opts) {\n        readClimateFields(ctx, opts, w->world->climate);\n    }, qjsbind::returns_this)\n    .method(\"sampleShadow\", [](FWW* w, JSContext* ctx, JSValue posV) -> JSValue {\n        const auto& g = w->world->shadow;\n        if (g.qg.empty() || g.width == 0 || g.height == 0 || g.depth == 0) return JS_NULL;\n        bromath::Vec3 p{};\n        if (!JS_IsArray(posV)) return JS_NULL;\n        for (int i = 0; i < 3; ++i) {\n            JSValue el = JS_GetPropertyUint32(ctx, posV, (uint32_t)i);\n            double d = 0; JS_ToFloat64(ctx, &d, el); JS_FreeValue(ctx, el);\n            (&p.x)[i] = (float)d;\n        }\n        const float inv = (g.cellSize > 0.0f) ? 1.0f / g.cellSize : 0.0f;\n        int ix = (int)((p.x - g.origin.x) * inv);\n        int iy = (int)((p.y - g.origin.y) * inv);\n        int iz = (int)((p.z - g.origin.z) * inv);\n        if (ix < 0 || iy < 0 || iz < 0) return JS_NULL;\n        if ((uint32_t)ix >= g.width || (uint32_t)iy >= g.height || (uint32_t)iz >= g.depth) return JS_NULL;\n        const uint32_t idx = broflora::shadowIndex(g, (uint32_t)ix, (uint32_t)iy, (uint32_t)iz);\n        return JS_NewFloat64(ctx, g.qg[idx]);\n    })\n    .method(\"validate\", [](FWW* w, JSContext* ctx) -> JSValue {\n        std::string err;\n        if (broflora::validate(*w->world, &err)) return JS_NULL;\n        return JS_NewStringLen(ctx, err.data(), err.size());\n    })\n    .get(\"simTime\",         [](FWW* w) -> double { return w->world->simTime; })\n    .get(\"plantCount\",      [](FWW* w) -> int { return (int)w->world->plants.size(); })\n    .get(\"prototypeCount\",  [](FWW* w) -> int { return (int)w->world->prototypes.size(); })\n    .get(\"moduleCount\",     [](FWW* w) -> int {\n        size_t total = 0;\n        for (const auto& p : w->world->plants) total += p.modules.size();\n        return (int)total;\n    });\n}",
+  install_body="installWorldClass(ctx);\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {\n        JS_FreeValue(ctx, broObj);\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n    JSValue floraObj = JS_GetPropertyStr(ctx, broObj, \"flora\");\n    if (JS_IsUndefined(floraObj) || JS_IsException(floraObj)) {\n        JS_FreeValue(ctx, floraObj);\n        floraObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, broObj, \"flora\", JS_DupValue(ctx, floraObj));\n    }\n\n    JSValue createFn = JS_NewCFunction(ctx, createWorld, \"createWorld\", 1);\n    JS_SetPropertyStr(ctx, floraObj, \"createWorld\", createFn);\n    JS_SetPropertyStr(ctx, floraObj, \"leafCluster\",\n                      JS_NewCFunction(ctx, jsLeafCluster, \"leafCluster\", 2));\n\n    JSValue phylObj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, phylObj, \"alternate\",       JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Alternate));\n    JS_SetPropertyStr(ctx, phylObj, \"opposite\",        JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Opposite));\n    JS_SetPropertyStr(ctx, phylObj, \"spiral\",          JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Spiral));\n    JS_SetPropertyStr(ctx, phylObj, \"fascicle\",        JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Fascicle));\n    JS_SetPropertyStr(ctx, phylObj, \"compoundPinnate\", JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::CompoundPinnate));\n    JS_SetPropertyStr(ctx, phylObj, \"Alternate\",       JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Alternate));\n    JS_SetPropertyStr(ctx, phylObj, \"Opposite\",        JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Opposite));\n    JS_SetPropertyStr(ctx, phylObj, \"Spiral\",          JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Spiral));\n    JS_SetPropertyStr(ctx, phylObj, \"Fascicle\",        JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::Fascicle));\n    JS_SetPropertyStr(ctx, phylObj, \"CompoundPinnate\", JS_NewInt32(ctx, (int32_t)broflora::Phyllotaxy::CompoundPinnate));\n    JS_SetPropertyStr(ctx, floraObj, \"phyllotaxy\", JS_DupValue(ctx, phylObj));\n    JS_SetPropertyStr(ctx, floraObj, \"Phyllotaxy\", phylObj);\n\n    JSValue protos = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, protos, \"straight\",\n                      JS_NewCFunction(ctx, protoStraight, \"straight\", 0));\n    JS_SetPropertyStr(ctx, protos, \"fork\",\n                      JS_NewCFunction(ctx, protoFork, \"fork\", 0));\n    JS_SetPropertyStr(ctx, protos, \"whorl\",\n                      JS_NewCFunction(ctx, protoWhorl, \"whorl\", 2));\n    JS_SetPropertyStr(ctx, protos, \"monopodial\",\n                      JS_NewCFunction(ctx, protoMonopodial, \"monopodial\", 2));\n    JS_SetPropertyStr(ctx, protos, \"sympodial\",\n                      JS_NewCFunction(ctx, protoSympodial, \"sympodial\", 2));\n    JS_SetPropertyStr(ctx, protos, \"horizontalTier\",\n                      JS_NewCFunction(ctx, protoHorizontalTier, \"horizontalTier\", 2));\n    JS_SetPropertyStr(ctx, protos, \"tier\",\n                      JS_NewCFunction(ctx, protoHorizontalTier, \"tier\", 2));\n    JS_SetPropertyStr(ctx, protos, \"weeping\",\n                      JS_NewCFunction(ctx, protoWeeping, \"weeping\", 2));\n    JS_SetPropertyStr(ctx, floraObj, \"prototypes\", protos);\n\n    JS_FreeValue(ctx, floraObj);\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);"
+]
+namespace flora {
+  /**
+   * Instantiate an ecosystem simulation world.
+   *
+   * @param opts Simulation initialization options (rngSeed, climate, shadow grid).
+   * @return World instance handle.
+   */
+  FloraWorld createWorld(optional object opts);
+
+  /**
+   * Procedural leaf cluster geometry generator.
+   *
+   * @param phyllotaxy Phyllotactic arrangement type.
+   * @param opts Leaf cluster configuration options.
+   * @return Mesh instance containing generated leaf vertices and indices.
+   */
+  object leafCluster(any phyllotaxy, optional object opts);
+};
+
+[
+  custom,
+  wrapper_struct="FloraWorldWrapper"
+]
+interface FloraWorld {
+  /**
+   * Register a branch module prototype into the world state.
+   */
+  long addPrototype(object spec);
+
+  /**
+   * Add a voronoi site defining spatial dominance and archetype distribution.
+   */
+  FloraWorld addVoronoiSite(long prototypeIndex, optional double determinacy = 1.0, optional double apicalControl = 0.5);
+
+  /**
+   * Add a plant specimen into the ecosystem.
+   */
+  long addPlant(object spec);
+
+  /**
+   * Remove a plant specimen by index (swap-and-pop).
+   */
+  boolean removePlant(long plantIdx);
+
+  /**
+   * Advance the simulation by delta time.
+   */
+  FloraWorld step(double dt);
+
+  /**
+   * Query full runtime and species snapshot for a plant.
+   */
+  object? plantInfo(long plantIdx);
+
+  /**
+   * Update climate temperature and precipitation parameters in real-time.
+   */
+  FloraWorld setClimate(object opts);
+
+  /**
+   * Sample the world shadow grid at a world-space coordinate [x, y, z].
+   */
+  double? sampleShadow(sequence<double> pos);
+
+  /**
+   * Verify integrity of world module hierarchy.
+   */
+  DOMString? validate();
+
+  /**
+   * Emit procedural mesh geometry for all living plant branches.
+   */
+  object emitMesh(optional long sides = 6);
+
+  /**
+   * Emit linear branch segments with radii and parent indices.
+   */
+  sequence<object> emitSegments();
+
+  /**
+   * Emit foliage particle points.
+   */
+  sequence<object> emitFoliage();
+
+  /**
+   * Emit blossom and flowering anchor points.
+   */
+  sequence<object> emitBloomAnchors();
+
+  /**
+   * Current simulation time in seconds.
+   */
+  readonly attribute double simTime;
+
+  /**
+   * Total number of living plants in the world.
+   */
+  readonly attribute long plantCount;
+
+  /**
+   * Total number of registered module prototypes.
+   */
+  readonly attribute long prototypeCount;
+
+  /**
+   * Total active module instances across all plants.
+   */
+  readonly attribute long moduleCount;
+};
