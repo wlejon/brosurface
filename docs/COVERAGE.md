@@ -16,8 +16,8 @@ The `brosurface` generator pipeline replaces five hand-maintained, error-prone c
 | **Migrated & Bundled Surfaces** | **23** (34.8%) | Complete IDLs, 100% equivalence passed, integration bundles generated |
 | **Blocked-on-Tests Surfaces** | **0** (0.0%) | Unmigrated surfaces with 0 existing tests in `bro` (equivalence oracle gap) |
 | **Not-Started Surfaces** | **43** (65.2%) | Unmigrated surfaces with test suites ready for batch migration |
-| **Total Legacy Hand Tax Cataloged** | **149,029 LOC** | Total hand-written surface across QuickJS, bronze_host, stubs, docs, TS, headless |
-| **Legacy Hand Tax Eliminated** | **22,873 LOC** | Hand-maintained LOC replaced by single `.idl` declarations (15.3% of engine surface) |
+| **Total Legacy Hand Tax Cataloged** | **148,809 LOC** | Total hand-written surface across QuickJS, bronze_host, stubs, docs, TS, headless |
+| **Legacy Hand Tax Eliminated** | **22,877 LOC** | Hand-maintained LOC replaced by single `.idl` declarations (15.4% of engine surface) |
 | **Total Authored IDL LOC** | **4,933 LOC** | Single source of truth declarations authored across 23 surfaces |
 | **Total Generated Artifact LOC** | **24,095 LOC** | Drop-in C++ TUs (QJS + bronze_host), `.d.ts` slices, docs, stubs |
 | **Total Honest Custom LOC** | **7,090 LOC** | Hand-written C++/JS lines across emitted binding translation units |
@@ -72,7 +72,7 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 3 | **`Blob / File / FileReader / URL`** | Pilot Candidate (Class / Prototype) | `bundled` | 2,684 LOC | 499 LOC | 3,147 LOC | **6.31x** | *(high custom)* | 1147 LOC | ⚠️ **51.1%** | [`integration/file/`](file:///D:/projects/brosurface/integration/file/)<br>_Dual-runtime W3C streaming primitives with HostBlob buffer refcounting, MIME parser, and URL parser bridge._ |
 | 4 | **`bro.flora`** *`[BRO_WITH_FLORA]`* | Ecosystem Simulation | `bundled` | 1,422 LOC | 142 LOC | 941 LOC | **6.63x** | *(high custom)* | 274 LOC | ⚠️ **46.5%** | [`integration/flora/`](file:///D:/projects/brosurface/integration/flora/)<br>_Synthetic silviculture ecosystem simulation state, bud fate, branching math, and procedural mesh emitters._ |
 | 5 | **`bro.math`** | Math Utilities | `bundled` | 1,144 LOC | 265 LOC | 1,637 LOC | **6.18x** | *(high custom)* | 366 LOC | ⚠️ **37.8%** | [`integration/math/`](file:///D:/projects/brosurface/integration/math/)<br>_Fast 3D spatial hash index, SplitMix64 PRNG, exponential signal filter, and geometric intersection queries._ |
-| 6 | **`bro.image / Image / bro.image.gpu`** | Image Processing & CPU/GPU Kernels | `not-started` | 4,535 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 6 | **`bro.image / Image / bro.image.gpu`** | Image Processing & CPU/GPU Kernels | `not-started` | 4,413 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 7 | **`ImageBitmap / createImageBitmap`** | Bitmap Transfer | `not-started` | 502 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
 | 8 | **`AudioContext / broaudio`** | Real-Time Audio Graph | `not-started` | 6,731 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
 | 9 | **`bro.mesh / Mesh`** *`[BRO_WITH_3D]`* | Mesh Geometry & Operations | `not-started` | 4,403 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
@@ -82,15 +82,15 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 13 | **`bro.net`** *`[BRO_WITH_NET]`* | Low-Level Networking | `not-started` | 1,709 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 14 | **`bro.net.sync`** *`[BRO_WITH_NET]`* | High-Level Replication | `not-started` | 1,112 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 15 | **`Gamepad API`** | Input Hardware | `bundled` | 644 LOC | 143 LOC | 1,033 LOC | **7.22x** | *(high custom)* | 278 LOC | ⚠️ **43.3%** | [`integration/gamepad/`](file:///D:/projects/brosurface/integration/gamepad/)<br>_High-frequency OS hardware polling snapshots, 17-button/4-axis caching, and dual-rumble / trigger haptics._ |
-| 16 | **`Pointer / Touch Events`** | Input Events & Dispatch | `not-started` | 2,992 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
+| 16 | **`Pointer / Touch Events`** | Input Events & Dispatch | `not-started` | 2,995 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 17 | **`element.animate() (WAAPI)`** | DOM Animation | `not-started` | 1,068 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 18 | **`window.matchMedia()`** | CSS Media Queries | `not-started` | 582 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 19 | **`bro.window / window.*`** | Window & Display Management | `not-started` | 2,241 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
 | 20 | **`Native Dialogs`** | Modal Dialogs | `not-started` | 612 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 21 | **`bro.menu`** | Native Menu Bar | `not-started` | 310 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 22 | **`bro.gizmo`** *`[BRO_WITH_3D]`* | 3D Gizmo Controls | `bundled` | 516 LOC | 248 LOC | 762 LOC | **3.07x** | **7.27x** | 166 LOC | ⚠️ **54.6%** | [`integration/gizmo/`](file:///D:/projects/brosurface/integration/gizmo/)<br>_Interactive 3D transform manipulation math with immediate-mode overlay vertex rendering._ |
-| 23 | **`Video / VideoEncoder / GifEncoder / bro.media`** *`[BRO_WITH_VIDEO]`* | Media & Codecs | `not-started` | 2,041 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
-| 24 | **`IFrame (<iframe src>)`** | Sub-Document Isolation | `not-started` | 276 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 23 | **`Video / VideoEncoder / GifEncoder / bro.media`** *`[BRO_WITH_VIDEO]`* | Media & Codecs | `not-started` | 2,038 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
+| 24 | **`IFrame (<iframe src>)`** | Sub-Document Isolation | `not-started` | 174 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 25 | **`bro.steam`** *`[BRO_WITH_STEAM]`* | Platform / Steamworks | `not-started` | 1,251 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 26 | **`bro.text`** *`[BRO_WITH_TEXT_SHAPING]`* | Typography & Text Diagnostics | `bundled` | 333 LOC | 274 LOC | 842 LOC | **3.07x** | **6.98x** | 179 LOC | ⚠️ **59.9%** | [`integration/text/`](file:///D:/projects/brosurface/integration/text/)<br>_Multi-style HarfBuzz font shaping, glyph cache layout metrics, and text measurement subroutines._ |
 | 27 | **`Rig / IK`** *`[BRO_WITH_3D]`* | Rigging & Inverse Kinematics | `not-started` | 1,519 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
@@ -125,7 +125,7 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 56 | **`WebGL2RenderingContext`** | GPU 3D Pipeline | `not-started` | 6,429 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
 | 57 | **`customElements`** | Web Components | `bundled` | 453 LOC | 94 LOC | 618 LOC | **6.57x** | **6.57x** | 0 LOC | ✅ 0.0% | [`integration/custom_elements/`](file:///D:/projects/brosurface/integration/custom_elements/)<br>_Dynamic JS class constructor registry, lifecycle hook invocation (connectedCallback), and attribute observer pump._ |
 | 58 | **`MutationObserver / ResizeObserver`** | DOM Observers | `not-started` | 940 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
-| 59 | **`DOMParser`** | XML / HTML Parser | `bundled` | 318 LOC | 64 LOC | 242 LOC | **3.78x** | **13.71x** | 50 LOC | ⚠️ **50.0%** | [`integration/domparser/`](file:///D:/projects/brosurface/integration/domparser/)<br>_HTML markup string tokenization bridge constructing DOM tree hierarchies and reporting XML parsing errors._ |
+| 59 | **`DOMParser`** | XML / HTML Parser | `bundled` | 322 LOC | 64 LOC | 242 LOC | **3.78x** | **13.71x** | 50 LOC | ⚠️ **50.0%** | [`integration/domparser/`](file:///D:/projects/brosurface/integration/domparser/)<br>_HTML markup string tokenization bridge constructing DOM tree hierarchies and reporting XML parsing errors._ |
 | 60 | **`AbortController / AbortSignal`** | Async Cancellation | `bundled` | 209 LOC | 157 LOC | 504 LOC | **3.21x** | **70.40x** | 152 LOC | ⚠️ **72.7%** | [`integration/abort/`](file:///D:/projects/brosurface/integration/abort/)<br>_Event-driven cancellation dispatch mechanism with cross-thread signal listener chaining and timeout/any combinators._ |
 | 61 | **`Intl (ECMA-402)`** | Internationalization | `not-started` | 812 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 62 | **`Vendor Globals (CodeMirror, acorn, etc.)`** | Vendored Library Bridges | `not-started` | 82 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
