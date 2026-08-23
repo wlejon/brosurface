@@ -364,7 +364,6 @@ static JSValue js_settings_get_defaults(JSContext* ctx, JSValueConst, int argc, 
 // ---------------------------------------------------------------------------
 
 void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platform::Window* window, engine::Engine* engine) {
-    JSValue global = JS_GetGlobalObject(ctx);
     auto* state = new SettingsState();
     state->settings = settings;
     state->window = window;
@@ -374,6 +373,7 @@ void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platf
                       JS_NewInt64(ctx, static_cast<int64_t>(
                           reinterpret_cast<intptr_t>(state))));
 
+    JSValue global = JS_GetGlobalObject(ctx);
     JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
     if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
         broObj = JS_NewObject(ctx);

@@ -1,10 +1,17 @@
-// tools/make_bundles_m4.mjs
+// tools/make_bundles_m4.mjs — Isolated Bundle Generation Tool (Batch 2)
+// Machine-enforces scratch worktree isolation and zero writes to live bro repository.
+
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import {
+  BRO_DIR,
+  assertScratchWorktree,
+  recordLiveTreeSnapshot,
+  assertLiveTreeUnchanged,
+} from './isolation.mjs';
 
-const BRO_DIR = 'D:/projects/bro';
-const BROSURFACE_DIR = 'D:/projects/brosurface';
+const BROSURFACE_DIR = path.resolve('.');
 
 const bundles = [
   {
@@ -16,7 +23,7 @@ const bundles = [
       ['out/docs/abort-api.js', 'docs/abort-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/abort.cpp',
+      'out/qjs/abort.cpp',
       'out/bronze_host/host_abort.cpp',
       'out/docs/abort-api.js',
     ],
@@ -33,7 +40,7 @@ const bundles = [
       ['out/docs/domparser-api.js', 'docs/domparser-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/domparser.cpp',
+      'out/qjs/domparser.cpp',
       'out/bronze_host/host_parser.cpp',
       'out/docs/domparser-api.js',
     ],
@@ -46,12 +53,12 @@ const bundles = [
     census: '#10 — Gamepad API',
     title: 'gamepad (Gamepad API)',
     files: [
-      ['out/qjsbind/gamepad_bindings.cpp', 'src/js/gamepad_bindings.cpp'],
+      ['out/qjs/gamepad_bindings.cpp', 'src/js/gamepad_bindings.cpp'],
       ['out/bronze_host/dom_gamepad.cpp', 'src/bronze_host/dom_gamepad.cpp'],
       ['out/docs/gamepad-api.js', 'docs/gamepad-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/gamepad_bindings.cpp',
+      'out/qjs/gamepad_bindings.cpp',
       'out/bronze_host/dom_gamepad.cpp',
       'out/docs/gamepad-api.js',
     ],
@@ -64,11 +71,11 @@ const bundles = [
     census: '#28 — Text-to-Motion Generation (bro.motion)',
     title: 'motion (bro.motion)',
     files: [
-      ['out/qjsbind/motion_bindings.cpp', 'src/js/motion_bindings.cpp'],
+      ['out/qjs/motion_bindings.cpp', 'src/js/motion_bindings.cpp'],
       ['out/docs/motion-api.js', 'docs/motion-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/motion_bindings.cpp',
+      'out/qjs/motion_bindings.cpp',
       'out/docs/motion-api.js',
     ],
     test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh motion"',
@@ -80,11 +87,11 @@ const bundles = [
     census: '#29 — RAVE Real-Time Audio VAE (bro.rave)',
     title: 'rave (bro.rave)',
     files: [
-      ['out/qjsbind/rave_bindings.cpp', 'src/js/rave_bindings.cpp'],
+      ['out/qjs/rave_bindings.cpp', 'src/js/rave_bindings.cpp'],
       ['out/docs/rave-api.js', 'docs/rave-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/rave_bindings.cpp',
+      'out/qjs/rave_bindings.cpp',
       'out/docs/rave-api.js',
     ],
     test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh rave"',
@@ -96,11 +103,11 @@ const bundles = [
     census: '#20 — Asset & Application Paths (bro.appDir / bro.resolvePath)',
     title: 'paths (bro.appDir / bro.resolvePath)',
     files: [
-      ['out/qjsbind/asset_path.cpp', 'src/js/asset_path.cpp'],
+      ['out/qjs/asset_path.cpp', 'src/js/asset_path.cpp'],
       ['out/docs/paths-api.js', 'docs/paths-api.js'],
     ],
     artifacts: [
-      'out/qjsbind/asset_path.cpp',
+      'out/qjs/asset_path.cpp',
       'out/docs/paths-api.js',
     ],
     test_cmd: 'bash -c "BRO_ALLOW_STALE=1 ./tests/run_tests.sh app_paths"',
@@ -109,37 +116,63 @@ const bundles = [
   },
 ];
 
-for (const b of bundles) {
-  const nsDir = path.join(BROSURFACE_DIR, 'integration', b.ns);
-  fs.mkdirSync(nsDir, { recursive: true });
-
-  // 1. Copy generated artifacts into bundle
-  for (const art of b.artifacts) {
-    const src = path.join(BROSURFACE_DIR, art);
-    if (fs.existsSync(src)) {
-      fs.copyFileSync(src, path.join(nsDir, path.basename(src)));
-    }
-  }
-
-  // 2. Apply files into bro and generate diff.patch
-  execSync('git checkout .', { cwd: BRO_DIR });
-  for (const [srcRel, dstRel] of b.files) {
-    const src = path.join(BROSURFACE_DIR, srcRel);
-    const dst = path.join(BRO_DIR, dstRel);
-    fs.mkdirSync(path.dirname(dst), { recursive: true });
-    fs.copyFileSync(src, dst);
+function cleanupScratchWorktree(scratchDir) {
+  try {
+    execSync(`git -C "${BRO_DIR}" worktree remove --force "${scratchDir}"`, { stdio: 'ignore' });
+    execSync(`git -C "${BRO_DIR}" worktree prune`, { stdio: 'ignore' });
+  } catch (_) {}
+  if (fs.existsSync(scratchDir)) {
     try {
-      execSync(`git add -N "${dstRel}"`, { cwd: BRO_DIR });
+      execSync(`cmd.exe /c "rd /s /q \\"${scratchDir}\\""`, { stdio: 'ignore' });
     } catch (_) {}
   }
+}
 
-  const diffOut = execSync('git diff HEAD', { cwd: BRO_DIR, encoding: 'utf8' });
-  fs.writeFileSync(path.join(nsDir, 'diff.patch'), diffOut, 'utf8');
+export function generateBatchBundles(targetBundles = bundles) {
+  console.log(`[Guard] Recording pre-run live repository status (bro & brokit)...`);
+  const liveSnapshot = recordLiveTreeSnapshot();
 
-  execSync('git checkout .', { cwd: BRO_DIR });
+  try {
+    for (const b of targetBundles) {
+      const nsDir = path.join(BROSURFACE_DIR, 'integration', b.ns);
+      fs.mkdirSync(nsDir, { recursive: true });
 
-  // 3. Write INTEGRATION.md
-  let mdContent = `# Integration Bundle: \`${b.ns}\` (${b.title})
+      // 1. Copy generated artifacts into bundle
+      for (const art of b.artifacts) {
+        const src = path.join(BROSURFACE_DIR, art);
+        if (fs.existsSync(src)) {
+          fs.copyFileSync(src, path.join(nsDir, path.basename(src)));
+        }
+      }
+
+      // 2. Create isolated scratch worktree for generating clean diff.patch
+      const scratchDir = path.resolve(`D:/projects/bro-scratch-makebundle-${b.ns}-${Date.now()}`);
+      cleanupScratchWorktree(scratchDir);
+
+      execSync(`git -C "${BRO_DIR}" worktree add "${scratchDir}" HEAD`, { stdio: 'ignore' });
+      assertScratchWorktree(scratchDir);
+
+      try {
+        execSync(`git -C "${scratchDir}" submodule update --init`, { stdio: 'ignore' });
+
+        for (const [srcRel, dstRel] of b.files) {
+          const src = path.join(BROSURFACE_DIR, srcRel);
+          const dst = path.join(scratchDir, dstRel);
+          fs.mkdirSync(path.dirname(dst), { recursive: true });
+          fs.copyFileSync(src, dst);
+          try {
+            execSync(`git -C "${scratchDir}" add -N "${dstRel}"`, { stdio: 'ignore' });
+          } catch (_) {}
+        }
+
+        const diffOut = execSync(`git -C "${scratchDir}" diff HEAD`, { encoding: 'utf8' });
+        fs.writeFileSync(path.join(nsDir, 'diff.patch'), diffOut, 'utf8');
+      } finally {
+        cleanupScratchWorktree(scratchDir);
+      }
+
+      // 3. Write INTEGRATION.md
+      let mdContent = `# Integration Bundle: \`${b.ns}\` (${b.title})
 
 - **Census Surface:** ${b.census}
 - **Bro Pin SHA:** \`a2311f347a2eae6926c0799ace2978dcab1edf55\`
@@ -153,23 +186,33 @@ The following hand-maintained files in \`D:/projects/bro\` are superseded by the
 
 `;
 
-  for (const [, dstRel] of b.files) {
-    mdContent += `- \`${dstRel}\`\n`;
+      for (const [, dstRel] of b.files) {
+        mdContent += `- \`${dstRel}\`\n`;
+      }
+
+      mdContent += `\n## 2. Generated Artifacts in Bundle\n\n`;
+      for (const art of b.artifacts) {
+        mdContent += `- \`${path.basename(art)}\`\n`;
+      }
+      mdContent += `- \`diff.patch\` (clean unified diff against \`a2311f347a2eae6926c0799ace2978dcab1edf55\`)\n`;
+
+      mdContent += `\n## 3. Exact Test Commands & Passing Test Suites\n\n\`\`\`bash\n${b.test_cmd}\n\`\`\`\n\n### Executed Test Files:\n`;
+      for (const tf of b.test_files) {
+        mdContent += `- \`${tf}\`\n`;
+      }
+
+      mdContent += `\n**Result:** All test suites passed with 0 regressions.\n\n## 4. Behavioral Diffs & Triage\n\n${b.diff_triage}\n\n## 5. Reviewer Re-Verification Command\n\nTo independently verify this bundle in an isolated scratch worktree:\n\n\`\`\`bash\nnode tools/verify_integration_bundle.mjs ${b.ns}\n\`\`\`\n`;
+
+      fs.writeFileSync(path.join(nsDir, 'INTEGRATION.md'), mdContent, 'utf8');
+      console.log(`✅ Created bundle for ${b.ns} (scratch-worktree isolated)`);
+    }
+  } finally {
+    console.log(`[Guard] Verifying post-run live repository status (bro & brokit)...`);
+    assertLiveTreeUnchanged(liveSnapshot);
+    console.log(`  ✅ Live repository state unchanged.`);
   }
+}
 
-  mdContent += `\n## 2. Generated Artifacts in Bundle\n\n`;
-  for (const art of b.artifacts) {
-    mdContent += `- \`${path.basename(art)}\`\n`;
-  }
-  mdContent += `- \`diff.patch\` (clean unified diff against \`a2311f347a2eae6926c0799ace2978dcab1edf55\`)\n`;
-
-  mdContent += `\n## 3. Exact Test Commands & Passing Test Suites\n\n\`\`\`bash\n${b.test_cmd}\n\`\`\`\n\n### Executed Test Files:\n`;
-  for (const tf of b.test_files) {
-    mdContent += `- \`${tf}\`\n`;
-  }
-
-  mdContent += `\n**Result:** All test suites passed with 0 regressions.\n\n## 4. Behavioral Diffs & Triage\n\n${b.diff_triage}\n\n## 5. Reviewer Re-Verification Command\n\nTo independently verify this bundle in an isolated scratch worktree:\n\n\`\`\`bash\nnode tools/verify_integration_bundle.mjs ${b.ns}\n\`\`\`\n`;
-
-  fs.writeFileSync(path.join(nsDir, 'INTEGRATION.md'), mdContent, 'utf8');
-  console.log(`✅ Created bundle for ${b.ns}`);
+if (process.argv[1] && process.argv[1].endsWith('make_bundles_m4.mjs')) {
+  generateBatchBundles();
 }

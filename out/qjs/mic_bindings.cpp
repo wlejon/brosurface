@@ -244,10 +244,10 @@ static JSValue js_mic_feed(JSContext* ctx, JSValueConst, int argc, JSValueConst*
 // ---------------------------------------------------------------------------
 
 void installMicBindings(JSContext* ctx, broaudio::Engine* audioEngine) {
-    JSValue global = JS_GetGlobalObject(ctx);
     g_mic.audioEngine = audioEngine;
     g_mic.ctx         = ctx;
 
+    JSValue global = JS_GetGlobalObject(ctx);
     JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
     if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
         broObj = JS_NewObject(ctx);

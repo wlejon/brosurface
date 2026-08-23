@@ -10,9 +10,14 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import {
+  BRO_DIR,
+  assertScratchWorktree,
+  recordLiveTreeSnapshot,
+  assertLiveTreeUnchanged
+} from './isolation.mjs';
 
 const ROOT = path.resolve('.');
-const BRO_DIR = path.resolve('D:/projects/bro');
 const EXPECTED_SHA = 'a2311f347a2eae6926c0799ace2978dcab1edf55';
 
 function logStep(stepNum, title) {
@@ -88,7 +93,7 @@ export function parseBundleInfo(namespace) {
   return { namespace, bundleDir, docPath, patchPath, testCmd };
 }
 
-export async function verifySingleBundle(bundleInfo) {
+export async function verifySingleBundle(bundleInfo, options = {}) {
   const { namespace, patchPath, testCmd } = bundleInfo;
   console.log(`\n════════════════════════════════════════════════════════════════════════════════`);
   console.log(`       Verifying Integration Bundle: [ ${namespace.toUpperCase()} ]`);
@@ -122,6 +127,10 @@ export async function verifySingleBundle(bundleInfo) {
       throw new Error(`Failed to create worktree: ${wtRes.stderr}`);
     }
     console.log(`  ✅ Worktree created successfully.`);
+
+    // Machine-enforced isolation assertion
+    assertScratchWorktree(scratchDir, options);
+    console.log(`  ✅ Verified scratch worktree isolation (linked worktree under scratch root).`);
 
     console.log(`  Initializing required submodules...`);
     const subRes = runCmd(`git -C "${scratchDir}" submodule update --init`, scratchDir);
@@ -185,8 +194,9 @@ export async function verifySingleBundle(bundleInfo) {
   return success;
 }
 
-async function main() {
+export async function main() {
   const args = process.argv.slice(2);
+  const liveTreeIAmSure = args.includes('--live-tree-i-am-sure');
   const bundles = getAvailableBundles();
 
   if (bundles.length === 0) {
@@ -195,20 +205,25 @@ async function main() {
   }
 
   console.log(`╔════════════════════════════════════════════════════════════════════╗`);
-  console.log(`║      brosurface Integration Bundle Verification Runner (M3)        ║`);
+  console.log(`║      brosurface Integration Bundle Verification Runner (M3/M4)     ║`);
   console.log(`╚════════════════════════════════════════════════════════════════════╝`);
   console.log(`Available bundles (${bundles.length}): ${bundles.join(', ')}\n`);
+
+  // Pre-guard snapshot of live trees
+  console.log(`[Guard] Recording pre-run live repository status (bro & brokit)...`);
+  const liveSnapshot = recordLiveTreeSnapshot();
+  console.log(`  ✅ Pre-run live tree status clean.\n`);
 
   let targetBundles = [];
 
   if (args.includes('--all')) {
     targetBundles = [...bundles];
-  } else if (args.includes('--random') || args.length === 0) {
+  } else if (args.includes('--random') || args.filter(a => !a.startsWith('--')).length === 0) {
     const idx = Math.floor(Math.random() * bundles.length);
     targetBundles = [bundles[idx]];
     console.log(`🎲 Randomly selected bundle for verification: ${bundles[idx]}`);
   } else {
-    const selected = args[0];
+    const selected = args.find(a => !a.startsWith('--'));
     if (!bundles.includes(selected)) {
       console.error(`❌ Unknown bundle '${selected}'. Available: ${bundles.join(', ')}`);
       process.exit(1);
@@ -219,16 +234,23 @@ async function main() {
   let totalPassed = 0;
   let totalFailed = 0;
 
-  for (const b of targetBundles) {
-    try {
-      const info = parseBundleInfo(b);
-      const ok = await verifySingleBundle(info);
-      if (ok) totalPassed++;
-      else totalFailed++;
-    } catch (err) {
-      console.error(`\n❌ Verification failed for bundle '${b}':`, err.message);
-      totalFailed++;
+  try {
+    for (const b of targetBundles) {
+      try {
+        const info = parseBundleInfo(b);
+        const ok = await verifySingleBundle(info, { liveTreeIAmSure });
+        if (ok) totalPassed++;
+        else totalFailed++;
+      } catch (err) {
+        console.error(`\n❌ Verification failed for bundle '${b}':`, err.message);
+        totalFailed++;
+      }
     }
+  } finally {
+    // Post-guard snapshot assertion of live trees
+    console.log(`\n[Guard] Verifying post-run live repository status (bro & brokit)...`);
+    assertLiveTreeUnchanged(liveSnapshot);
+    console.log(`  ✅ Live repository state unchanged (0 unintended side effects).`);
   }
 
   console.log(`\n════════════════════════════════════════════════════════════════════════════════`);
@@ -241,16 +263,18 @@ async function main() {
 
   if (totalFailed === 0) {
     console.log(`OVERALL STATUS: ✅ ALL BUNDLE VERIFICATIONS PASSED\n`);
-    process.exit(0);
+    return true;
   } else {
     console.error(`OVERALL STATUS: ❌ BUNDLE VERIFICATION ENCOUNTERED FAILURES\n`);
-    process.exit(1);
+    return false;
   }
 }
 
 const isDirect = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isDirect) {
-  main().catch(err => {
+  main().then(ok => {
+    if (!ok) process.exit(1);
+  }).catch(err => {
     console.error('Fatal error:', err);
     process.exit(1);
   });

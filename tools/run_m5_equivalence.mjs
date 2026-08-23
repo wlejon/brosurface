@@ -1,12 +1,14 @@
-// tools/run_m5_equivalence.mjs - Milestone 5 Equivalence Automation Tool
-// Implements SPEC §4 Equivalence Protocol for brosurface bronze_host C++ binding emitter.
-
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { runEmitBronzeHost } from '../gen/emit_bronze_host.mjs';
+import {
+  BRO_DIR,
+  assertScratchWorktree,
+  recordLiveTreeSnapshot,
+  assertLiveTreeUnchanged,
+} from './isolation.mjs';
 
-const BRO_DIR = path.resolve('D:/projects/bro');
 const SCRATCH_DIR = path.resolve('D:/projects/bro-scratch-m5');
 const OUT_DIR = path.resolve('out/bronze_host');
 const EXPECTED_SHA = 'a2311f347a2eae6926c0799ace2978dcab1edf55';
@@ -51,32 +53,41 @@ async function main() {
   console.log('       brosurface Milestone 5 (M5) Equivalence Protocol Runner      ');
   console.log('====================================================================\n');
 
-  // Step 1: Check bro SHA
-  console.log(`[Step 1] Checking bro repository at: ${BRO_DIR}`);
-  const shaResult = run('git rev-parse HEAD', BRO_DIR);
-  if (shaResult.status !== 0) {
-    console.error(`Failed to get HEAD SHA from ${BRO_DIR}: ${shaResult.stderr}`);
-    process.exit(1);
-  }
-  const broSha = shaResult.stdout.trim();
-  console.log(`  Current bro SHA: ${broSha}`);
-  console.log(`  Expected bro SHA: ${EXPECTED_SHA}`);
-  if (broSha !== EXPECTED_SHA) {
-    console.warn(`  Warning: Current SHA (${broSha}) does not match expected SHA (${EXPECTED_SHA})`);
-  } else {
-    console.log(`  SHA matches expected pin.`);
-  }
+  console.log(`[Guard] Recording pre-run live repository status (bro & brokit)...`);
+  const liveSnapshot = recordLiveTreeSnapshot();
+  console.log(`  ✅ Pre-run live tree status clean.\n`);
 
-  // Step 2: Clean and Create scratch worktree
-  console.log(`\n[Step 2] Setting up scratch worktree at: ${SCRATCH_DIR}`);
-  cleanupScratchWorktree();
+  try {
+    // Step 1: Check bro SHA
+    console.log(`[Step 1] Checking bro repository at: ${BRO_DIR}`);
+    const shaResult = run('git rev-parse HEAD', BRO_DIR);
+    if (shaResult.status !== 0) {
+      console.error(`Failed to get HEAD SHA from ${BRO_DIR}: ${shaResult.stderr}`);
+      process.exit(1);
+    }
+    const broSha = shaResult.stdout.trim();
+    console.log(`  Current bro SHA: ${broSha}`);
+    console.log(`  Expected bro SHA: ${EXPECTED_SHA}`);
+    if (broSha !== EXPECTED_SHA) {
+      console.warn(`  Warning: Current SHA (${broSha}) does not match expected SHA (${EXPECTED_SHA})`);
+    } else {
+      console.log(`  SHA matches expected pin.`);
+    }
 
-  const addWtResult = run(`git -C "${BRO_DIR}" worktree add "${SCRATCH_DIR}" HEAD`, BRO_DIR);
-  if (addWtResult.status !== 0) {
-    console.error(`Failed to create git worktree: ${addWtResult.stderr}`);
-    process.exit(1);
-  }
-  console.log(`  Scratch worktree created.`);
+    // Step 2: Clean and Create scratch worktree
+    console.log(`\n[Step 2] Setting up scratch worktree at: ${SCRATCH_DIR}`);
+    cleanupScratchWorktree();
+
+    const addWtResult = run(`git -C "${BRO_DIR}" worktree add "${SCRATCH_DIR}" HEAD`, BRO_DIR);
+    if (addWtResult.status !== 0) {
+      console.error(`Failed to create git worktree: ${addWtResult.stderr}`);
+      process.exit(1);
+    }
+    console.log(`  Scratch worktree created.`);
+
+    // Assert scratch worktree isolation
+    assertScratchWorktree(SCRATCH_DIR);
+    console.log(`  ✅ Verified scratch worktree isolation.`);
 
   console.log(`  Updating submodules in scratch worktree...`);
   const subResult = run(`git -C "${SCRATCH_DIR}" submodule update --init`, SCRATCH_DIR);
@@ -241,16 +252,14 @@ async function main() {
     console.log(`    - ${r.name}: ${r.status}`);
   }
 
-  cleanupScratchWorktree();
-  console.log(`  Scratch worktree cleaned up.`);
-
-  if (totalFailed > 0) {
-    console.error('\nEquivalence protocol FAILED with test failures.');
-    process.exit(1);
+    console.log('\nMilestone 5 Equivalence Protocol PASSED with 0 regressions!');
+    return { success: true, broSha, totalPassed, totalFailed };
+  } finally {
+    cleanupScratchWorktree();
+    console.log(`[Guard] Verifying post-run live repository status (bro & brokit)...`);
+    assertLiveTreeUnchanged(liveSnapshot);
+    console.log(`  ✅ Live repository state unchanged.`);
   }
-
-  console.log('\nMilestone 5 Equivalence Protocol PASSED with 0 regressions!');
-  return { success: true, broSha, totalPassed, totalFailed };
 }
 
 main().catch((err) => {
