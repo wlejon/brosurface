@@ -2260,18 +2260,6 @@ static JSValue js_seq_automationInterpMode(JSContext* ctx, JSValueConst this_val
     return JS_NewString(ctx, s);
 }
 
-void AudioBindings::cleanup(JSContext*)
-{
-    // No central JS-ref registry u2014 every wrapper (VoiceAllocatorData,
-    // MidiInputData, SequenceData, etc.) frees its own JSValue callbacks in
-    // its destructor when qjsbind finalizes it. We just drop the engine
-    // pointer + wavetable bank cache here; the per-wrapper finalizers run as
-    // the runtime tears down.
-    s_audioEngine = nullptr;
-    s_wavetables.clear();
-    s_nextWavetableId = 1;
-}
-
 void AudioBindings::install(JSContext* ctx, broaudio::Engine* engine)
 {
     s_audioEngine = engine;
@@ -3095,5 +3083,18 @@ void AudioBindings::install(JSContext* ctx, broaudio::Engine* engine)
         }
         JS_FreeValue(ctx, shimResult);
 }
+
+void AudioBindings::cleanup(JSContext*)
+{
+    // No central JS-ref registry u2014 every wrapper (VoiceAllocatorData,
+    // MidiInputData, SequenceData, etc.) frees its own JSValue callbacks in
+    // its destructor when qjsbind finalizes it. We just drop the engine
+    // pointer + wavetable bank cache here; the per-wrapper finalizers run as
+    // the runtime tears down.
+    s_audioEngine = nullptr;
+    s_wavetables.clear();
+    s_nextWavetableId = 1;
+}
+
 
 } // namespace bro::js

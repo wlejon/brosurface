@@ -178,4 +178,5 @@ void installGamepadBindings(JSContext* ctx, engine::Engine* engine)
     JS_FreeValue(ctx, global);
 }
 
+
 } // namespace bro::js

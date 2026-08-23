@@ -1700,36 +1700,6 @@ static JSValue js_encodeDraco(JSContext* ctx, JSValueConst, int argc, JSValueCon
 }
 #endif  // BROMESH_HAS_DRACO
 
-void MeshBindings::cleanup(JSContext*) {
-    // No persistent JSValue/atom storage in this binding — qjsbind owns the
-    // class registrations + finalizers, and bro.mesh is reached from globalThis
-    // (cleared by the engine-level globalThis sweep before the runtime dies).
-}
-
-// ---------------------------------------------------------------------------
-// Public API — used by worker thread transfer and scene_bindings
-// ---------------------------------------------------------------------------
-
-bromesh::MeshData* MeshBindings::getMeshData(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<MW>(ctx, val);
-    return w ? w->data.get() : nullptr;
-}
-
-std::unique_ptr<bromesh::MeshData> MeshBindings::takeMeshData(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<MW>(ctx, val);
-    if (!w) return nullptr;
-    return std::move(w->data);
-}
-
-JSValue MeshBindings::wrapMeshData(JSContext* ctx, std::unique_ptr<bromesh::MeshData> data) {
-    if (!data) return JS_ThrowTypeError(ctx, "wrapMeshData: null MeshData");
-    return qjsbind::wrap<MW>(ctx, new MW{std::move(data)});
-}
-
-JSClassID MeshBindings::classId() {
-    return qjsbind::class_id<MW>();
-}
-
 void MeshBindings::install(JSContext* ctx)
 {
     qjsbind::Class<MW>(ctx, "Mesh")
@@ -3101,6 +3071,37 @@ void MeshBindings::install(JSContext* ctx)
         })
         ;
 }
+
+void MeshBindings::cleanup(JSContext*) {
+    // No persistent JSValue/atom storage in this binding — qjsbind owns the
+    // class registrations + finalizers, and bro.mesh is reached from globalThis
+    // (cleared by the engine-level globalThis sweep before the runtime dies).
+}
+
+// ---------------------------------------------------------------------------
+// Public API — used by worker thread transfer and scene_bindings
+// ---------------------------------------------------------------------------
+
+bromesh::MeshData* MeshBindings::getMeshData(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<MW>(ctx, val);
+    return w ? w->data.get() : nullptr;
+}
+
+std::unique_ptr<bromesh::MeshData> MeshBindings::takeMeshData(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<MW>(ctx, val);
+    if (!w) return nullptr;
+    return std::move(w->data);
+}
+
+JSValue MeshBindings::wrapMeshData(JSContext* ctx, std::unique_ptr<bromesh::MeshData> data) {
+    if (!data) return JS_ThrowTypeError(ctx, "wrapMeshData: null MeshData");
+    return qjsbind::wrap<MW>(ctx, new MW{std::move(data)});
+}
+
+JSClassID MeshBindings::classId() {
+    return qjsbind::class_id<MW>();
+}
+
 
 } // namespace bro::js
 

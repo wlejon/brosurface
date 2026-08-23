@@ -97,4 +97,5 @@ void installGamepadHapticActuator(JSContext* ctx)
     JS_FreeValue(ctx, global);
 }
 
+
 } // namespace brokit::api

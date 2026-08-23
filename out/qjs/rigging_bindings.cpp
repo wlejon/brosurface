@@ -854,51 +854,6 @@ static JSValue js_ik_lookAt(JSContext* ctx, JSValueConst, int argc, JSValueConst
 // Install
 // ---------------------------------------------------------------------------
 
-void RiggingBindings::cleanup(JSContext*) {
-    // No persistent JSValue/atom storage in this binding — qjsbind finalizers
-    // handle SkinData/Skeleton/Pose/Animation wrappers.
-}
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-bromesh::SkinData* RiggingBindings::getSkinData(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<SDW>(ctx, val);
-    return w ? w->data.get() : nullptr;
-}
-
-JSValue RiggingBindings::wrapSkinData(JSContext* ctx, bromesh::SkinData&& data) {
-    return bro::js::wrapSkinData(ctx, std::move(data));
-}
-
-bromesh::Skeleton* RiggingBindings::getSkeleton(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<SKW>(ctx, val);
-    return w ? w->skel.get() : nullptr;
-}
-
-JSValue RiggingBindings::wrapSkeleton(JSContext* ctx, bromesh::Skeleton&& skel) {
-    return bro::js::wrapSkeleton(ctx, std::move(skel));
-}
-
-bromesh::Pose* RiggingBindings::getPose(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<PW>(ctx, val);
-    return w ? w->pose.get() : nullptr;
-}
-
-JSValue RiggingBindings::wrapPose(JSContext* ctx, bromesh::Pose&& pose) {
-    return bro::js::wrapPose(ctx, std::move(pose));
-}
-
-bromesh::Animation* RiggingBindings::getAnimation(JSContext* ctx, JSValueConst val) {
-    auto* w = qjsbind::unwrap<AW>(ctx, val);
-    return w ? w->anim.get() : nullptr;
-}
-
-JSValue RiggingBindings::wrapAnimation(JSContext* ctx, bromesh::Animation&& a) {
-    return bro::js::wrapAnimation(ctx, std::move(a));
-}
-
 void RiggingBindings::install(JSContext* ctx)
 {
     // =======================================================================
@@ -1470,6 +1425,52 @@ void RiggingBindings::install(JSContext* ctx)
             JS_FreeValue(ctx, global);
         }
 }
+
+void RiggingBindings::cleanup(JSContext*) {
+    // No persistent JSValue/atom storage in this binding — qjsbind finalizers
+    // handle SkinData/Skeleton/Pose/Animation wrappers.
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+bromesh::SkinData* RiggingBindings::getSkinData(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<SDW>(ctx, val);
+    return w ? w->data.get() : nullptr;
+}
+
+JSValue RiggingBindings::wrapSkinData(JSContext* ctx, bromesh::SkinData&& data) {
+    return bro::js::wrapSkinData(ctx, std::move(data));
+}
+
+bromesh::Skeleton* RiggingBindings::getSkeleton(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<SKW>(ctx, val);
+    return w ? w->skel.get() : nullptr;
+}
+
+JSValue RiggingBindings::wrapSkeleton(JSContext* ctx, bromesh::Skeleton&& skel) {
+    return bro::js::wrapSkeleton(ctx, std::move(skel));
+}
+
+bromesh::Pose* RiggingBindings::getPose(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<PW>(ctx, val);
+    return w ? w->pose.get() : nullptr;
+}
+
+JSValue RiggingBindings::wrapPose(JSContext* ctx, bromesh::Pose&& pose) {
+    return bro::js::wrapPose(ctx, std::move(pose));
+}
+
+bromesh::Animation* RiggingBindings::getAnimation(JSContext* ctx, JSValueConst val) {
+    auto* w = qjsbind::unwrap<AW>(ctx, val);
+    return w ? w->anim.get() : nullptr;
+}
+
+JSValue RiggingBindings::wrapAnimation(JSContext* ctx, bromesh::Animation&& a) {
+    return bro::js::wrapAnimation(ctx, std::move(a));
+}
+
 
 } // namespace bro::js
 

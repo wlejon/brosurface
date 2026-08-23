@@ -291,33 +291,6 @@ static JSValue js_imagebitmap_close(JSContext* ctx, JSValueConst this_val,
     return JS_UNDEFINED;
 }
 
-JSClassID ImageBitmapBindings::classId() {
-    return qjsbind::class_id<IB>();
-}
-
-JSValue ImageBitmapBindings::wrap(JSContext* ctx, sk_sp<SkImage> img) {
-    auto* d = new IB();
-    d->width  = img ? img->width()  : 0;
-    d->height = img ? img->height() : 0;
-    d->image  = std::move(img);
-    return qjsbind::wrap<IB>(ctx, d);
-}
-
-sk_sp<SkImage> ImageBitmapBindings::getImage(JSValueConst val) {
-    auto* d = qjsbind::unwrap<IB>(nullptr, val);
-    return d ? d->image : nullptr;
-}
-
-sk_sp<SkImage> ImageBitmapBindings::takeImage(JSValueConst val) {
-    auto* d = qjsbind::unwrap<IB>(nullptr, val);
-    if (!d || !d->image) return nullptr;
-    sk_sp<SkImage> img = std::move(d->image);
-    d->image = nullptr;
-    d->width = 0;
-    d->height = 0;
-    return img;
-}
-
 void ImageBitmapBindings::install(JSContext* ctx)
 {
     qjsbind::Class<IB>(ctx, "ImageBitmap", qjsbind::NoGlobal)
@@ -349,5 +322,33 @@ void ImageBitmapBindings::install(JSContext* ctx)
         }
         JS_FreeValue(ctx, global);
 }
+
+JSClassID ImageBitmapBindings::classId() {
+    return qjsbind::class_id<IB>();
+}
+
+JSValue ImageBitmapBindings::wrap(JSContext* ctx, sk_sp<SkImage> img) {
+    auto* d = new IB();
+    d->width  = img ? img->width()  : 0;
+    d->height = img ? img->height() : 0;
+    d->image  = std::move(img);
+    return qjsbind::wrap<IB>(ctx, d);
+}
+
+sk_sp<SkImage> ImageBitmapBindings::getImage(JSValueConst val) {
+    auto* d = qjsbind::unwrap<IB>(nullptr, val);
+    return d ? d->image : nullptr;
+}
+
+sk_sp<SkImage> ImageBitmapBindings::takeImage(JSValueConst val) {
+    auto* d = qjsbind::unwrap<IB>(nullptr, val);
+    if (!d || !d->image) return nullptr;
+    sk_sp<SkImage> img = std::move(d->image);
+    d->image = nullptr;
+    d->width = 0;
+    d->height = 0;
+    return img;
+}
+
 
 } // namespace bro::js

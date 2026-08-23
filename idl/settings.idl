@@ -1,74 +1,9 @@
 /**
  * =============================================================================
- * bro.settings — persistent layered settings & action binding system
+ * bro.settings — Engine & Display Settings Management
  * =============================================================================
- *
- * Persistent, layered settings system for graphics, audio, input, and appearance
- * configuration. The engine provides sensible defaults; apps can override them;
- * users can override those. User settings persist across sessions.
- *
- * Categories:
- *   - graphics: width, height, fullscreen, vsync, resizable, maxFrameIntervalMs, maxFps
- *   - audio: masterVolume, musicVolume, sfxVolume, muted
- *   - input: scrollSpeed, doubleClickThresholdMs, doubleClickDistancePx, overlayToggleKey
- *   - appearance: colorScheme ("system" | "light" | "dark")
- *
- * @example
- *   // Read and write settings
- *   const vol = bro.settings.get("audio.masterVolume");
- *   bro.settings.set("audio.masterVolume", 0.8);
- *   bro.settings.setDefault("graphics.width", 1280);
- *
- * @example
- *   // Action bindings
- *   bro.settings.defineAction("jump", [" ", "ArrowUp"]);
- *   const keys = bro.settings.getActionKeys("jump");
- *   bro.settings.rebindAction("jump", [" ", "w"]);
- *
- * @example
- *   // Display modes
- *   const modes = bro.settings.getDisplayModes();
- *   for (const m of modes) {
- *     console.log(m.width + "x" + m.height + " @" + m.refreshRate + "Hz");
- *   }
  */
 
-/**
- * Options for action binding definitions.
- */
-dictionary ActionOptions {
-  /** Deadzone threshold for analog axis bindings (default ~0.1). */
-  unrestricted double deadzone;
-};
-
-/**
- * Information describing a registered action and its key bindings.
- */
-dictionary ActionBindingInfo {
-  /** Action name identifier. */
-  DOMString action;
-
-  /** Sequence of bound key and input strings. */
-  sequence<DOMString> keys;
-};
-
-/**
- * Display video mode describing available fullscreen resolution and refresh rate.
- */
-dictionary DisplayModeInfo {
-  /** Horizontal width in pixels. */
-  long width;
-
-  /** Vertical height in pixels. */
-  long height;
-
-  /** Vertical refresh rate in Hz. */
-  unrestricted double refreshRate;
-};
-
-/**
- * Persistent layered settings and action binding management namespace.
- */
 [
   cpp_file="settings_bindings.cpp",
   cpp_header="js/settings_bindings.h",
@@ -77,135 +12,11 @@ dictionary DisplayModeInfo {
   cpp_install="SettingsBindings::install",
   install_signature="void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platform::Window* window, engine::Engine* engine)",
   prefix="bro.",
-  layered_store
+  cpp_prologue="\nstatic const char* kSettingsKey = \"__bro_settings_ptr\";\nstatic const char* kWindowKey = \"__bro_settings_window_ptr\";\n\nstruct SettingsState {\n    engine::Settings* store = nullptr;\n    platform::Window* window = nullptr;\n    engine::Engine* engine = nullptr;\n};\n\nstatic SettingsState* getState(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kSettingsKey);\n    SettingsState* state = nullptr;\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        state = reinterpret_cast<SettingsState*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_FreeValue(ctx, global);\n    return state;\n}\n\nstatic std::string jsStr(JSContext* ctx, JSValueConst val) {\n    const char* s = JS_ToCString(ctx, val);\n    std::string r = s ? s : \"\";\n    if (s) JS_FreeCString(ctx, s);\n    return r;\n}\n\nstatic JSValue settingsValueToJS(JSContext* ctx, const std::string& key,\n                                 const std::string& value) {\n    if (value.empty()) return JS_UNDEFINED;\n    if (key.find(\"fullscreen\") != std::string::npos ||\n        key.find(\"vsync\") != std::string::npos ||\n        key.find(\"resizable\") != std::string::npos ||\n        key.find(\"muted\") != std::string::npos) {\n        return JS_NewBool(ctx, value == \"true\");\n    }\n    if (key.find(\"width\") != std::string::npos ||\n        key.find(\"height\") != std::string::npos ||\n        key.find(\"overlayToggleKey\") != std::string::npos) {\n        try { return JS_NewInt32(ctx, std::stoi(value)); }\n        catch (...) { return JS_NewString(ctx, value.c_str()); }\n    }\n    if (key.find(\"Volume\") != std::string::npos ||\n        key.find(\"Speed\") != std::string::npos ||\n        key.find(\"Threshold\") != std::string::npos ||\n        key.find(\"Distance\") != std::string::npos ||\n        key.find(\"Interval\") != std::string::npos ||\n        key.find(\"maxFps\") != std::string::npos) {\n        try { return JS_NewFloat64(ctx, std::stod(value)); }\n        catch (...) { return JS_NewString(ctx, value.c_str()); }\n    }\n    return JS_NewString(ctx, value.c_str());\n}\n\nstatic JSValue buildActionArray(JSContext* ctx,\n                                const std::vector<bro::engine::ActionBinding>& actions) {\n    JSValue arr = JS_NewArray(ctx);\n    for (size_t i = 0; i < actions.size(); i++) {\n        JSValue obj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, obj, \"action\",\n                          JS_NewString(ctx, actions[i].action.c_str()));\n        JSValue keysArr = JS_NewArray(ctx);\n        for (size_t j = 0; j < actions[i].keys.size(); j++) {\n            JS_SetPropertyUint32(ctx, keysArr, static_cast<uint32_t>(j),\n                                 JS_NewString(ctx, actions[i].keys[j].c_str()));\n        }\n        JS_SetPropertyStr(ctx, obj, \"keys\", keysArr);\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), obj);\n    }\n    return arr;\n}\n\nstatic JSValue js_settings_get(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string key = jsStr(ctx, argv[0]);\n    std::string value = state->store->getString(key);\n    return settingsValueToJS(ctx, key, value);\n}\n\nstatic JSValue js_settings_get_all(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string category;\n    if (argc >= 1 && JS_IsString(argv[0])) category = jsStr(ctx, argv[0]);\n\n    auto addGraphics = [&](JSValue obj) {\n        auto& g = state->store->graphics();\n        JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, g.width));\n        JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, g.height));\n        JS_SetPropertyStr(ctx, obj, \"fullscreen\", JS_NewBool(ctx, g.fullscreen));\n        JS_SetPropertyStr(ctx, obj, \"vsync\", JS_NewBool(ctx, g.vsync));\n        JS_SetPropertyStr(ctx, obj, \"resizable\", JS_NewBool(ctx, g.resizable));\n        JS_SetPropertyStr(ctx, obj, \"maxFrameIntervalMs\", JS_NewFloat64(ctx, g.maxFrameIntervalMs));\n        JS_SetPropertyStr(ctx, obj, \"maxFps\", JS_NewFloat64(ctx, g.maxFps));\n    };\n    auto addAudio = [&](JSValue obj) {\n        auto& a = state->store->audio();\n        JS_SetPropertyStr(ctx, obj, \"masterVolume\", JS_NewFloat64(ctx, a.masterVolume));\n        JS_SetPropertyStr(ctx, obj, \"musicVolume\", JS_NewFloat64(ctx, a.musicVolume));\n        JS_SetPropertyStr(ctx, obj, \"sfxVolume\", JS_NewFloat64(ctx, a.sfxVolume));\n        JS_SetPropertyStr(ctx, obj, \"muted\", JS_NewBool(ctx, a.muted));\n    };\n    auto addInput = [&](JSValue obj) {\n        auto& i = state->store->input();\n        JS_SetPropertyStr(ctx, obj, \"scrollSpeed\", JS_NewFloat64(ctx, i.scrollSpeed));\n        JS_SetPropertyStr(ctx, obj, \"doubleClickThresholdMs\", JS_NewFloat64(ctx, i.doubleClickThresholdMs));\n        JS_SetPropertyStr(ctx, obj, \"doubleClickDistancePx\", JS_NewFloat64(ctx, i.doubleClickDistancePx));\n        JS_SetPropertyStr(ctx, obj, \"overlayToggleKey\", JS_NewInt32(ctx, static_cast<int32_t>(i.overlayToggleKey)));\n    };\n    auto addAppearance = [&](JSValue obj) {\n        auto& ap = state->store->appearance();\n        JS_SetPropertyStr(ctx, obj, \"colorScheme\", JS_NewString(ctx, ap.colorScheme.c_str()));\n    };\n\n    if (category == \"appearance\") {\n        JSValue obj = JS_NewObject(ctx);\n        addAppearance(obj);\n        return obj;\n    }\n    if (category == \"graphics\") {\n        JSValue obj = JS_NewObject(ctx);\n        addGraphics(obj);\n        return obj;\n    }\n    if (category == \"audio\") {\n        JSValue obj = JS_NewObject(ctx);\n        addAudio(obj);\n        return obj;\n    }\n    if (category == \"input\") {\n        JSValue obj = JS_NewObject(ctx);\n        addInput(obj);\n        return obj;\n    }\n\n    JSValue root = JS_NewObject(ctx);\n    JSValue gObj = JS_NewObject(ctx); addGraphics(gObj); JS_SetPropertyStr(ctx, root, \"graphics\", gObj);\n    JSValue aObj = JS_NewObject(ctx); addAudio(aObj); JS_SetPropertyStr(ctx, root, \"audio\", aObj);\n    JSValue iObj = JS_NewObject(ctx); addInput(iObj); JS_SetPropertyStr(ctx, root, \"input\", iObj);\n    JSValue apObj = JS_NewObject(ctx); addAppearance(apObj); JS_SetPropertyStr(ctx, root, \"appearance\", apObj);\n    return root;\n}\n\nstatic JSValue js_settings_set(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string key = jsStr(ctx, argv[0]);\n    if (JS_IsBool(argv[1])) {\n        state->store->setUser(key, JS_ToBool(ctx, argv[1]) != 0);\n    } else if (JS_IsNumber(argv[1])) {\n        double d;\n        JS_ToFloat64(ctx, &d, argv[1]);\n        state->store->setUser(key, d);\n    } else {\n        state->store->setUser(key, jsStr(ctx, argv[1]));\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_set_default(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string key = jsStr(ctx, argv[0]);\n    if (JS_IsBool(argv[1])) {\n        state->store->setDefault(key, JS_ToBool(ctx, argv[1]) != 0);\n    } else if (JS_IsNumber(argv[1])) {\n        double d;\n        JS_ToFloat64(ctx, &d, argv[1]);\n        state->store->setDefault(key, d);\n    } else {\n        state->store->setDefault(key, jsStr(ctx, argv[1]));\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_reset(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    if (argc >= 1 && JS_IsString(argv[0])) {\n        state->store->resetCategory(jsStr(ctx, argv[0]));\n    } else {\n        state->store->resetAll();\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_define_action(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string action = jsStr(ctx, argv[0]);\n    std::vector<std::string> keys;\n    if (JS_IsArray(argv[1])) {\n        JSValue lenVal = JS_GetPropertyStr(ctx, argv[1], \"length\");\n        int32_t len = 0; JS_ToInt32(ctx, &len, lenVal); JS_FreeValue(ctx, lenVal);\n        for (int32_t i = 0; i < len; i++) {\n            JSValue elem = JS_GetPropertyUint32(ctx, argv[1], static_cast<uint32_t>(i));\n            keys.push_back(jsStr(ctx, elem));\n            JS_FreeValue(ctx, elem);\n        }\n    }\n    state->store->defineAction(action, keys);\n    if (argc >= 3 && JS_IsObject(argv[2])) {\n        JSValue dz = JS_GetPropertyStr(ctx, argv[2], \"deadzone\");\n        if (JS_IsNumber(dz)) {\n            double d = 0.0; JS_ToFloat64(ctx, &d, dz);\n            state->store->setActionDeadzone(action, static_cast<float>(d));\n        }\n        JS_FreeValue(ctx, dz);\n    }\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_rebind_action(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 2) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string action = jsStr(ctx, argv[0]);\n    std::vector<std::string> keys;\n    if (JS_IsArray(argv[1])) {\n        JSValue lenVal = JS_GetPropertyStr(ctx, argv[1], \"length\");\n        int32_t len = 0; JS_ToInt32(ctx, &len, lenVal); JS_FreeValue(ctx, lenVal);\n        for (int32_t i = 0; i < len; i++) {\n            JSValue elem = JS_GetPropertyUint32(ctx, argv[1], static_cast<uint32_t>(i));\n            keys.push_back(jsStr(ctx, elem));\n            JS_FreeValue(ctx, elem);\n        }\n    }\n    state->store->rebindAction(action, keys);\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_reset_action(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_UNDEFINED;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    state->store->resetAction(jsStr(ctx, argv[0]));\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_reset_all_actions(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    state->store->resetAllActions();\n    return JS_UNDEFINED;\n}\n\nstatic JSValue js_settings_get_action_keys(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_NewArray(ctx);\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_NewArray(ctx);\n    auto keys = state->store->getKeysForAction(jsStr(ctx, argv[0]));\n    JSValue arr = JS_NewArray(ctx);\n    for (size_t i = 0; i < keys.size(); i++) {\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), JS_NewString(ctx, keys[i].c_str()));\n    }\n    return arr;\n}\n\nstatic JSValue js_settings_get_key_action(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_NULL;\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_NULL;\n    std::string action = state->store->getActionForKey(jsStr(ctx, argv[0]));\n    if (action.empty()) return JS_NULL;\n    return JS_NewString(ctx, action.c_str());\n}\n\nstatic JSValue js_settings_get_action_strength(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_NewFloat64(ctx, 0.0);\n    auto* state = getState(ctx);\n    if (!state || !state->engine) return JS_NewFloat64(ctx, 0.0);\n    float s = state->engine->actionStrength(jsStr(ctx, argv[0]));\n    return JS_NewFloat64(ctx, static_cast<double>(s));\n}\n\nstatic JSValue js_settings_is_action_pressed(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_FALSE;\n    auto* state = getState(ctx);\n    if (!state || !state->engine) return JS_FALSE;\n    return JS_NewBool(ctx, state->engine->actionPressed(jsStr(ctx, argv[0])));\n}\n\nstatic JSValue js_settings_get_actions(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_NewArray(ctx);\n    return buildActionArray(ctx, state->store->getActions());\n}\n\nstatic JSValue js_settings_get_app_actions(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_NewArray(ctx);\n    return buildActionArray(ctx, state->store->getAppActions());\n}\n\nstatic JSValue js_settings_get_display_modes(JSContext* ctx, JSValueConst, int, JSValueConst*) {\n    auto* state = getState(ctx);\n    if (!state) return JS_NewArray(ctx);\n    JSValue arr = JS_NewArray(ctx);\n    if (!state->window) return arr;\n    auto modes = state->window->getDisplayModes();\n    for (size_t i = 0; i < modes.size(); i++) {\n        JSValue obj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, modes[i].width));\n        JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, modes[i].height));\n        JS_SetPropertyStr(ctx, obj, \"refreshRate\",\n                          JS_NewFloat64(ctx, modes[i].refreshRate));\n        JS_SetPropertyUint32(ctx, arr, static_cast<uint32_t>(i), obj);\n    }\n    return arr;\n}\n\nstatic JSValue js_settings_get_defaults(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    auto* state = getState(ctx);\n    if (!state || !state->store) return JS_UNDEFINED;\n    std::string category;\n    if (argc >= 1 && JS_IsString(argv[0])) category = jsStr(ctx, argv[0]);\n\n    auto addGraphics = [&](JSValue obj) {\n        auto& g = state->store->graphicsDefaults();\n        JS_SetPropertyStr(ctx, obj, \"width\", JS_NewInt32(ctx, g.width));\n        JS_SetPropertyStr(ctx, obj, \"height\", JS_NewInt32(ctx, g.height));\n        JS_SetPropertyStr(ctx, obj, \"fullscreen\", JS_NewBool(ctx, g.fullscreen));\n        JS_SetPropertyStr(ctx, obj, \"vsync\", JS_NewBool(ctx, g.vsync));\n        JS_SetPropertyStr(ctx, obj, \"resizable\", JS_NewBool(ctx, g.resizable));\n        JS_SetPropertyStr(ctx, obj, \"maxFrameIntervalMs\", JS_NewFloat64(ctx, g.maxFrameIntervalMs));\n        JS_SetPropertyStr(ctx, obj, \"maxFps\", JS_NewFloat64(ctx, g.maxFps));\n    };\n    if (category == \"graphics\") {\n        JSValue obj = JS_NewObject(ctx);\n        addGraphics(obj);\n        return obj;\n    }\n    JSValue root = JS_NewObject(ctx);\n    JSValue gObj = JS_NewObject(ctx);\n    addGraphics(gObj);\n    JS_SetPropertyStr(ctx, root, \"graphics\", gObj);\n    return root;\n}\n\nvoid SettingsBindings::cleanup(JSContext* ctx) {\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue val = JS_GetPropertyStr(ctx, global, kSettingsKey);\n    if (JS_IsNumber(val)) {\n        int64_t ptr = 0;\n        JS_ToInt64(ctx, &ptr, val);\n        delete reinterpret_cast<SettingsState*>(static_cast<intptr_t>(ptr));\n    }\n    JS_FreeValue(ctx, val);\n    JS_SetPropertyStr(ctx, global, kSettingsKey, JS_UNDEFINED);\n    JS_FreeValue(ctx, global);\n}\n",
+  install_body="    auto* state = new SettingsState();\n    state->store = settings;\n    state->window = window;\n    state->engine = engine;\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JS_SetPropertyStr(ctx, global, kSettingsKey,\n                      JS_NewInt64(ctx, static_cast<int64_t>(\n                          reinterpret_cast<intptr_t>(state))));\n\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n\n    JSValue settingsObj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, settingsObj, \"get\",\n        JS_NewCFunction(ctx, js_settings_get, \"get\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"getAll\",\n        JS_NewCFunction(ctx, js_settings_get_all, \"getAll\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"set\",\n        JS_NewCFunction(ctx, js_settings_set, \"set\", 2));\n    JS_SetPropertyStr(ctx, settingsObj, \"setDefault\",\n        JS_NewCFunction(ctx, js_settings_set_default, \"setDefault\", 2));\n    JS_SetPropertyStr(ctx, settingsObj, \"reset\",\n        JS_NewCFunction(ctx, js_settings_reset, \"reset\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"defineAction\",\n        JS_NewCFunction(ctx, js_settings_define_action, \"defineAction\", 3));\n    JS_SetPropertyStr(ctx, settingsObj, \"rebindAction\",\n        JS_NewCFunction(ctx, js_settings_rebind_action, \"rebindAction\", 2));\n    JS_SetPropertyStr(ctx, settingsObj, \"resetAction\",\n        JS_NewCFunction(ctx, js_settings_reset_action, \"resetAction\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"resetAllActions\",\n        JS_NewCFunction(ctx, js_settings_reset_all_actions, \"resetAllActions\", 0));\n    JS_SetPropertyStr(ctx, settingsObj, \"getActionKeys\",\n        JS_NewCFunction(ctx, js_settings_get_action_keys, \"getActionKeys\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"getKeyAction\",\n        JS_NewCFunction(ctx, js_settings_get_key_action, \"getKeyAction\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"getActionStrength\",\n        JS_NewCFunction(ctx, js_settings_get_action_strength, \"getActionStrength\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"isActionPressed\",\n        JS_NewCFunction(ctx, js_settings_is_action_pressed, \"isActionPressed\", 1));\n    JS_SetPropertyStr(ctx, settingsObj, \"getActions\",\n        JS_NewCFunction(ctx, js_settings_get_actions, \"getActions\", 0));\n    JS_SetPropertyStr(ctx, settingsObj, \"getAppActions\",\n        JS_NewCFunction(ctx, js_settings_get_app_actions, \"getAppActions\", 0));\n    JS_SetPropertyStr(ctx, settingsObj, \"getDisplayModes\",\n        JS_NewCFunction(ctx, js_settings_get_display_modes, \"getDisplayModes\", 0));\n    JS_SetPropertyStr(ctx, settingsObj, \"getDefaults\",\n        JS_NewCFunction(ctx, js_settings_get_defaults, \"getDefaults\", 1));\n\n    JS_SetPropertyStr(ctx, broObj, \"settings\", settingsObj);\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);",
+  cpp_epilogue=""
 ]
 namespace settings {
-  /**
-   * Get a single typed setting value (boolean, number, or string).
-   *
-   * @param key Setting key (e.g. 'graphics.vsync', 'audio.masterVolume')
-   * @returns Typed setting value or undefined
-   */
-  any get(DOMString key);
-
-  /**
-   * Get all settings as a nested object or for a specific category.
-   *
-   * @param category Optional category name ('graphics', 'audio', 'input', 'appearance')
-   * @returns Settings dictionary object
-   */
-  object getAll(optional DOMString category);
-
-  /**
-   * Set a user-level setting override (persisted across sessions).
-   *
-   * @param key Setting key
-   * @param value New setting value
-   */
-  void set(DOMString key, any value);
-
-  /**
-   * Set an app-level default setting value (not persisted).
-   *
-   * @param key Setting key
-   * @param value Default setting value
-   */
-  void setDefault(DOMString key, any value);
-
-  /**
-   * Reset user overrides for a category or for all settings to defaults.
-   *
-   * @param category Optional category name to reset
-   */
-  void reset(optional DOMString category);
-
-  /**
-   * Define an action with default input bindings (app-level).
-   *
-   * @param name Action name identifier
-   * @param keys Sequence of key and input binding strings
-   * @param options Optional binding options such as axis deadzone
-   */
-  void defineAction(DOMString name, sequence<DOMString> keys, optional ActionOptions options);
-
-  /**
-   * Rebind an action at the user level (persisted across sessions).
-   *
-   * @param name Action name identifier
-   * @param keys New sequence of key and input binding strings
-   */
-  void rebindAction(DOMString name, sequence<DOMString> keys);
-
-  /**
-   * Reset user-level rebind for a single action to its default bindings.
-   *
-   * @param name Action name identifier
-   */
-  void resetAction(DOMString name);
-
-  /**
-   * Reset all user-level action rebinds to default bindings.
-   */
-  void resetAllActions();
-
-  /**
-   * Get current active key bindings for an action.
-   *
-   * @param name Action name identifier
-   * @returns Array of bound input strings
-   */
-  sequence<DOMString> getActionKeys(DOMString name);
-
-  /**
-   * Reverse lookup the action bound to a given input key or button.
-   *
-   * @param key Input key string
-   * @returns Bound action name or null
-   */
-  DOMString? getKeyAction(DOMString key);
-
-  /**
-   * Polled analog strength of an action in range [0, 1].
-   *
-   * @param name Action name identifier
-   * @returns Action analog strength
-   */
-  unrestricted double getActionStrength(DOMString name);
-
-  /**
-   * Polled boolean press state of an action.
-   *
-   * @param name Action name identifier
-   * @returns Whether the action is currently pressed
-   */
-  boolean isActionPressed(DOMString name);
-
-  /**
-   * Get all defined actions (engine and app level).
-   *
-   * @returns Sequence of action descriptors
-   */
-  sequence<ActionBindingInfo> getActions();
-
-  /**
-   * Get actions declared specifically by the current app.
-   *
-   * @returns Sequence of app action descriptors
-   */
-  sequence<ActionBindingInfo> getAppActions();
-
-  /**
-   * Enumerate supported fullscreen video display modes and refresh rates.
-   *
-   * @returns Array of available display modes
-   */
-  sequence<DisplayModeInfo> getDisplayModes();
-
-  /**
-   * Get app and engine default settings ignoring user overrides.
-   *
-   * @param category Optional category filter
-   * @returns Default settings object
-   */
-  object getDefaults(optional DOMString category);
+  void load();
+  void save();
 };

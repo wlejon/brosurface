@@ -66,4 +66,5 @@ void installPipelineState(JSContext* ctx)
     JS_FreeValue(ctx, global);
 }
 
+
 } // namespace brokit::api

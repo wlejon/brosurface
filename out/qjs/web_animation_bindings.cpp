@@ -1,45 +1,71 @@
 #include "js/web_animation_bindings.h"
+#include "dom/element.h"
+#include "dom/document.h"
 #include "js/dom_bindings_internal.h"
-#include "js/runtime.h"
+#include "engine/web_animations.h"
 #include "engine/engine.h"
 #include "engine/css_transitions.h"
-#include "engine/web_animations.h"
 #include "util/log.h"
+#include "js/runtime.h"
 #include <qjsbind/qjsbind.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace bro::js {
 
+
 using bro::engine::WebAnimation;
 using bro::engine::WebAnimationManager;
-using bro::engine::CssPropertyId;
-using bro::engine::KeyframeProperty;
-using bro::engine::AnimationFillMode;
-using bro::engine::AnimationDirection;
+using bro::engine::WebAnimDirection;
+using bro::engine::WebAnimFill;
+using bro::engine::WebAnimKeyframe;
+using bro::engine::WebAnimState;
 
 namespace {
 
+// ---------------------------------------------------------------------------
+// Wrapper state
+// ---------------------------------------------------------------------------
+
 struct AnimationJS {
     JSContext* ctx = nullptr;
+    WebAnimationManager* mgr = nullptr;
     uint64_t id = 0;
-    std::string customId;
+    std::string name; // options.id
+
     JSValue onfinish = JS_UNDEFINED;
     JSValue oncancel = JS_UNDEFINED;
+    // The finished promise is created lazily on first access (like the
+    // browsers do) so a cancel with no observer never produces an unhandled
+    // rejection. promiseSettled tracks the CURRENT promise object only.
     JSValue finishedPromise = JS_UNDEFINED;
     JSValue finishedResolve = JS_UNDEFINED;
     JSValue finishedReject = JS_UNDEFINED;
-    bool finishedSettled = false;
+    bool promiseSettled = false;
+    // onfinish already fired for the current finished state — guards against a
+    // synchronous finish() racing a tick-queued finish event (double fire).
+    bool finishDelivered = false;
+
     ~AnimationJS();
 };
 
+// id → wrapper, raw mirror (NOT dup'd — maintained by the finalizer, so an
+// entry is always a live object; the same pattern as Element::jsWrapper).
 std::unordered_map<uint64_t, JSValue>& wrapperMirror() {
     static std::unordered_map<uint64_t, JSValue> m;
     return m;
 }
 
+// id → dup'd wrapper. Pins the wrapper while its animation can still deliver
+// a finish event (running/paused), mirroring how a live animation stays
+// reachable in a browser. Dropped on finish delivery, cancel, and context
+// cleanup.
 std::unordered_map<uint64_t, JSValue>& strongPins() {
     static std::unordered_map<uint64_t, JSValue> m;
     return m;
@@ -49,19 +75,19 @@ AnimationJS::~AnimationJS() {
     wrapperMirror().erase(id);
     if (ctx) {
         JSRuntime* rt = JS_GetRuntime(ctx);
-        if (!JS_IsUndefined(onfinish)) JS_FreeValueRT(rt, onfinish);
-        if (!JS_IsUndefined(oncancel)) JS_FreeValueRT(rt, oncancel);
-        if (!JS_IsUndefined(finishedPromise)) JS_FreeValueRT(rt, finishedPromise);
-        if (!JS_IsUndefined(finishedResolve)) JS_FreeValueRT(rt, finishedResolve);
-        if (!JS_IsUndefined(finishedReject)) JS_FreeValueRT(rt, finishedReject);
+        for (JSValue* v : {&onfinish, &oncancel, &finishedPromise,
+                           &finishedResolve, &finishedReject}) {
+            if (!JS_IsUndefined(*v)) JS_FreeValueRT(rt, *v);
+        }
     }
+    // Engine teardown destroys the manager before the JS runtime — isLive()
+    // makes this a no-op then instead of a use-after-free.
+    if (WebAnimationManager::isLive(mgr)) mgr->releaseFromWrapper(id);
 }
 
 void pinWrapper(JSContext* ctx, uint64_t id, JSValueConst obj) {
     auto& pins = strongPins();
-    if (pins.find(id) == pins.end()) {
-        pins[id] = JS_DupValue(ctx, obj);
-    }
+    if (pins.find(id) == pins.end()) pins[id] = JS_DupValue(ctx, obj);
 }
 
 void unpinWrapper(JSContext* ctx, uint64_t id) {
@@ -73,559 +99,591 @@ void unpinWrapper(JSContext* ctx, uint64_t id) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Context helpers
+// ---------------------------------------------------------------------------
+
 bro::engine::Engine* engineFor(JSContext* ctx) {
-    return getEngineForCtx(ctx);
+    auto it = s_ctx_engines.find(ctx);
+    return it == s_ctx_engines.end() ? nullptr
+                                     : static_cast<bro::engine::Engine*>(it->second);
 }
 
 double nowFor(JSContext* ctx) {
     auto* eng = engineFor(ctx);
-    return eng ? eng->currentTimeSec() : 0.0;
+    return eng ? eng->timeNowMs() : 0.0;
 }
 
-WebAnimation* recordFor(JSContext* ctx, uint64_t id) {
-    auto* eng = engineFor(ctx);
-    if (!eng) return nullptr;
-    return eng->webAnimations().find(id);
+WebAnimation* recordFor(AnimationJS* a) {
+    if (!a || !WebAnimationManager::isLive(a->mgr)) return nullptr;
+    return a->mgr->find(a->id);
 }
 
-void markTargetDirty(JSContext* ctx, const WebAnimation* anim) {
-    if (!anim || !anim->target) return;
-    auto* eng = engineFor(ctx);
-    if (!eng) return;
-    eng->webAnimations().onAnimationMutated(anim->id, anim->target);
+void markTargetDirty(AnimationJS* a, WebAnimation* rec) {
+    if (!rec) return;
+    if (auto* elem = a->mgr->resolveElement(*rec)) elem->markDirty();
 }
 
-JSValue makeAbortError(JSContext* ctx, const char* msg) {
+// ---------------------------------------------------------------------------
+// finished promise plumbing
+// ---------------------------------------------------------------------------
+
+JSValue makeAbortError(JSContext* ctx) {
     JSValue err = JS_NewError(ctx);
     JS_SetPropertyStr(ctx, err, "name", JS_NewString(ctx, "AbortError"));
-    JS_SetPropertyStr(ctx, err, "message", JS_NewString(ctx, msg));
+    JS_SetPropertyStr(ctx, err, "message",
+                      JS_NewString(ctx, "The user aborted a request."));
     return err;
 }
 
 void dropFinishedPromise(JSContext* ctx, AnimationJS* a) {
-    if (ctx && !JS_IsUndefined(a->finishedPromise)) {
-        JS_FreeValue(ctx, a->finishedPromise);
-        JS_FreeValue(ctx, a->finishedResolve);
-        JS_FreeValue(ctx, a->finishedReject);
-        a->finishedPromise = JS_UNDEFINED;
-        a->finishedResolve = JS_UNDEFINED;
-        a->finishedReject  = JS_UNDEFINED;
+    for (JSValue* v : {&a->finishedPromise, &a->finishedResolve, &a->finishedReject}) {
+        if (!JS_IsUndefined(*v)) {
+            JS_FreeValue(ctx, *v);
+            *v = JS_UNDEFINED;
+        }
     }
-    a->finishedSettled = false;
+    a->promiseSettled = false;
 }
 
-void resolveFinishedPromise(JSContext* ctx, AnimationJS* a, JSValueConst selfObj) {
-    if (JS_IsUndefined(a->finishedPromise) || a->finishedSettled) return;
-    a->finishedSettled = true;
-    if (!JS_IsUndefined(a->finishedResolve)) {
-        JSValue arg = JS_DupValue(ctx, selfObj);
-        JSValue ret = JS_Call(ctx, a->finishedResolve, JS_UNDEFINED, 1, &arg);
-        JS_FreeValue(ctx, ret);
-        JS_FreeValue(ctx, arg);
-    }
+void resolveFinishedPromise(JSContext* ctx, AnimationJS* a, JSValueConst animObj) {
+    if (JS_IsUndefined(a->finishedPromise) || a->promiseSettled) return;
+    a->promiseSettled = true;
+    JSValue arg = JS_DupValue(ctx, animObj);
+    JSValue r = JS_Call(ctx, a->finishedResolve, JS_UNDEFINED, 1, &arg);
+    JS_FreeValue(ctx, r);
+    JS_FreeValue(ctx, arg);
 }
 
-void rejectFinishedPromise(JSContext* ctx, AnimationJS* a, JSValue errorVal) {
-    if (JS_IsUndefined(a->finishedPromise) || a->finishedSettled) {
-        JS_FreeValue(ctx, errorVal);
+void rejectFinishedPromise(JSContext* ctx, AnimationJS* a) {
+    if (JS_IsUndefined(a->finishedPromise) || a->promiseSettled) return;
+    a->promiseSettled = true;
+    JSValue err = makeAbortError(ctx);
+    JSValue r = JS_Call(ctx, a->finishedReject, JS_UNDEFINED, 1, &err);
+    JS_FreeValue(ctx, r);
+    JS_FreeValue(ctx, err);
+}
+
+// Leaving the finished state replaces a settled promise with a fresh pending
+// one (per spec); a pending promise is kept.
+void freshenPromiseIfSettled(JSContext* ctx, AnimationJS* a) {
+    if (a->promiseSettled) dropFinishedPromise(ctx, a);
+}
+
+// Fire an onfinish/oncancel handler with an AnimationPlaybackEvent-shaped
+// plain object.
+void fireHandler(JSContext* ctx, JSValueConst handler, JSValueConst animObj,
+                 const char* type, JSValue currentTime) {
+    if (!JS_IsFunction(ctx, handler)) {
+        JS_FreeValue(ctx, currentTime);
         return;
     }
-    a->finishedSettled = true;
-    if (!JS_IsUndefined(a->finishedReject)) {
-        JSValue ret = JS_Call(ctx, a->finishedReject, JS_UNDEFINED, 1, &errorVal);
-        JS_FreeValue(ctx, ret);
-    }
-    JS_FreeValue(ctx, errorVal);
-}
-
-void freshenPromiseIfSettled(AnimationJS* a) {
-    if (!a->finishedSettled) return;
-    if (a->ctx) dropFinishedPromise(a->ctx, a);
-}
-
-void fireHandler(JSContext* ctx, JSValueConst handler, JSValueConst selfObj,
-                 const char* typeName) {
-    if (!JS_IsFunction(ctx, handler)) return;
     JSValue ev = JS_NewObject(ctx);
-    JS_SetPropertyStr(ctx, ev, "type", JS_NewString(ctx, typeName));
-    JS_SetPropertyStr(ctx, ev, "target", JS_DupValue(ctx, selfObj));
-    JS_SetPropertyStr(ctx, ev, "currentTarget", JS_DupValue(ctx, selfObj));
-    JSValue ret = Runtime::callJs(ctx, handler, selfObj, 1, &ev,
-                                  ErrorOrigin::listener("WebAnimation"));
+    JS_SetPropertyStr(ctx, ev, "type", JS_NewString(ctx, type));
+    JS_SetPropertyStr(ctx, ev, "currentTime", currentTime);
+    JS_SetPropertyStr(ctx, ev, "target", JS_DupValue(ctx, animObj));
+    JSValue ret = Runtime::callJs(ctx, handler, animObj, 1, &ev,
+                                  ErrorOrigin::listener("animation event"));
     JS_FreeValue(ctx, ret);
     JS_FreeValue(ctx, ev);
 }
 
-void settleFinish(JSContext* ctx, AnimationJS* a, JSValueConst selfObj) {
-    resolveFinishedPromise(ctx, a, selfObj);
-    if (!JS_IsUndefined(a->onfinish)) {
-        fireHandler(ctx, a->onfinish, selfObj, "finish");
+// Settle everything for a finish: resolve the promise (if observed), fire
+// onfinish, and drop the pin.
+void settleFinish(JSContext* ctx, AnimationJS* a, JSValueConst animObj) {
+    if (a->finishDelivered) return;
+    a->finishDelivered = true;
+    resolveFinishedPromise(ctx, a, animObj);
+    WebAnimation* rec = recordFor(a);
+    JSValue ct = JS_UNDEFINED;
+    if (rec) {
+        if (auto ctOpt = rec->currentTimeMs(nowFor(ctx))) ct = JS_NewFloat64(ctx, *ctOpt);
+        else ct = JS_NULL;
+    } else {
+        ct = JS_NULL;
     }
+    fireHandler(ctx, a->onfinish, animObj, "finish", ct);
     unpinWrapper(ctx, a->id);
 }
 
-JSValue wrapAnimation(JSContext* ctx, uint64_t id, const std::string& customId) {
-    auto it = wrapperMirror().find(id);
-    if (it != wrapperMirror().end()) {
-        return JS_DupValue(ctx, it->second);
-    }
+// ---------------------------------------------------------------------------
+// Wrapping
+// ---------------------------------------------------------------------------
+
+JSValue wrapAnimation(JSContext* ctx, WebAnimationManager* mgr, uint64_t id,
+                      std::string name = {}) {
+    auto& mirror = wrapperMirror();
+    auto mIt = mirror.find(id);
+    if (mIt != mirror.end()) return JS_DupValue(ctx, mIt->second);
+
     auto* a = new AnimationJS();
     a->ctx = ctx;
+    a->mgr = mgr;
     a->id = id;
-    a->customId = customId;
+    a->name = std::move(name);
     JSValue obj = qjsbind::wrap<AnimationJS>(ctx, a);
-    if (JS_IsException(obj)) {
-        return obj;
+    if (JS_IsException(obj)) return obj;
+    mirror[id] = obj;
+
+    // Pin while the animation can still deliver a finish.
+    WebAnimation* rec = mgr->find(id);
+    if (rec && (rec->state == WebAnimState::Running ||
+                rec->state == WebAnimState::Paused)) {
+        pinWrapper(ctx, id, obj);
     }
-    wrapperMirror()[id] = obj;
-    pinWrapper(ctx, id, obj);
     return obj;
 }
 
-CssPropertyId keyToCssProp(const std::string& key) {
-    if (key == "opacity") return CssPropertyId::Opacity;
-    if (key == "transform") return CssPropertyId::Transform;
-    if (key == "backgroundColor" || key == "background-color")
-        return CssPropertyId::BackgroundColor;
-    if (key == "color") return CssPropertyId::Color;
-    if (key == "width") return CssPropertyId::Width;
-    if (key == "height") return CssPropertyId::Height;
-    if (key == "top") return CssPropertyId::Top;
-    if (key == "left") return CssPropertyId::Left;
-    if (key == "right") return CssPropertyId::Right;
-    if (key == "bottom") return CssPropertyId::Bottom;
-    if (key == "margin" || key == "marginTop" || key == "margin-top")
-        return CssPropertyId::MarginTop;
-    if (key == "marginBottom" || key == "margin-bottom")
-        return CssPropertyId::MarginBottom;
-    if (key == "marginLeft" || key == "margin-left")
-        return CssPropertyId::MarginLeft;
-    if (key == "marginRight" || key == "margin-right")
-        return CssPropertyId::MarginRight;
-    if (key == "padding" || key == "paddingTop" || key == "padding-top")
-        return CssPropertyId::PaddingTop;
-    if (key == "paddingBottom" || key == "padding-bottom")
-        return CssPropertyId::PaddingBottom;
-    if (key == "paddingLeft" || key == "padding-left")
-        return CssPropertyId::PaddingLeft;
-    if (key == "paddingRight" || key == "padding-right")
-        return CssPropertyId::PaddingRight;
-    return CssPropertyId::Unknown;
+// ---------------------------------------------------------------------------
+// Keyframe parsing
+// ---------------------------------------------------------------------------
+
+// Property key → kebab-case CSS property ("backgroundColor" → "background-color",
+// "cssFloat" → "float").
+std::string keyToCssProp(const std::string& key) {
+    if (key == "cssFloat") return "float";
+    if (key == "cssOffset") return "offset";
+    return camelToKebab(key);
 }
 
-std::string valueToCss(JSContext* ctx, JSValueConst v) {
-    if (JS_IsNumber(v)) {
-        double d = 0;
-        JS_ToFloat64(ctx, &d, v);
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.6g", d);
-        return std::string(buf);
-    }
-    return jsToStdString(ctx, v);
+bool valueToCss(JSContext* ctx, JSValueConst v, std::string& out) {
+    if (JS_IsNull(v) || JS_IsUndefined(v)) return false;
+    out = jsToStdString(ctx, v);
+    return true;
 }
 
-void computeOffsets(std::vector<double>& offsets) {
-    size_t n = offsets.size();
-    if (n == 0) return;
-    if (n == 1) { if (std::isnan(offsets[0])) offsets[0] = 1.0; return; }
-    if (std::isnan(offsets[0])) offsets[0] = 0.0;
-    if (std::isnan(offsets[n - 1])) offsets[n - 1] = 1.0;
-    size_t i = 0;
-    while (i < n) {
-        if (!std::isnan(offsets[i])) { ++i; continue; }
-        size_t start = i - 1;
-        size_t end = i;
-        while (end < n && std::isnan(offsets[end])) ++end;
-        double startVal = offsets[start];
-        double endVal = offsets[end];
-        double step = (endVal - startVal) / (double)(end - start);
-        for (size_t k = i; k < end; ++k) {
-            offsets[k] = startVal + step * (double)(k - start);
+// Distribute unspecified offsets: singleton keyframe → 1 (animates from the
+// base value); otherwise first → 0, last → 1, interior runs spaced evenly
+// between their specified neighbors. `spec` holds -1 for unspecified.
+// Returns false (and throws) on out-of-range / non-monotonic offsets.
+bool computeOffsets(JSContext* ctx, std::vector<double>& spec,
+                    std::vector<WebAnimKeyframe>& frames) {
+    size_t n = frames.size();
+    if (n == 0) return true;
+    for (double o : spec) {
+        if (o >= 0 && (o < 0 || o > 1 || std::isnan(o))) {
+            JS_ThrowTypeError(ctx, "keyframe offset must be in [0, 1]");
+            return false;
         }
-        i = end;
     }
+    if (n == 1) {
+        if (spec[0] < 0) spec[0] = 1.0;
+    } else {
+        if (spec[0] < 0) spec[0] = 0.0;
+        if (spec[n - 1] < 0) spec[n - 1] = 1.0;
+        size_t i = 0;
+        while (i < n) {
+            if (spec[i] >= 0) { ++i; continue; }
+            size_t runStart = i;
+            while (i < n && spec[i] < 0) ++i; // i now at next specified
+            double lo = spec[runStart - 1];
+            double hi = spec[i];
+            size_t count = i - runStart + 1;
+            for (size_t k = runStart; k < i; ++k)
+                spec[k] = lo + (hi - lo) * static_cast<double>(k - runStart + 1) / count;
+        }
+    }
+    for (size_t i = 0; i < n; ++i) {
+        if (i > 0 && spec[i] < spec[i - 1]) {
+            JS_ThrowTypeError(ctx, "keyframe offsets must be monotonically increasing");
+            return false;
+        }
+        frames[i].offset = static_cast<float>(spec[i]);
+    }
+    return true;
 }
 
-bool parseKeyframeArray(JSContext* ctx, JSValueConst arr, uint32_t len,
-                        std::vector<KeyframeProperty>& outProps,
-                        std::string& defaultEasing) {
-    struct RawKf {
-        double offset = NAN;
-        std::string easing;
-        std::vector<std::pair<CssPropertyId, std::string>> props;
-    };
-    std::vector<RawKf> kfs;
-    kfs.reserve(len);
-    for (uint32_t i = 0; i < len; ++i) {
-        JSValue item = JS_GetPropertyUint32(ctx, arr, i);
-        if (!JS_IsObject(item)) { JS_FreeValue(ctx, item); continue; }
-        RawKf kf;
-        JSPropertyEnum* tab = nullptr;
+// Array-of-keyframes form.
+bool parseKeyframeArray(JSContext* ctx, JSValueConst arr,
+                        std::vector<WebAnimKeyframe>& frames) {
+    int64_t len = 0;
+    {
+        JSValue lv = JS_GetPropertyStr(ctx, arr, "length");
+        JS_ToInt64(ctx, &len, lv);
+        JS_FreeValue(ctx, lv);
+    }
+    std::vector<double> offsets;
+    for (int64_t i = 0; i < len; ++i) {
+        JSValue item = JS_GetPropertyUint32(ctx, arr, static_cast<uint32_t>(i));
+        if (!JS_IsObject(item)) {
+            JS_FreeValue(ctx, item);
+            JS_ThrowTypeError(ctx, "keyframe %d is not an object", static_cast<int>(i));
+            return false;
+        }
+        WebAnimKeyframe kf;
+        double off = -1;
+
+        JSPropertyEnum* props = nullptr;
         uint32_t plen = 0;
-        if (JS_GetOwnPropertyNames(ctx, &tab, &plen, item,
-                                   JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) >= 0) {
+        if (JS_GetOwnPropertyNames(ctx, &props, &plen, item,
+                                   JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0) {
             for (uint32_t p = 0; p < plen; ++p) {
-                const char* key = JS_AtomToCString(ctx, tab[p].atom);
-                if (!key) continue;
-                JSValue val = JS_GetProperty(ctx, item, tab[p].atom);
-                std::string k(key);
-                JS_FreeCString(ctx, key);
-                if (k == "offset") {
-                    double off = 0;
-                    if (!JS_IsNull(val) && !JS_IsUndefined(val) &&
-                        JS_ToFloat64(ctx, &off, val) == 0) {
-                        kf.offset = off;
+                const char* cname = JS_AtomToCString(ctx, props[p].atom);
+                if (!cname) continue;
+                std::string pname(cname);
+                JS_FreeCString(ctx, cname);
+                JSValue pv = JS_GetProperty(ctx, item, props[p].atom);
+                if (pname == "offset") {
+                    if (!JS_IsNull(pv) && !JS_IsUndefined(pv)) JS_ToFloat64(ctx, &off, pv);
+                } else if (pname == "easing") {
+                    std::string es = jsToStdString(ctx, pv);
+                    if (!es.empty()) {
+                        kf.easing = bro::engine::parseTimingFunction(es);
+                        kf.hasEasing = true;
                     }
-                } else if (k == "easing") {
-                    kf.easing = jsToStdString(ctx, val);
+                } else if (pname == "composite") {
+                    // only "replace" is implemented — ignore
                 } else {
-                    CssPropertyId id = keyToCssProp(k);
-                    if (id != CssPropertyId::Unknown) {
-                        kf.props.push_back({id, valueToCss(ctx, val)});
-                    }
+                    std::string val;
+                    if (valueToCss(ctx, pv, val))
+                        kf.props.emplace_back(keyToCssProp(pname), std::move(val));
                 }
-                JS_FreeValue(ctx, val);
+                JS_FreeValue(ctx, pv);
             }
-            js_free_prop_enum(ctx, tab, plen);
+            JS_FreePropertyEnum(ctx, props, plen);
         }
         JS_FreeValue(ctx, item);
-        kfs.push_back(std::move(kf));
+        frames.push_back(std::move(kf));
+        offsets.push_back(off);
     }
-    if (kfs.empty()) return false;
-    std::vector<double> offs(kfs.size());
-    for (size_t i = 0; i < kfs.size(); ++i) offs[i] = kfs[i].offset;
-    computeOffsets(offs);
-    for (size_t i = 0; i < kfs.size(); ++i) {
-        double off = std::clamp(offs[i], 0.0, 1.0);
-        const std::string& ease = kfs[i].easing.empty() ? defaultEasing : kfs[i].easing;
-        for (auto& [propId, cssVal] : kfs[i].props) {
-            KeyframeProperty* bucket = nullptr;
-            for (auto& bp : outProps) {
-                if (bp.prop == propId) { bucket = &bp; break; }
-            }
-            if (!bucket) {
-                outProps.push_back(KeyframeProperty{});
-                bucket = &outProps.back();
-                bucket->prop = propId;
-            }
-            bucket->frames.push_back(bro::engine::Keyframe{
-                off, cssVal, ease, {}
-            });
-        }
-    }
-    for (auto& bp : outProps) {
-        std::sort(bp.frames.begin(), bp.frames.end(),
-                  [](const auto& a, const auto& b) { return a.offset < b.offset; });
-    }
-    return !outProps.empty();
+    return computeOffsets(ctx, offsets, frames);
 }
 
+// Object-of-arrays form: { opacity: [0, 1], transform: ['none', 'scale(2)'] }.
+// Each property's m values land at offsets k/(m-1) (a single value at 1);
+// keyframes carry only the properties declared at their offset, which the
+// per-property interpolator handles directly. A scalar/array `easing` entry is
+// applied to the merged keyframes in order (cyclically for arrays).
 bool parseKeyframeObject(JSContext* ctx, JSValueConst obj,
-                         std::vector<KeyframeProperty>& outProps,
-                         std::string& defaultEasing) {
-    JSPropertyEnum* tab = nullptr;
+                         std::vector<WebAnimKeyframe>& frames) {
+    struct PropList {
+        std::string prop;
+        std::vector<std::string> values;
+    };
+    std::vector<PropList> lists;
+    std::vector<std::string> easings;
+
+    JSPropertyEnum* props = nullptr;
     uint32_t plen = 0;
-    if (JS_GetOwnPropertyNames(ctx, &tab, &plen, obj,
-                               JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0) {
+    if (JS_GetOwnPropertyNames(ctx, &props, &plen, obj,
+                               JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) != 0)
+        return false;
+    for (uint32_t p = 0; p < plen; ++p) {
+        const char* cname = JS_AtomToCString(ctx, props[p].atom);
+        if (!cname) continue;
+        std::string pname(cname);
+        JS_FreeCString(ctx, cname);
+        JSValue pv = JS_GetProperty(ctx, obj, props[p].atom);
+
+        auto collect = [&](std::vector<std::string>& out) {
+            if (JS_IsArray(pv)) {
+                int64_t len = 0;
+                JSValue lv = JS_GetPropertyStr(ctx, pv, "length");
+                JS_ToInt64(ctx, &len, lv);
+                JS_FreeValue(ctx, lv);
+                for (int64_t i = 0; i < len; ++i) {
+                    JSValue item = JS_GetPropertyUint32(ctx, pv, static_cast<uint32_t>(i));
+                    std::string s;
+                    if (valueToCss(ctx, item, s)) out.push_back(std::move(s));
+                    JS_FreeValue(ctx, item);
+                }
+            } else {
+                std::string s;
+                if (valueToCss(ctx, pv, s)) out.push_back(std::move(s));
+            }
+        };
+
+        if (pname == "offset" || pname == "composite") {
+            // Explicit offset lists in the object form aren't supported —
+            // values distribute evenly (documented simplification).
+        } else if (pname == "easing") {
+            collect(easings);
+        } else {
+            PropList pl;
+            pl.prop = keyToCssProp(pname);
+            collect(pl.values);
+            if (!pl.values.empty()) lists.push_back(std::move(pl));
+        }
+        JS_FreeValue(ctx, pv);
+    }
+    JS_FreePropertyEnum(ctx, props, plen);
+
+    // Merge distinct offsets across properties.
+    std::vector<float> offsets;
+    auto offsetFor = [](size_t k, size_t m) -> float {
+        return m <= 1 ? 1.0f : static_cast<float>(k) / static_cast<float>(m - 1);
+    };
+    for (const auto& pl : lists) {
+        for (size_t k = 0; k < pl.values.size(); ++k) {
+            float o = offsetFor(k, pl.values.size());
+            if (std::find(offsets.begin(), offsets.end(), o) == offsets.end())
+                offsets.push_back(o);
+        }
+    }
+    std::sort(offsets.begin(), offsets.end());
+
+    for (size_t f = 0; f < offsets.size(); ++f) {
+        WebAnimKeyframe kf;
+        kf.offset = offsets[f];
+        for (const auto& pl : lists) {
+            for (size_t k = 0; k < pl.values.size(); ++k) {
+                if (offsetFor(k, pl.values.size()) == offsets[f]) {
+                    kf.props.emplace_back(pl.prop, pl.values[k]);
+                    break;
+                }
+            }
+        }
+        if (!easings.empty()) {
+            const std::string& es = easings[f % easings.size()];
+            if (!es.empty()) {
+                kf.easing = bro::engine::parseTimingFunction(es);
+                kf.hasEasing = true;
+            }
+        }
+        frames.push_back(std::move(kf));
+    }
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// Options parsing
+// ---------------------------------------------------------------------------
+
+bool parseOptions(JSContext* ctx, JSValueConst opt, WebAnimation& a,
+                  std::string& name) {
+    if (JS_IsUndefined(opt) || JS_IsNull(opt)) return true;
+    if (JS_IsNumber(opt)) {
+        double d = 0;
+        JS_ToFloat64(ctx, &d, opt);
+        if (!(d >= 0)) {
+            JS_ThrowTypeError(ctx, "animate(): duration must be a non-negative number");
+            return false;
+        }
+        a.duration = d;
+        return true;
+    }
+    if (!JS_IsObject(opt)) {
+        JS_ThrowTypeError(ctx, "animate(): options must be a number or an object");
         return false;
     }
-    std::vector<double> userOffsets;
-    std::string objEasing;
-    for (uint32_t p = 0; p < plen; ++p) {
-        const char* key = JS_AtomToCString(ctx, tab[p].atom);
-        if (!key) continue;
-        std::string k(key);
-        JS_FreeCString(ctx, key);
-        if (k == "offset") {
-            JSValue val = JS_GetProperty(ctx, obj, tab[p].atom);
-            if (JS_IsArray(val)) {
-                uint32_t alen = getArrayLength(ctx, val);
-                userOffsets.resize(alen);
-                for (uint32_t i = 0; i < alen; ++i) {
-                    JSValue iv = JS_GetPropertyUint32(ctx, val, i);
-                    double off = 0;
-                    if (JS_ToFloat64(ctx, &off, iv) == 0) userOffsets[i] = off;
-                    else userOffsets[i] = NAN;
-                    JS_FreeValue(ctx, iv);
-                }
-            } else if (JS_IsNumber(val)) {
-                double off = 0; JS_ToFloat64(ctx, &off, val);
-                userOffsets.push_back(off);
-            }
-            JS_FreeValue(ctx, val);
-        } else if (k == "easing") {
-            JSValue val = JS_GetProperty(ctx, obj, tab[p].atom);
-            objEasing = jsToStdString(ctx, val);
-            JS_FreeValue(ctx, val);
+
+    auto num = [&](const char* key, double* out) -> bool { // true if present
+        JSValue v = JS_GetPropertyStr(ctx, opt, key);
+        bool present = !JS_IsUndefined(v) && !JS_IsNull(v);
+        if (present) JS_ToFloat64(ctx, out, v);
+        JS_FreeValue(ctx, v);
+        return present;
+    };
+    auto str = [&](const char* key) -> std::string {
+        JSValue v = JS_GetPropertyStr(ctx, opt, key);
+        std::string s;
+        if (!JS_IsUndefined(v) && !JS_IsNull(v)) s = jsToStdString(ctx, v);
+        JS_FreeValue(ctx, v);
+        return s;
+    };
+
+    double d = 0;
+    if (num("duration", &d)) {
+        if (!(d >= 0)) { // rejects NaN and negatives ("auto" parses as NaN → 0 below)
+            JS_ThrowTypeError(ctx, "animate(): duration must be a non-negative number");
+            return false;
         }
+        a.duration = d;
     }
-    const std::string& baseEase = objEasing.empty() ? defaultEasing : objEasing;
-    for (uint32_t p = 0; p < plen; ++p) {
-        const char* key = JS_AtomToCString(ctx, tab[p].atom);
-        if (!key) continue;
-        std::string k(key);
-        JS_FreeCString(ctx, key);
-        if (k == "offset" || k == "easing") continue;
-        CssPropertyId propId = keyToCssProp(k);
-        if (propId == CssPropertyId::Unknown) continue;
-        JSValue val = JS_GetProperty(ctx, obj, tab[p].atom);
-        std::vector<std::string> values;
-        if (JS_IsArray(val)) {
-            uint32_t alen = getArrayLength(ctx, val);
-            values.reserve(alen);
-            for (uint32_t i = 0; i < alen; ++i) {
-                JSValue iv = JS_GetPropertyUint32(ctx, val, i);
-                values.push_back(valueToCss(ctx, iv));
-                JS_FreeValue(ctx, iv);
-            }
-        } else {
-            values.push_back(valueToCss(ctx, val));
+    if (num("delay", &d)) a.delay = d;
+    if (num("endDelay", &d)) a.endDelay = d;
+    if (num("iterations", &d)) {
+        if (std::isnan(d) || d < 0) {
+            JS_ThrowTypeError(ctx, "animate(): iterations must be a non-negative number");
+            return false;
         }
-        JS_FreeValue(ctx, val);
-        if (values.empty()) continue;
-        std::vector<double> offs = userOffsets;
-        if (offs.size() != values.size()) {
-            offs.assign(values.size(), NAN);
-        }
-        computeOffsets(offs);
-        KeyframeProperty bp;
-        bp.prop = propId;
-        bp.frames.reserve(values.size());
-        for (size_t i = 0; i < values.size(); ++i) {
-            bp.frames.push_back(bro::engine::Keyframe{
-                std::clamp(offs[i], 0.0, 1.0), values[i], baseEase, {}
-            });
-        }
-        std::sort(bp.frames.begin(), bp.frames.end(),
-                  [](const auto& a, const auto& b) { return a.offset < b.offset; });
-        outProps.push_back(std::move(bp));
+        a.iterations = d;
     }
-    js_free_prop_enum(ctx, tab, plen);
-    return !outProps.empty();
+
+    std::string dir = str("direction");
+    if (dir == "reverse") a.direction = WebAnimDirection::Reverse;
+    else if (dir == "alternate") a.direction = WebAnimDirection::Alternate;
+    else if (dir == "alternate-reverse") a.direction = WebAnimDirection::AlternateReverse;
+
+    std::string fill = str("fill");
+    if (fill == "forwards") a.fill = WebAnimFill::Forwards;
+    else if (fill == "backwards") a.fill = WebAnimFill::Backwards;
+    else if (fill == "both") a.fill = WebAnimFill::Both;
+
+    std::string easing = str("easing");
+    if (!easing.empty()) a.easing = bro::engine::parseTimingFunction(easing);
+    // (default stays linear — the WAAPI default, unlike CSS's "ease")
+
+    name = str("id");
+    return true;
 }
 
-void parseOptions(JSContext* ctx, JSValueConst optVal, WebAnimation& anim,
-                  std::string& outId, std::string& defaultEasing) {
-    if (JS_IsNumber(optVal)) {
-        double dur = 0;
-        JS_ToFloat64(ctx, &dur, optVal);
-        anim.timing.durationSec = std::max(0.0, dur / 1000.0);
-        return;
-    }
-    if (!JS_IsObject(optVal)) return;
-    JSValue v = JS_GetPropertyStr(ctx, optVal, "duration");
-    if (JS_IsNumber(v)) {
-        double dur = 0; JS_ToFloat64(ctx, &dur, v);
-        anim.timing.durationSec = std::max(0.0, dur / 1000.0);
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "delay");
-    if (JS_IsNumber(v)) {
-        double d = 0; JS_ToFloat64(ctx, &d, v);
-        anim.timing.delaySec = d / 1000.0;
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "endDelay");
-    if (JS_IsNumber(v)) {
-        double d = 0; JS_ToFloat64(ctx, &d, v);
-        anim.timing.endDelaySec = d / 1000.0;
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "iterations");
-    if (JS_IsNumber(v)) {
-        double it = 1; JS_ToFloat64(ctx, &it, v);
-        anim.timing.iterations = std::isnan(it) ? 1.0 : std::max(0.0, it);
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "direction");
-    if (JS_IsString(v)) {
-        std::string dir = jsToStdString(ctx, v);
-        if (dir == "reverse") anim.timing.direction = AnimationDirection::Reverse;
-        else if (dir == "alternate") anim.timing.direction = AnimationDirection::Alternate;
-        else if (dir == "alternate-reverse")
-            anim.timing.direction = AnimationDirection::AlternateReverse;
-        else anim.timing.direction = AnimationDirection::Normal;
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "fill");
-    if (JS_IsString(v)) {
-        std::string fill = jsToStdString(ctx, v);
-        if (fill == "forwards") anim.timing.fill = AnimationFillMode::Forwards;
-        else if (fill == "backwards") anim.timing.fill = AnimationFillMode::Backwards;
-        else if (fill == "both") anim.timing.fill = AnimationFillMode::Both;
-        else anim.timing.fill = AnimationFillMode::None;
-    }
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "easing");
-    if (JS_IsString(v)) defaultEasing = jsToStdString(ctx, v);
-    JS_FreeValue(ctx, v);
-    v = JS_GetPropertyStr(ctx, optVal, "id");
-    if (JS_IsString(v)) outId = jsToStdString(ctx, v);
-    JS_FreeValue(ctx, v);
-}
+// ---------------------------------------------------------------------------
+// Animation prototype
+// ---------------------------------------------------------------------------
 
 AnimationJS* self(JSValueConst v) {
-    return static_cast<AnimationJS*>(
-        JS_GetOpaque(v, qjsbind::class_id<AnimationJS>()));
+    return static_cast<AnimationJS*>(JS_GetOpaque(v, qjsbind::class_id<AnimationJS>()));
 }
 
 JSValue js_anim_play(JSContext* ctx, JSValueConst this_val, int, JSValueConst*) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
-    if (!rec) return JS_UNDEFINED;
-    freshenPromiseIfSettled(a);
-    rec->play(nowFor(ctx));
+    WebAnimation* rec = recordFor(a);
+    if (!rec) return JS_UNDEFINED; // torn down — inert
+    a->mgr->play(*rec, nowFor(ctx));
+    freshenPromiseIfSettled(ctx, a);
+    a->finishDelivered = false;
     pinWrapper(ctx, a->id, this_val);
-    markTargetDirty(ctx, rec);
+    markTargetDirty(a, rec);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_pause(JSContext* ctx, JSValueConst this_val, int, JSValueConst*) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_UNDEFINED;
-    rec->pause(nowFor(ctx));
-    markTargetDirty(ctx, rec);
+    a->mgr->pause(*rec, nowFor(ctx));
+    markTargetDirty(a, rec);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_cancel(JSContext* ctx, JSValueConst this_val, int, JSValueConst*) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
-    if (rec) {
-        rec->cancel();
-        markTargetDirty(ctx, rec);
-    }
-    rejectFinishedPromise(ctx, a, makeAbortError(ctx, "The animation was cancelled"));
-    if (!JS_IsUndefined(a->oncancel)) {
-        fireHandler(ctx, a->oncancel, this_val, "cancel");
-    }
+    WebAnimation* rec = recordFor(a);
+    if (!rec || rec->state == WebAnimState::Idle) return JS_UNDEFINED;
+    a->mgr->cancelOp(*rec);
+    markTargetDirty(a, rec);
+    // Reject the current finished promise with an AbortError, then replace it
+    // (lazily) with a fresh pending one, per spec.
+    rejectFinishedPromise(ctx, a);
+    dropFinishedPromise(ctx, a);
+    a->finishDelivered = false;
+    fireHandler(ctx, a->oncancel, this_val, "cancel", JS_NULL);
     unpinWrapper(ctx, a->id);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_finish(JSContext* ctx, JSValueConst this_val, int, JSValueConst*) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_UNDEFINED;
-    if (rec->timing.iterations == std::numeric_limits<double>::infinity() ||
-        std::isinf(rec->timing.iterations)) {
-        return JS_ThrowTypeError(ctx, "Cannot finish an infinite animation");
+    if (rec->playbackRate > 0 && !std::isfinite(rec->endTimeMs())) {
+        JSValue err = JS_NewError(ctx);
+        JS_SetPropertyStr(ctx, err, "name", JS_NewString(ctx, "InvalidStateError"));
+        JS_SetPropertyStr(ctx, err, "message",
+                          JS_NewString(ctx, "Cannot finish an infinite animation"));
+        return JS_Throw(ctx, err);
     }
-    rec->finish(nowFor(ctx));
-    markTargetDirty(ctx, rec);
+    a->mgr->finishOp(*rec);
+    markTargetDirty(a, rec);
     settleFinish(ctx, a, this_val);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_reverse(JSContext* ctx, JSValueConst this_val, int, JSValueConst*) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_UNDEFINED;
-    freshenPromiseIfSettled(a);
-    rec->reverse(nowFor(ctx));
+    a->mgr->reverse(*rec, nowFor(ctx));
+    freshenPromiseIfSettled(ctx, a);
+    a->finishDelivered = false;
     pinWrapper(ctx, a->id, this_val);
-    markTargetDirty(ctx, rec);
+    markTargetDirty(a, rec);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_get_currentTime(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a) return JS_NULL;
-    auto* rec = recordFor(ctx, a->id);
-    if (!rec || rec->playState == WebAnimation::PlayState::Idle) return JS_NULL;
-    return JS_NewFloat64(ctx, rec->currentTimeMs(nowFor(ctx)));
+    WebAnimation* rec = recordFor(a);
+    if (!rec) return JS_NULL;
+    auto ctOpt = rec->currentTimeMs(nowFor(ctx));
+    if (!ctOpt) return JS_NULL;
+    return JS_NewFloat64(ctx, *ctOpt);
 }
 
 JSValue js_anim_set_currentTime(JSContext* ctx, JSValueConst this_val, JSValueConst val) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_UNDEFINED;
-    if (JS_IsNull(val) || JS_IsUndefined(val)) {
-        rec->cancel();
-        markTargetDirty(ctx, rec);
-        return JS_UNDEFINED;
+    if (JS_IsNull(val) || JS_IsUndefined(val))
+        return JS_ThrowTypeError(ctx, "currentTime may not be set to null");
+    double t = 0;
+    JS_ToFloat64(ctx, &t, val);
+    bool wasFinished = rec->state == WebAnimState::Finished;
+    a->mgr->seek(*rec, t, nowFor(ctx));
+    if (wasFinished && rec->state != WebAnimState::Finished) {
+        freshenPromiseIfSettled(ctx, a);
+        a->finishDelivered = false;
+        pinWrapper(ctx, a->id, this_val);
     }
-    double ms = 0;
-    if (JS_ToFloat64(ctx, &ms, val) != 0) return JS_UNDEFINED;
-    rec->setCurrentTimeMs(ms, nowFor(ctx));
-    markTargetDirty(ctx, rec);
+    markTargetDirty(a, rec);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_get_playbackRate(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a) return JS_NewFloat64(ctx, 1.0);
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     return JS_NewFloat64(ctx, rec ? rec->playbackRate : 1.0);
 }
 
 JSValue js_anim_set_playbackRate(JSContext* ctx, JSValueConst this_val, JSValueConst val) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_UNDEFINED;
-    double r = 1.0;
-    if (JS_ToFloat64(ctx, &r, val) == 0 && !std::isnan(r)) {
-        rec->playbackRate = r;
-        markTargetDirty(ctx, rec);
-    }
+    double r = 0;
+    JS_ToFloat64(ctx, &r, val);
+    a->mgr->setRate(*rec, r, nowFor(ctx));
+    markTargetDirty(a, rec);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_get_playState(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a) return JS_NewString(ctx, "idle");
-    auto* rec = recordFor(ctx, a->id);
+    WebAnimation* rec = recordFor(a);
     if (!rec) return JS_NewString(ctx, "idle");
-    return JS_NewString(ctx, rec->playStateString(nowFor(ctx)));
+    return JS_NewString(ctx, a->mgr->playState(*rec, nowFor(ctx)));
 }
 
-JSValue js_anim_get_pending(JSContext* ctx, JSValueConst /*this_val*/) {
-    return JS_NewBool(ctx, false);
+JSValue js_anim_get_pending(JSContext* ctx, JSValueConst this_val) {
+    (void)this_val;
+    (void)ctx;
+    return JS_FALSE; // play/pause apply immediately in this engine
 }
 
 JSValue js_anim_get_id(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a) return JS_NewString(ctx, "");
-    return JS_NewString(ctx, a->customId.c_str());
+    return JS_NewString(ctx, a ? a->name.c_str() : "");
 }
 
 JSValue js_anim_set_id(JSContext* ctx, JSValueConst this_val, JSValueConst val) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    a->customId = jsToStdString(ctx, val);
+    if (a) a->name = jsToStdString(ctx, val);
     return JS_UNDEFINED;
 }
 
 JSValue js_anim_get_finished(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a) return JS_UNDEFINED;
-    if (!JS_IsUndefined(a->finishedPromise)) {
-        return JS_DupValue(ctx, a->finishedPromise);
-    }
-    JSValue funcs[2];
-    a->finishedPromise = JS_NewPromiseCapability(ctx, funcs);
-    a->finishedResolve = funcs[0];
-    a->finishedReject  = funcs[1];
-    a->finishedSettled = false;
-    auto* rec = recordFor(ctx, a->id);
-    if (rec && rec->isFinished(nowFor(ctx))) {
-        resolveFinishedPromise(ctx, a, this_val);
+    if (!a) return JS_NULL;
+    if (JS_IsUndefined(a->finishedPromise)) {
+        JSValue funcs[2];
+        a->finishedPromise = JS_NewPromiseCapability(ctx, funcs);
+        a->finishedResolve = funcs[0];
+        a->finishedReject = funcs[1];
+        a->promiseSettled = false;
+        // Already finished? Settle the freshly-minted promise immediately.
+        WebAnimation* rec = recordFor(a);
+        if (rec) {
+            const char* st = a->mgr->playState(*rec, nowFor(ctx));
+            if (std::string(st) == "finished")
+                resolveFinishedPromise(ctx, a, this_val);
+        }
     }
     return JS_DupValue(ctx, a->finishedPromise);
 }
 
 JSValue js_anim_get_onfinish(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a || JS_IsUndefined(a->onfinish)) return JS_NULL;
-    return JS_DupValue(ctx, a->onfinish);
+    return a ? JS_DupValue(ctx, a->onfinish) : JS_NULL;
 }
 
 JSValue js_anim_set_onfinish(JSContext* ctx, JSValueConst this_val, JSValueConst val) {
@@ -638,8 +696,7 @@ JSValue js_anim_set_onfinish(JSContext* ctx, JSValueConst this_val, JSValueConst
 
 JSValue js_anim_get_oncancel(JSContext* ctx, JSValueConst this_val) {
     auto* a = self(this_val);
-    if (!a || JS_IsUndefined(a->oncancel)) return JS_NULL;
-    return JS_DupValue(ctx, a->oncancel);
+    return a ? JS_DupValue(ctx, a->oncancel) : JS_NULL;
 }
 
 JSValue js_anim_set_oncancel(JSContext* ctx, JSValueConst this_val, JSValueConst val) {
@@ -651,116 +708,100 @@ JSValue js_anim_set_oncancel(JSContext* ctx, JSValueConst this_val, JSValueConst
 }
 
 const JSCFunctionListEntry js_animation_proto_funcs[] = {
-    JS_CFUNC_DEF("play", 0, js_anim_play),
-    JS_CFUNC_DEF("pause", 0, js_anim_pause),
-    JS_CFUNC_DEF("cancel", 0, js_anim_cancel),
-    JS_CFUNC_DEF("finish", 0, js_anim_finish),
+    JS_CFUNC_DEF("play",    0, js_anim_play),
+    JS_CFUNC_DEF("pause",   0, js_anim_pause),
+    JS_CFUNC_DEF("cancel",  0, js_anim_cancel),
+    JS_CFUNC_DEF("finish",  0, js_anim_finish),
     JS_CFUNC_DEF("reverse", 0, js_anim_reverse),
-    JS_CGETSET_DEF("currentTime", js_anim_get_currentTime, js_anim_set_currentTime),
+    JS_CGETSET_DEF("currentTime",  js_anim_get_currentTime,  js_anim_set_currentTime),
     JS_CGETSET_DEF("playbackRate", js_anim_get_playbackRate, js_anim_set_playbackRate),
-    JS_CGETSET_DEF("playState", js_anim_get_playState, nullptr),
-    JS_CGETSET_DEF("pending", js_anim_get_pending, nullptr),
-    JS_CGETSET_DEF("id", js_anim_get_id, js_anim_set_id),
-    JS_CGETSET_DEF("finished", js_anim_get_finished, nullptr),
-    JS_CGETSET_DEF("onfinish", js_anim_get_onfinish, js_anim_set_onfinish),
-    JS_CGETSET_DEF("oncancel", js_anim_get_oncancel, js_anim_set_oncancel),
+    JS_CGETSET_DEF("playState",    js_anim_get_playState,    nullptr),
+    JS_CGETSET_DEF("pending",      js_anim_get_pending,      nullptr),
+    JS_CGETSET_DEF("id",           js_anim_get_id,           js_anim_set_id),
+    JS_CGETSET_DEF("finished",     js_anim_get_finished,     nullptr),
+    JS_CGETSET_DEF("onfinish",     js_anim_get_onfinish,     js_anim_set_onfinish),
+    JS_CGETSET_DEF("oncancel",     js_anim_get_oncancel,     js_anim_set_oncancel),
 };
+
+// ---------------------------------------------------------------------------
+// element.animate / getAnimations, document.getAnimations
+// ---------------------------------------------------------------------------
 
 JSValue js_element_animate(JSContext* ctx, JSValueConst this_val,
                            int argc, JSValueConst* argv) {
-    if (argc < 1) return JS_ThrowTypeError(ctx, "animate: keyframes required");
-    dom::Element* target = getElement(this_val);
-    if (!target) return JS_ThrowTypeError(ctx, "animate called on non-Element");
+    auto* el = getElement(this_val);
+    if (!el) return JS_ThrowTypeError(ctx, "animate(): invalid element");
     auto* eng = engineFor(ctx);
-    if (!eng) return JS_ThrowTypeError(ctx, "no active Engine for realm");
-    std::string defaultEasing = "linear";
-    std::string customId;
-    std::vector<KeyframeProperty> kfProps;
-    JSValueConst kfArg = argv[0];
-    if (JS_IsArray(kfArg)) {
-        uint32_t len = getArrayLength(ctx, kfArg);
-        parseKeyframeArray(ctx, kfArg, len, kfProps, defaultEasing);
-    } else if (JS_IsObject(kfArg)) {
-        parseKeyframeObject(ctx, kfArg, kfProps, defaultEasing);
-    } else {
-        return JS_ThrowTypeError(ctx, "keyframes must be an array or object");
+    if (!eng)
+        return JS_ThrowTypeError(ctx, "animate(): not available in this context");
+    if (argc < 1 || (!JS_IsObject(argv[0]) && !JS_IsNull(argv[0])))
+        return JS_ThrowTypeError(ctx, "animate(): keyframes must be an object or array");
+
+    std::vector<WebAnimKeyframe> frames;
+    if (!JS_IsNull(argv[0])) {
+        bool ok = JS_IsArray(argv[0]) ? parseKeyframeArray(ctx, argv[0], frames)
+                                      : parseKeyframeObject(ctx, argv[0], frames);
+        if (!ok) return JS_EXCEPTION;
     }
-    WebAnimation anim;
-    anim.target = target;
-    anim.defaultEasing = defaultEasing;
-    anim.properties = std::move(kfProps);
-    if (argc >= 2) {
-        parseOptions(ctx, argv[1], anim, customId, defaultEasing);
-        anim.defaultEasing = defaultEasing;
-    }
-    double now = nowFor(ctx);
-    anim.startTimeSec = now;
-    anim.playState = WebAnimation::PlayState::Running;
-    uint64_t id = eng->webAnimations().add(std::move(anim));
-    JSValue wrapper = wrapAnimation(ctx, id, customId);
-    markTargetDirty(ctx, eng->webAnimations().find(id));
-    return wrapper;
+
+    auto& mgr = eng->webAnimationManager();
+    double now = eng->timeNowMs();
+
+    // Parse options into a scratch record first so a throw leaves no record.
+    WebAnimation scratch;
+    std::string name;
+    if (argc >= 2 && !parseOptions(ctx, argv[1], scratch, name))
+        return JS_EXCEPTION;
+
+    WebAnimation& rec = mgr.create(el, now);
+    rec.keyframes = std::move(frames);
+    rec.duration = scratch.duration;
+    rec.delay = scratch.delay;
+    rec.endDelay = scratch.endDelay;
+    rec.iterations = scratch.iterations;
+    rec.direction = scratch.direction;
+    rec.fill = scratch.fill;
+    rec.easing = scratch.easing;
+
+    el->markDirty();
+    return wrapAnimation(ctx, &mgr, rec.id, std::move(name));
 }
 
 JSValue js_element_getAnimations(JSContext* ctx, JSValueConst this_val,
-                                 int /*argc*/, JSValueConst* /*argv*/) {
-    dom::Element* target = getElement(this_val);
-    if (!target) return JS_ThrowTypeError(ctx, "getAnimations called on non-Element");
-    auto* eng = engineFor(ctx);
-    if (!eng) return JS_NewArray(ctx);
-    std::vector<uint64_t> ids = eng->webAnimations().getAnimationsForTarget(target);
+                                 int, JSValueConst*) {
     JSValue arr = JS_NewArray(ctx);
-    for (uint32_t i = 0; i < (uint32_t)ids.size(); ++i) {
-        JSValue w = wrapAnimation(ctx, ids[i], "");
-        JS_SetPropertyUint32(ctx, arr, i, w);
-    }
+    auto* el = getElement(this_val);
+    auto* eng = engineFor(ctx);
+    if (!el || !eng) return arr;
+    auto& mgr = eng->webAnimationManager();
+    uint32_t idx = 0;
+    for (uint64_t id : mgr.animationsFor(el, eng->timeNowMs()))
+        JS_SetPropertyUint32(ctx, arr, idx++, wrapAnimation(ctx, &mgr, id));
     return arr;
 }
 
 JSValue js_document_getAnimations(JSContext* ctx, JSValueConst /*this_val*/,
-                                  int /*argc*/, JSValueConst* /*argv*/) {
-    auto* eng = engineFor(ctx);
-    if (!eng) return JS_NewArray(ctx);
-    std::vector<uint64_t> ids = eng->webAnimations().getAllAnimations();
+                                  int, JSValueConst*) {
     JSValue arr = JS_NewArray(ctx);
-    for (uint32_t i = 0; i < (uint32_t)ids.size(); ++i) {
-        JSValue w = wrapAnimation(ctx, ids[i], "");
-        JS_SetPropertyUint32(ctx, arr, i, w);
-    }
+    auto* eng = engineFor(ctx);
+    if (!eng) return arr;
+    auto& mgr = eng->webAnimationManager();
+    uint32_t idx = 0;
+    for (uint64_t id : mgr.allAnimations(eng->timeNowMs()))
+        JS_SetPropertyUint32(ctx, arr, idx++, wrapAnimation(ctx, &mgr, id));
     return arr;
 }
 
 } // namespace
 
-void cleanupWebAnimationBindings(JSContext* ctx) {
-    auto& pins = strongPins();
-    for (auto it = pins.begin(); it != pins.end(); ) {
-        auto* a = static_cast<AnimationJS*>(
-            JS_GetOpaque(it->second, qjsbind::class_id<AnimationJS>()));
-        if (a && a->ctx == ctx) {
-            JS_FreeValue(ctx, it->second);
-            it = pins.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
-void deliverWebAnimationFinishEvents(JSContext* ctx, std::vector<uint64_t> ids) {
-    for (uint64_t id : ids) {
-        auto mIt = wrapperMirror().find(id);
-        if (mIt == wrapperMirror().end()) continue;
-        JSValue obj = JS_DupValue(ctx, mIt->second);
-        auto* a = static_cast<AnimationJS*>(
-            JS_GetOpaque(obj, qjsbind::class_id<AnimationJS>()));
-        if (a && a->ctx == ctx) settleFinish(ctx, a, obj);
-        JS_FreeValue(ctx, obj);
-    }
-}
 
 void installWebAnimationBindings(JSContext* ctx)
 {
-    qjsbind::Class<AnimationJS>(ctx, "Animation", qjsbind::NoGlobal)
+        qjsbind::Class<AnimationJS>(ctx, "Animation", qjsbind::NoGlobal)
             .gc_mark([](AnimationJS* a, JSRuntime* rt, JS_MarkFunc* mark) {
                 JS_MarkValue(rt, a->onfinish, mark);
                 JS_MarkValue(rt, a->oncancel, mark);
@@ -788,5 +829,34 @@ void installWebAnimationBindings(JSContext* ctx)
         }
         JS_FreeValue(ctx, dproto);
 }
+
+
+void cleanupWebAnimationBindings(JSContext* ctx) {
+    auto& pins = strongPins();
+    for (auto it = pins.begin(); it != pins.end(); ) {
+        auto* a = static_cast<AnimationJS*>(
+            JS_GetOpaque(it->second, qjsbind::class_id<AnimationJS>()));
+        if (a && a->ctx == ctx) {
+            JS_FreeValue(ctx, it->second);
+            it = pins.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void deliverWebAnimationFinishEvents(JSContext* ctx, std::vector<uint64_t> ids) {
+    for (uint64_t id : ids) {
+        auto mIt = wrapperMirror().find(id);
+        if (mIt == wrapperMirror().end()) continue; // wrapper already gone
+        JSValue obj = JS_DupValue(ctx, mIt->second);
+        auto* a = static_cast<AnimationJS*>(
+            JS_GetOpaque(obj, qjsbind::class_id<AnimationJS>()));
+        if (a && a->ctx == ctx) settleFinish(ctx, a, obj);
+        JS_FreeValue(ctx, obj);
+    }
+}
+
+
 
 } // namespace bro::js

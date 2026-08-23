@@ -36,4 +36,5 @@ void installDOMParser(JSContext* ctx)
     JS_FreeValue(ctx, global);
 }
 
+
 } // namespace bro::js

@@ -637,15 +637,7 @@ export function emitInterfaceTU(interfaceDefs) {
     }
   }
 
-  // 5. Epilogue C++ functions if present
-  if (cppEpilogue) {
-    for (const el of cppEpilogue.split('\n')) {
-      lines.push(el);
-    }
-    lines.push('');
-  }
-
-  // 6. Install Function
+  // 5. Install Function
   const customInstallSig = getAttr(primary, 'install_signature') || getAttr(primary, 'install_fn');
   const installSignature = customInstallSig
     ? customInstallSig
@@ -751,6 +743,15 @@ export function emitInterfaceTU(interfaceDefs) {
     lines.push(`    JS_FreeValue(ctx, global);`);
   }
   lines.push(`}`);
+  lines.push('');
+
+  // 6. Epilogue C++ functions if present
+  if (cppEpilogue) {
+    for (const el of cppEpilogue.split('\n')) {
+      lines.push(el);
+    }
+    lines.push('');
+  }
   lines.push('');
   lines.push(`} // namespace ${cppNamespace}`);
   if (cppGuard) {

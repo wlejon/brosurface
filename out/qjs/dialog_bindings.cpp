@@ -358,4 +358,5 @@ void DialogBindings::install(JSContext* ctx, SDL_Window* window, TickCallback ti
             .function("prompt",               js_prompt,               2);
 }
 
+
 } // namespace bro::js

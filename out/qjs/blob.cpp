@@ -375,25 +375,6 @@ static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
     return obj;
 }
 
-bool blobBytes(JSContext* ctx, JSValueConst val, const uint8_t** data, size_t* len, std::string* type)
-{
-    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
-    if (bdata) {
-        *data = bdata->bytes.data();
-        *len = bdata->bytes.size();
-        if (type) *type = bdata->type;
-        return true;
-    }
-    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));
-    if (fdata) {
-        *data = fdata->blob.bytes.data();
-        *len = fdata->blob.bytes.size();
-        if (type) *type = fdata->blob.type;
-        return true;
-    }
-    return false;
-}
-
 void installBlob(JSContext* ctx)
 {
     JSRuntime* rt = JS_GetRuntime(ctx);
@@ -478,5 +459,25 @@ void installBlob(JSContext* ctx)
 
     JS_FreeValue(ctx, global);
 }
+
+bool blobBytes(JSContext* ctx, JSValueConst val, const uint8_t** data, size_t* len, std::string* type)
+{
+    auto* bdata = static_cast<BlobData*>(JS_GetOpaque(val, blob_class_id));
+    if (bdata) {
+        *data = bdata->bytes.data();
+        *len = bdata->bytes.size();
+        if (type) *type = bdata->type;
+        return true;
+    }
+    auto* fdata = static_cast<FileData*>(JS_GetOpaque(val, file_class_id));
+    if (fdata) {
+        *data = fdata->blob.bytes.data();
+        *len = fdata->blob.bytes.size();
+        if (type) *type = fdata->blob.type;
+        return true;
+    }
+    return false;
+}
+
 
 } // namespace brokit::api

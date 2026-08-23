@@ -16,8 +16,8 @@ The `brosurface` generator pipeline replaces five hand-maintained, error-prone c
 | **Migrated & Bundled Surfaces** | **23** (34.8%) | Complete IDLs, 100% equivalence passed, integration bundles generated |
 | **Blocked-on-Tests Surfaces** | **0** (0.0%) | Unmigrated surfaces with 0 existing tests in `bro` (equivalence oracle gap) |
 | **Not-Started Surfaces** | **43** (65.2%) | Unmigrated surfaces with test suites ready for batch migration |
-| **Total Legacy Hand Tax Cataloged** | **156,685 LOC** | Total hand-written surface across QuickJS, bronze_host, stubs, docs, TS, headless |
-| **Legacy Hand Tax Eliminated** | **22,973 LOC** | Hand-maintained LOC replaced by single `.idl` declarations (14.7% of engine surface) |
+| **Total Legacy Hand Tax Cataloged** | **151,353 LOC** | Total hand-written surface across QuickJS, bronze_host, stubs, docs, TS, headless |
+| **Legacy Hand Tax Eliminated** | **22,973 LOC** | Hand-maintained LOC replaced by single `.idl` declarations (15.2% of engine surface) |
 | **Total Authored IDL LOC** | **5,222 LOC** | Single source of truth declarations authored across 23 surfaces |
 | **Total Generated Artifact LOC** | **23,019 LOC** | Drop-in C++ TUs (QJS + bronze_host), `.d.ts` slices, docs, stubs |
 | **Total Honest Custom LOC** | **4,890 LOC** | Hand-written C++/JS lines across emitted binding translation units |
@@ -74,11 +74,11 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 5 | **`bro.math`** | Math Utilities | `bundled` | 1,144 LOC | 265 LOC | 1,634 LOC | **6.17x** | *(high custom)* | 366 LOC | ⚠️ **37.9%** | [`integration/math/`](file:///D:/projects/brosurface/integration/math/)<br>_Fast 3D spatial hash index, SplitMix64 PRNG, exponential signal filter, and geometric intersection queries._ |
 | 6 | **`bro.image / Image / bro.image.gpu`** | Image Processing & CPU/GPU Kernels | `not-started` | 4,535 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 7 | **`ImageBitmap / createImageBitmap`** | Bitmap Transfer | `not-started` | 502 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
-| 8 | **`AudioContext / broaudio`** | Real-Time Audio Graph | `not-started` | 7,445 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
-| 9 | **`bro.mesh / Mesh`** *`[BRO_WITH_3D]`* | Mesh Geometry & Operations | `not-started` | 5,549 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
-| 10 | **`bro.scene (SceneGraph / Nodes)`** *`[BRO_WITH_3D]`* | 3D Scene Graph | `not-started` | 8,044 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
-| 11 | **`AnimationPlayer / Animation`** *`[BRO_WITH_3D]`* | Skeletal & Property Animation | `not-started` | 1,860 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
-| 12 | **`PBR Lighting & Materials`** *`[BRO_WITH_3D]`* | 3D Rendering / Shading | `not-started` | 1,748 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 8 | **`AudioContext / broaudio`** | Real-Time Audio Graph | `not-started` | 6,731 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
+| 9 | **`bro.mesh / Mesh`** *`[BRO_WITH_3D]`* | Mesh Geometry & Operations | `not-started` | 4,403 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
+| 10 | **`bro.scene (SceneGraph / Nodes)`** *`[BRO_WITH_3D]`* | 3D Scene Graph | `not-started` | 5,958 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 11 | **`AnimationPlayer / Animation`** *`[BRO_WITH_3D]`* | Skeletal & Property Animation | `not-started` | 1,480 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
+| 12 | **`PBR Lighting & Materials`** *`[BRO_WITH_3D]`* | 3D Rendering / Shading | `not-started` | 1,624 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 13 | **`bro.net`** *`[BRO_WITH_NET]`* | Low-Level Networking | `not-started` | 1,907 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 14 | **`bro.net.sync`** *`[BRO_WITH_NET]`* | High-Level Replication | `not-started` | 1,112 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 15 | **`Gamepad API`** | Input Hardware | `bundled` | 644 LOC | 143 LOC | 1,029 LOC | **7.20x** | *(high custom)* | 278 LOC | ⚠️ **43.6%** | [`integration/gamepad/`](file:///D:/projects/brosurface/integration/gamepad/)<br>_High-frequency OS hardware polling snapshots, 17-button/4-axis caching, and dual-rumble / trigger haptics._ |
@@ -93,15 +93,15 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 24 | **`IFrame (<iframe src>)`** | Sub-Document Isolation | `not-started` | 276 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 25 | **`bro.steam`** *`[BRO_WITH_STEAM]`* | Platform / Steamworks | `not-started` | 1,240 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 26 | **`bro.text`** *`[BRO_WITH_TEXT_SHAPING]`* | Typography & Text Diagnostics | `bundled` | 333 LOC | 274 LOC | 842 LOC | **3.07x** | **6.98x** | 179 LOC | ⚠️ **59.9%** | [`integration/text/`](file:///D:/projects/brosurface/integration/text/)<br>_Multi-style HarfBuzz font shaping, glyph cache layout metrics, and text measurement subroutines._ |
-| 27 | **`Rig / IK`** *`[BRO_WITH_3D]`* | Rigging & Inverse Kinematics | `not-started` | 1,521 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
+| 27 | **`Rig / IK`** *`[BRO_WITH_3D]`* | Rigging & Inverse Kinematics | `not-started` | 1,519 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
 | 28 | **`bro.server`** | Dedicated Server Host | `not-started` | 161 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 29 | **`bro.settings`** | Settings Management | `bundled` | 859 LOC | 212 LOC | 852 LOC | **4.02x** | **4.02x** | 0 LOC | ✅ 0.0% | [`integration/settings/`](file:///D:/projects/brosurface/integration/settings/)<br>_Engine persistent configuration storage with disk serialization, schema validation, and change dispatch._ |
-| 30 | **`bro.wake`** *`[BRO_WITH_SOUNDML]`* | Audio ML / Wake-Word | `not-started` | 917 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
-| 31 | **`bro.kws`** *`[BRO_WITH_SOUNDML]`* | Audio ML / Keyword Spotting | `not-started` | 1,528 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 30 | **`bro.wake`** *`[BRO_WITH_SOUNDML]`* | Audio ML / Wake-Word | `not-started` | 855 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 31 | **`bro.kws`** *`[BRO_WITH_SOUNDML]`* | Audio ML / Keyword Spotting | `not-started` | 1,496 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 32 | **`bro.mic`** | Audio Capture | `bundled` | 482 LOC | 179 LOC | 665 LOC | **3.72x** | **3.72x** | 0 LOC | ✅ 0.0% | [`integration/mic/`](file:///D:/projects/brosurface/integration/mic/)<br>_Low-latency real-time microphone audio capture ring buffer, PCM streaming, and device change listener dispatch._ |
-| 33 | **`bro.sense`** *`[BRO_WITH_SOUNDML]`* | Audio Sensor Hub | `not-started` | 707 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
-| 34 | **`bro.gesture`** *`[BRO_WITH_SOUNDML]`* | Audio Gesture Matching | `not-started` | 743 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
-| 35 | **`bro.listen`** *`[BRO_WITH_SOUNDML]`* | Audio Stream Multiplexing | `not-started` | 1,282 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 33 | **`bro.sense`** *`[BRO_WITH_SOUNDML]`* | Audio Sensor Hub | `not-started` | 665 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 34 | **`bro.gesture`** *`[BRO_WITH_SOUNDML]`* | Audio Gesture Matching | `not-started` | 724 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 35 | **`bro.listen`** *`[BRO_WITH_SOUNDML]`* | Audio Stream Multiplexing | `not-started` | 1,298 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 36 | **`Worker`** | Threading & Concurrency | `not-started` | 2,369 LOC | - | - | - | - | - | - | Ready for migration (2 test(s) in `bro`) |
 | 37 | **`bro.ai (Game AI / NavMesh / MCTS)`** *`[BRO_WITH_GAMEAI]`* | Game AI & Pathfinding | `not-started` | 14,027 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 38 | **`bro.gpu`** *`[BRO_WITH_TENSOR]`* | System / Device Probe | `bundled` | 401 LOC | 202 LOC | 597 LOC | **2.96x** | **4.87x** | 100 LOC | ⚠️ **54.6%** | [`integration/gpu/`](file:///D:/projects/brosurface/integration/gpu/)<br>_Native hardware driver interrogation querying OpenGL/Vulkan memory limits, vendor strings, and context caps._ |
@@ -109,9 +109,9 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 40 | **`bro.tensor`** *`[BRO_WITH_TENSOR]`* | Machine Learning / Tensor Engine | `not-started` | 6,382 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 41 | **`bro.diffusion`** *`[BRO_WITH_DIFFUSION]`* | Machine Learning / Generative Vision | `bundled` | 2,086 LOC | 93 LOC | 707 LOC | **7.60x** | *(high custom)* | 264 LOC | ⚠️ **56.7%** | [`integration/diffusion/`](file:///D:/projects/brosurface/integration/diffusion/)<br>_Text-to-image neural diffusion inference pipeline, multi-scheduler stepping, and attention steering._ |
 | 42 | **`bro.lm (Large Language Models)`** *`[BRO_WITH_LM]`* | Machine Learning / LLMs | `bundled` | 4,237 LOC | 829 LOC | 3,240 LOC | **3.91x** | **3.91x** | 0 LOC | ✅ 0.0% | [`integration/lm/`](file:///D:/projects/brosurface/integration/lm/) |
-| 43 | **`bro.stt`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Speech-to-Text | `not-started` | 3,117 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 43 | **`bro.stt`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Speech-to-Text | `not-started` | 2,965 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 44 | **`bro.diar`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Diarization | `bundled` | 1,172 LOC | 129 LOC | 1,230 LOC | **9.53x** | *(high custom)* | 456 LOC | ⚠️ **50.2%** | [`integration/diar/`](file:///D:/projects/brosurface/integration/diar/)<br>_Sortformer 4-speaker Conformer-Transformer diarization, streaming sessions, and offline cluster diarizer._ |
-| 45 | **`bro.tts`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Text-to-Speech | `not-started` | 4,058 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 45 | **`bro.tts`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Text-to-Speech | `not-started` | 3,744 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 46 | **`bro.rave`** *`[BRO_WITH_SOUNDML]`* | Machine Learning / Audio Neural Codec | `bundled` | 695 LOC | 151 LOC | 705 LOC | **4.67x** | *(high custom)* | 275 LOC | ⚠️ **88.1%** | [`integration/rave/`](file:///D:/projects/brosurface/integration/rave/)<br>_Real-time neural audio VAE runtime invoking 48kHz torchscript/ONNX tensor graphs._ |
 | 47 | **`bro.vision`** *`[BRO_WITH_VISION]`* | Machine Learning / Vision AI | `not-started` | 3,259 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 48 | **`bro.triposplat`** *`[BRO_WITH_TRIPOSPLAT]`* | Machine Learning / 3D Gaussian Splatting | `bundled` | 925 LOC | 68 LOC | 536 LOC | **7.88x** | *(high custom)* | 216 LOC | ⚠️ **61.9%** | [`integration/triposplat/`](file:///D:/projects/brosurface/integration/triposplat/)<br>_Single-image 3D Gaussian Splat reconstruction, DINOv3 ViT-H backbone, FlowDiT, and BiRefNet matting._ |
@@ -119,8 +119,8 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 | 50 | **`bro.motion`** *`[BRO_WITH_DIFFUSION && BRO_WITH_LM]`* | Machine Learning / Motion Generation | `bundled` | 637 LOC | 123 LOC | 612 LOC | **4.98x** | *(high custom)* | 258 LOC | ⚠️ **85.7%** | [`integration/motion/`](file:///D:/projects/brosurface/integration/motion/)<br>_ARDY-G1 text-to-motion diffusion pipeline executing safetensors unpickling and 25 fps motion sequence generation._ |
 | 51 | **`Physics (Jolt Physics)`** *`[BRO_WITH_PHYSICS]`* | Rigid Body Physics | `not-started` | 8,486 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 52 | **`scene.createTerrain`** *`[BRO_WITH_3D]`* | Heightfield Terrain | `bundled` | 608 LOC | 275 LOC | 924 LOC | **3.36x** | **3.36x** | 0 LOC | ✅ 0.0% | [`integration/terrain/`](file:///D:/projects/brosurface/integration/terrain/)<br>_Procedural heightmap mesh generation, LOD quadtree chunk streaming, and GPU texture splatting subroutines._ |
-| 53 | **`scene.createClipmapTerrain`** *`[BRO_WITH_3D]`* | GPU Clipmap Terrain | `not-started` | 1,062 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
-| 54 | **`scene.createTileWorld`** *`[BRO_WITH_3D]`* | Tile World & Meshing | `not-started` | 1,625 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 53 | **`scene.createClipmapTerrain`** *`[BRO_WITH_3D]`* | GPU Clipmap Terrain | `not-started` | 788 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
+| 54 | **`scene.createTileWorld`** *`[BRO_WITH_3D]`* | Tile World & Meshing | `not-started` | 1,624 LOC | - | - | - | - | - | - | Ready for migration (1 test(s) in `bro`) |
 | 55 | **`Canvas 2D Context`** | 2D Graphics Rendering | `not-started` | 970 LOC | - | - | - | - | - | - | Ready for migration (3 test(s) in `bro`) |
 | 56 | **`WebGL2RenderingContext`** | GPU 3D Pipeline | `not-started` | 6,426 LOC | - | - | - | - | - | - | Ready for migration (4 test(s) in `bro`) |
 | 57 | **`customElements`** | Web Components | `bundled` | 453 LOC | 94 LOC | 618 LOC | **6.57x** | **6.57x** | 0 LOC | ✅ 0.0% | [`integration/custom_elements/`](file:///D:/projects/brosurface/integration/custom_elements/)<br>_Dynamic JS class constructor registry, lifecycle hook invocation (connectedCallback), and attribute observer pump._ |

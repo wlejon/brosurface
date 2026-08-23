@@ -141,4 +141,5 @@ void installSortformerSession(JSContext* ctx)
     JS_FreeValue(ctx, global);
 }
 
+
 } // namespace brokit::api

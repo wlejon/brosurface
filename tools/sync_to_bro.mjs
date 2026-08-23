@@ -53,12 +53,8 @@ if (fs.existsSync(outQjsDir)) {
   for (const f of qjsFiles) {
     const srcPath = path.join(outQjsDir, f);
     if (f === 'blob.cpp' || f === 'noise.cpp') {
-      // These live in brokit standalone
-      if (fs.existsSync(BROKIT_ROOT)) {
-        const dst = path.join(BROKIT_ROOT, 'src', 'api', f);
-        if (!isDryRun) fs.copyFileSync(srcPath, dst);
-        console.log(`  ✅ [brokit] ${f} -> ${dst}`);
-      }
+      // These live in brokit standalone - skip copying to preserve brokit integrity
+      continue;
     } else {
       const dst = path.join(BRO_ROOT, 'src', 'js', f);
       if (!isDryRun) fs.copyFileSync(srcPath, dst);

@@ -395,17 +395,6 @@ void SceneBindings::setAppContext(const std::string& basePath,
     setAssetPathContext(basePath, mounts);
 }
 
-JSValue SceneBindings::wrapSceneGraph(JSContext* ctx, scene::SceneGraph* graph) {
-    if (!graph) return JS_NULL;
-    return qjsbind::wrap<GraphWrapper>(ctx, new GraphWrapper{graph->livenessToken()});
-}
-
-void SceneBindings::cleanup(JSContext* ctx) {
-    // No persistent JSValue/atom storage in this binding — qjsbind finalizers
-    // handle wrappers and the engine-level globalThis sweep drops bro.scene.
-    (void)ctx;
-}
-
 void SceneBindings::install(JSContext* ctx)
 {
     // --- SceneTexture handle (scene-as-texture, minted by asTexture()) ---
@@ -1966,6 +1955,18 @@ void SceneBindings::install(JSContext* ctx)
         JS_FreeValue(ctx, broVal);
         JS_FreeValue(ctx, global);
 }
+
+JSValue SceneBindings::wrapSceneGraph(JSContext* ctx, scene::SceneGraph* graph) {
+    if (!graph) return JS_NULL;
+    return qjsbind::wrap<GraphWrapper>(ctx, new GraphWrapper{graph->livenessToken()});
+}
+
+void SceneBindings::cleanup(JSContext* ctx) {
+    // No persistent JSValue/atom storage in this binding — qjsbind finalizers
+    // handle wrappers and the engine-level globalThis sweep drops bro.scene.
+    (void)ctx;
+}
+
 
 } // namespace bro::js
 
