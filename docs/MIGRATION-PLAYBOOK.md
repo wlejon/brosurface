@@ -63,30 +63,30 @@ Following the completion of Work Order 3 (Milestones M1–M5) which established 
 
 ---
 
-### 2.2 Work Order 3 Actuals (Honest Accounting Across 17 Migrated Surfaces)
+### 2.2 Work Order 4 Actuals (Honest Accounting Across 17 Migrated Surfaces)
 
-The table below reflects **exact empirical actuals** measured across all 17 migrated and bundled surfaces under honest custom accounting (counting all hand-written lines in IDLs):
+The table below reflects **exact empirical actuals** measured across all 17 migrated and bundled surfaces under honest custom accounting and post-M2 vocabulary extension:
 
-| Migrated Surface | Target Artifacts | IDL LOC Authored | Honest Custom LOC | Honest Custom Fraction | Generated Artifact LOC | Realized Leverage | Measured Eng Effort |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`bro.time`** | Docs, DTS, QJS | 100 LOC | 12 LOC | **11.5%** | 297 LOC | **2.97x** | 1.5 hrs |
-| **`bro.gpu` (Probe Pilot)** | Docs, DTS, QJS, Stubs | 202 LOC | 100 LOC | ⚠️ **54.6%** <sup>[1]</sup> | 597 LOC | **2.96x** | 2.0 hrs |
-| **`bro.noise`** | Docs, DTS, QJS | 823 LOC | 237 LOC | ⚠️ **38.2%** <sup>[2]</sup> | 1,751 LOC | **2.13x** | 3.5 hrs |
-| **`Blob / File / FileReader / URL`** | Docs, DTS, QJS, Bronze Host | 499 LOC | 1,147 LOC | ⚠️ **51.2%** <sup>[3]</sup> | 3,143 LOC | **6.30x** | 4.5 hrs |
-| **`bro.lm` (LLM Tower)** | Docs, DTS, QJS, Stubs | 829 LOC | 0 LOC | **0.0%** | 3,240 LOC | **3.91x** | 4.0 hrs |
-| **`bro.text`** | Docs, DTS, QJS, Stubs | 274 LOC | 179 LOC | ⚠️ **59.9%** <sup>[4]</sup> | 842 LOC | **3.07x** | 1.5 hrs |
-| **`bro.gizmo`** | Docs, DTS, QJS, Stubs | 248 LOC | 166 LOC | ⚠️ **54.6%** <sup>[5]</sup> | 762 LOC | **3.07x** | 1.5 hrs |
-| **`bro.mic`** | Docs, DTS, QJS | 188 LOC | 249 LOC | ⚠️ **75.9%** <sup>[6]</sup> | 675 LOC | **3.59x** | 1.5 hrs |
-| **`scene.createTerrain`** | Docs, DTS, QJS, Stubs | 276 LOC | 321 LOC | ⚠️ **92.8%** <sup>[7]</sup> | 925 LOC | **3.35x** | 2.0 hrs |
-| **`customElements`** | Docs, DTS, QJS | 96 LOC | 383 LOC | ⚠️ **94.6%** <sup>[8]</sup> | 619 LOC | **6.45x** | 1.5 hrs |
-| **`bro.settings`** | Docs, DTS, QJS | 231 LOC | 315 LOC | ⚠️ **71.6%** <sup>[9]</sup> | 862 LOC | **3.73x** | 2.0 hrs |
-| **`AbortController / AbortSignal`** | Docs, DTS, QJS, Bronze Host | 157 LOC | 152 LOC | ⚠️ **73.1%** <sup>[10]</sup> | 503 LOC | **3.20x** | 1.5 hrs |
-| **`DOMParser`** | Docs, DTS, QJS, Bronze Host | 64 LOC | 50 LOC | ⚠️ **50.5%** <sup>[11]</sup> | 241 LOC | **3.77x** | 1.0 hr |
-| **`Gamepad API`** | Docs, DTS, QJS, Bronze Host | 143 LOC | 278 LOC | ⚠️ **43.6%** <sup>[12]</sup> | 1,029 LOC | **7.20x** | 2.0 hrs |
-| **`bro.motion`** | Docs, DTS, QJS, Stubs | 123 LOC | 258 LOC | ⚠️ **85.7%** <sup>[13]</sup> | 612 LOC | **4.98x** | 2.0 hrs |
-| **`bro.rave`** | Docs, DTS, QJS, Stubs | 151 LOC | 275 LOC | ⚠️ **88.1%** <sup>[14]</sup> | 705 LOC | **4.67x** | 2.0 hrs |
-| **`bro.paths`** | Docs, DTS, QJS | 47 LOC | 61 LOC | ⚠️ **73.5%** <sup>[15]</sup> | 209 LOC | **4.45x** | 1.0 hr |
-| **WO-3 TOTALS / ACTUALS** | **17 Bundled Surfaces** | **4,451 LOC** | **4,183 LOC** | **49.4% avg** | **17,012 LOC** | **3.82x avg** | **35.0 hrs** |
+| Migrated Surface | Target Artifacts | IDL LOC Authored | Honest Custom LOC | Honest Custom Fraction | Generated Artifact LOC | Gross Lev | Derived Lev | Measured Eng Effort |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`bro.time`** | Docs, DTS, QJS | 100 LOC | 12 LOC | ✅ **11.5%** | 297 LOC | **2.97x** | **3.24x** | 1.5 hrs |
+| **`bro.gpu` (Probe Pilot)** | Docs, DTS, QJS, Stubs | 202 LOC | 100 LOC | ⚠️ **54.6%** <sup>[1]</sup> | 597 LOC | **2.96x** | **4.87x** | 2.0 hrs |
+| **`bro.noise`** | Docs, DTS, QJS | 823 LOC | 237 LOC | ⚠️ **38.2%** <sup>[2]</sup> | 1,751 LOC | **2.13x** | **2.58x** | 3.5 hrs |
+| **`Blob / File / FileReader / URL`** | Docs, DTS, QJS, Bronze Host | 499 LOC | 1,147 LOC | ⚠️ **51.2%** <sup>[3]</sup> | 3,143 LOC | **6.30x** | *(high custom)* | 4.5 hrs |
+| **`bro.lm` (LLM Tower)** | Docs, DTS, QJS, Stubs | 829 LOC | 0 LOC | ✅ **0.0%** | 3,240 LOC | **3.91x** | **3.91x** | 4.0 hrs |
+| **`bro.text`** | Docs, DTS, QJS, Stubs | 274 LOC | 179 LOC | ⚠️ **59.9%** <sup>[4]</sup> | 842 LOC | **3.07x** | **6.98x** | 1.5 hrs |
+| **`bro.gizmo`** | Docs, DTS, QJS, Stubs | 248 LOC | 166 LOC | ⚠️ **54.6%** <sup>[5]</sup> | 762 LOC | **3.07x** | **7.27x** | 1.5 hrs |
+| **`bro.mic`** | Docs, DTS, QJS | 179 LOC | 0 LOC | ✅ **0.0%** | 665 LOC | **3.72x** | **3.72x** | 1.5 hrs |
+| **`scene.createTerrain`** | Docs, DTS, QJS, Stubs | 275 LOC | 0 LOC | ✅ **0.0%** | 924 LOC | **3.36x** | **3.36x** | 2.0 hrs |
+| **`customElements`** | Docs, DTS, QJS | 94 LOC | 0 LOC | ✅ **0.0%** | 618 LOC | **6.57x** | **6.57x** | 1.5 hrs |
+| **`bro.settings`** | Docs, DTS, QJS | 212 LOC | 0 LOC | ✅ **0.0%** | 852 LOC | **4.02x** | **4.02x** | 2.0 hrs |
+| **`AbortController / AbortSignal`** | Docs, DTS, QJS, Bronze Host | 157 LOC | 152 LOC | ⚠️ **73.1%** <sup>[6]</sup> | 503 LOC | **3.20x** | **70.20x** | 1.5 hrs |
+| **`DOMParser`** | Docs, DTS, QJS, Bronze Host | 64 LOC | 50 LOC | ⚠️ **50.5%** <sup>[7]</sup> | 241 LOC | **3.77x** | **13.64x** | 1.0 hr |
+| **`Gamepad API`** | Docs, DTS, QJS, Bronze Host | 143 LOC | 278 LOC | ⚠️ **43.6%** <sup>[8]</sup> | 1,029 LOC | **7.20x** | *(high custom)* | 2.0 hrs |
+| **`bro.motion`** | Docs, DTS, QJS, Stubs | 123 LOC | 258 LOC | ⚠️ **85.7%** <sup>[9]</sup> | 612 LOC | **4.98x** | *(high custom)* | 2.0 hrs |
+| **`bro.rave`** | Docs, DTS, QJS, Stubs | 151 LOC | 275 LOC | ⚠️ **88.1%** <sup>[10]</sup> | 705 LOC | **4.67x** | *(high custom)* | 2.0 hrs |
+| **`bro.paths`** | Docs, DTS, QJS | 45 LOC | 0 LOC | ✅ **0.0%** | 171 LOC | **3.80x** | **3.80x** | 1.0 hr |
+| **WO-4 TOTALS / ACTUALS** | **17 Bundled Surfaces** | **4,418 LOC** | **2,854 LOC** | **33.9% avg** | **16,952 LOC** | **3.84x avg** | **9.01x avg** | **35.0 hrs** |
 
 #### Rationales for Surfaces Exceeding the 15% Custom Budget:
 1. **`bro.gpu` (54.6%):** Hardware probe querying native OpenGL/Vulkan device driver capabilities, memory limits, and vendor strings.
@@ -94,31 +94,26 @@ The table below reflects **exact empirical actuals** measured across all 17 migr
 3. **`Blob / File / URL` (51.2%):** W3C streaming primitives requiring HostBlob buffer refcounting, MIME multipart parsing, and URL parser bridge.
 4. **`bro.text` (59.9%):** HarfBuzz font shaping pipeline, glyph cache metrics, and text measurement layout subroutines.
 5. **`bro.gizmo` (54.6%):** 3D interactive manipulation math with immediate-mode overlay vertex rendering.
-6. **`bro.mic` (75.9%):** Real-time low-latency audio capture ring buffer, PCM streaming, and device change listener dispatch.
-7. **`scene.createTerrain` (92.8%):** Procedural heightmap mesh generation, LOD quadtree chunk streaming, and GPU texture splatting.
-8. **`customElements` (94.6%):** JavaScript class constructor registry, lifecycle hook invocation (`connectedCallback`), and attribute observer pump.
-9. **`bro.settings` (71.6%):** Engine persistent configuration storage with disk serialization, schema validation, and change dispatch.
-10. **`AbortController` (73.1%):** Event-driven cancellation dispatch with cross-thread signal chaining and timeout/any combinators.
-11. **`DOMParser` (50.5%):** HTML markup string tokenization bridge constructing DOM tree hierarchies.
-12. **`Gamepad API` (43.6%):** High-frequency OS hardware polling snapshots, 17-button/4-axis caching, and dual-rumble / trigger haptics.
-13. **`bro.motion` (85.7%):** ARDY-G1 text-to-motion diffusion pipeline executing safetensors unpickling and 25 fps motion sequence generation.
-14. **`bro.rave` (88.1%):** Real-time neural audio VAE runtime invoking 48kHz torchscript/ONNX tensor graphs.
-15. **`bro.paths` (73.5%):** Virtual file system path resolution, sandboxed application directory traversal, and asset URI mapping.
+6. **`AbortController` (73.1%):** Event-driven cancellation dispatch with cross-thread signal chaining and timeout/any combinators.
+7. **`DOMParser` (50.5%):** HTML markup string tokenization bridge constructing DOM tree hierarchies.
+8. **`Gamepad API` (43.6%):** High-frequency OS hardware polling snapshots, 17-button/4-axis caching, and dual-rumble / trigger haptics.
+9. **`bro.motion` (85.7%):** ARDY-G1 text-to-motion diffusion pipeline executing safetensors unpickling and 25 fps motion sequence generation.
+10. **`bro.rave` (88.1%):** Real-time neural audio VAE runtime invoking 48kHz torchscript/ONNX tensor graphs.
 
 ---
 
 ### 2.3 Tail Estimation: Remaining 49 Surfaces
 
-The remaining **49 engine surfaces** (cataloged in [`docs/COVERAGE.md`](COVERAGE.md), totaling **143,549 LOC of legacy hand tax**) are re-priced using the empirical actuals from WO-3:
+The remaining **49 engine surfaces** (cataloged in [`docs/COVERAGE.md`](COVERAGE.md), totaling **143,549 LOC of legacy hand tax**) are re-priced using the empirical actuals and derived leverage from WO-4:
 
-| Complexity Tier | Characteristics & Representative Surfaces | Remaining Count | Hand Tax Eliminated | Est. IDL LOC Required | Est. Generated Artifacts | Est. Hours / Surface | Total Est. Hours |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Tier 1: Stateless Math & Utilities** | Pure functions, primitive scalars, vector/matrix overloads (`bro.math`, spatial hashes, geometry helpers). | 6 | 9,800 LOC | ~1,800 LOC | ~6,500 LOC | 1.5 hrs | **9.0 hrs** |
-| **Tier 2: Singletons & System Probes** | Engine state, global settings, path resolution, window controls (`bro.window`, `bro.server`, `bro.menu`, `bro.steam`). | 10 | 11,200 LOC | ~2,200 LOC | ~7,800 LOC | 1.5 hrs | **15.0 hrs** |
-| **Tier 3: DOM Classes & Lifecycle Objects** | Object lifecycles, event dispatchers, DOM observers, handles (`ImageBitmap`, `MutationObserver`, `PointerEvents`, `WAAPI`). | 12 | 21,500 LOC | ~4,800 LOC | ~20,000 LOC | 2.5 hrs | **30.0 hrs** |
-| **Tier 4: ML Towers & Streaming AI** | Gated subsystems, tensor transforms, background worker threads (`bro.tensor`, `bro.diffusion`, `bro.stt`, `bro.tts`, `bro.vision`, `bro.diar`, `bro.kws`). | 11 | 27,500 LOC | ~5,500 LOC | ~22,000 LOC | 2.5 hrs | **27.5 hrs** |
-| **Tier 5: Core Graphics & Physics Engines** | Multi-realm graphics, high-frequency frame sync, complex native handles (`bro.scene`, `WebGL2RenderingContext`, `Physics/Jolt`, `Canvas2D`, `bro.mesh`, `AudioContext`). | 10 | 73,549 LOC | ~15,000 LOC | ~62,000 LOC | 5.0 hrs | **50.0 hrs** |
-| **RE-PRICED TOTAL TAIL** | **Entire Remaining Engine Surface** | **49 Surfaces** | **143,549 LOC** | **~29,300 LOC** | **~118,300 LOC** | **2.7 hrs avg** | **131.5 hrs (~3.3 weeks)** |
+| Complexity Tier | Characteristics & Representative Surfaces | Remaining Count | Hand Tax Eliminated | Est. IDL LOC Required | Est. Generated Artifacts | Est. Gross Lev | Est. Derived Lev | Est. Hours / Surface | Total Est. Hours |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Tier 1: Stateless Math & Utilities** | Pure functions, primitive scalars, vector/matrix overloads (`bro.math`, spatial hashes, geometry helpers). | 6 | 9,800 LOC | ~1,800 LOC | ~6,500 LOC | 3.6x | 4.2x | 1.5 hrs | **9.0 hrs** |
+| **Tier 2: Singletons & System Probes** | Engine state, global settings, path resolution, window controls (`bro.window`, `bro.server`, `bro.menu`, `bro.steam`). | 10 | 11,200 LOC | ~2,200 LOC | ~7,800 LOC | 3.5x | 4.5x | 1.5 hrs | **15.0 hrs** |
+| **Tier 3: DOM Classes & Lifecycle Objects** | Object lifecycles, event dispatchers, DOM observers, handles (`ImageBitmap`, `MutationObserver`, `PointerEvents`, `WAAPI`). | 12 | 21,500 LOC | ~4,800 LOC | ~20,000 LOC | 4.2x | 6.5x | 2.5 hrs | **30.0 hrs** |
+| **Tier 4: ML Towers & Streaming AI** | Gated subsystems, tensor transforms, background worker threads (`bro.tensor`, `bro.diffusion`, `bro.stt`, `bro.tts`, `bro.vision`, `bro.diar`, `bro.kws`). | 11 | 27,500 LOC | ~5,500 LOC | ~22,000 LOC | 4.0x | 4.8x | 2.5 hrs | **27.5 hrs** |
+| **Tier 5: Core Graphics & Physics Engines** | Multi-realm graphics, high-frequency frame sync, complex native handles (`bro.scene`, `WebGL2RenderingContext`, `Physics/Jolt`, `Canvas2D`, `bro.mesh`, `AudioContext`). | 10 | 73,549 LOC | ~15,000 LOC | ~62,000 LOC | 4.1x | 5.5x | 5.0 hrs | **50.0 hrs** |
+| **RE-PRICED TOTAL TAIL** | **Entire Remaining Engine Surface** | **49 Surfaces** | **143,549 LOC** | **~29,300 LOC** | **~118,300 LOC** | **4.0x avg** | **5.3x avg** | **2.7 hrs avg** | **131.5 hrs (~3.3 weeks)** |
 
 ---
 

@@ -219,7 +219,10 @@ function evaluateIdl(idlBase, surface) {
   const honestCustomLoc = qjsCustom + bhCustom;
   const totalCppLoc = qjsLoc + bhLoc;
   const customFraction = totalCppLoc > 0 ? (honestCustomLoc / totalCppLoc) * 100 : 0;
-  const leverageRatio = idlLoc > 0 ? totalArtifactLoc / idlLoc : 0;
+  const grossLeverage = idlLoc > 0 ? totalArtifactLoc / idlLoc : 0;
+  const pureArtifactLoc = Math.max(0, totalArtifactLoc - honestCustomLoc);
+  const pureIdlLoc = idlLoc - honestCustomLoc;
+  const derivedLeverage = pureIdlLoc > 0 ? pureArtifactLoc / pureIdlLoc : null;
 
   return {
     idlLoc,
@@ -231,7 +234,9 @@ function evaluateIdl(idlBase, surface) {
     totalArtifactLoc,
     honestCustomLoc,
     customFraction,
-    leverageRatio,
+    leverageRatio: grossLeverage,
+    grossLeverage,
+    derivedLeverage,
   };
 }
 
@@ -335,7 +340,10 @@ export function buildCoverageLedger() {
  */
 export function generateCoverageMarkdown({ summary, ledger }) {
   const dateStr = new Date().toISOString().split('T')[0];
-  const realizedLeverage = summary.totalIdlLoc > 0 ? (summary.totalArtifactLoc / summary.totalIdlLoc).toFixed(2) : '0.00';
+  const grossLeverage = summary.totalIdlLoc > 0 ? (summary.totalArtifactLoc / summary.totalIdlLoc).toFixed(2) : '0.00';
+  const pureArtifactLoc = summary.totalArtifactLoc - summary.totalCustomLoc;
+  const pureIdlLoc = summary.totalIdlLoc - summary.totalCustomLoc;
+  const derivedLeverage = pureIdlLoc > 0 ? (pureArtifactLoc / pureIdlLoc).toFixed(2) : '0.00';
   const totalCppLoc = ledger.filter(l => l.stats).reduce((acc, l) => acc + l.stats.qjsLoc + l.stats.bhLoc, 0);
   const avgCustomFraction = totalCppLoc > 0 ? ((summary.totalCustomLoc / totalCppLoc) * 100).toFixed(2) : '0.00';
 
@@ -361,8 +369,10 @@ The \`brosurface\` generator pipeline replaces five hand-maintained, error-prone
 | **Legacy Hand Tax Eliminated** | **${summary.eliminatedTax.toLocaleString()} LOC** | Hand-maintained LOC replaced by single \`.idl\` declarations (9.7% of engine surface) |
 | **Total Authored IDL LOC** | **${summary.totalIdlLoc.toLocaleString()} LOC** | Single source of truth declarations authored across 17 surfaces |
 | **Total Generated Artifact LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | Drop-in C++ TUs (QJS + bronze_host), \`.d.ts\` slices, docs, stubs |
-| **Repository-wide Realized Leverage** | **${realizedLeverage}x** | Generated Artifact LOC / Authored IDL LOC across all 17 bundled surfaces |
-| **Average Honest Custom Fraction** | **${avgCustomFraction}%** | Hand-written C++/JS lines across emitted binding translation units |
+| **Total Honest Custom LOC** | **${summary.totalCustomLoc.toLocaleString()} LOC** | Hand-written C++/JS lines across emitted binding translation units |
+| **Gross Realized Leverage** | **${grossLeverage}x** | Generated Artifact LOC / Authored IDL LOC across all 17 bundled surfaces |
+| **Derived Generator Leverage** | **${derivedLeverage}x** | Pure Generated LOC / Pure IDL LOC: \`(Artifact LOC − Custom LOC) / (IDL LOC − Custom LOC)\` |
+| **Average Honest Custom Fraction** | **${avgCustomFraction}%** | Hand-written custom code fraction across all generated C++ bindings |
 | **Total Measured Engineering Effort** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** | Empirical authoring, triage, equivalence verification, & bundle packaging |
 
 ---
@@ -390,7 +400,8 @@ pie title Engine Surface Migration Status (66 Surfaces)
 
 ## 3. Work Order 3 Migration Batch Summary
 
-| Milestone & Batch | Surface Names | Surface Count | IDL LOC | Artifact LOC | Leverage | Measured Effort |
+| Milestone & Batch | Surface Names | Surface Count | IDL LOC | Artifact LOC | Custom LOC | Gross Lev | Derived Lev | Measured Effort |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 `;
 
   // Batch summaries
@@ -416,22 +427,26 @@ pie title Engine Surface Migration Status (66 Surfaces)
     const items = ledger.filter(l => b.surfaces.includes(l.id));
     const bIdl = items.reduce((acc, i) => acc + (i.stats ? i.stats.idlLoc : 0), 0);
     const bArt = items.reduce((acc, i) => acc + (i.stats ? i.stats.totalArtifactLoc : 0), 0);
+    const bCust = items.reduce((acc, i) => acc + (i.stats ? i.stats.honestCustomLoc : 0), 0);
     const bEffort = items.reduce((acc, i) => acc + (i.effort || 0), 0);
-    const bLev = bIdl > 0 ? (bArt / bIdl).toFixed(2) + 'x' : '0.00x';
-    md += `| **${b.name}** | ${b.namesStr} | ${items.length} | ${bIdl.toLocaleString()} LOC | ${bArt.toLocaleString()} LOC | ${bLev} | ${bEffort.toFixed(1)} hrs |\n`;
+    const bGrossLev = bIdl > 0 ? (bArt / bIdl).toFixed(2) + 'x' : '0.00x';
+    const bPureArt = bArt - bCust;
+    const bPureIdl = bIdl - bCust;
+    const bDerivedLev = bPureIdl > 0 ? (bPureArt / bPureIdl).toFixed(2) + 'x' : (bCust === 0 ? bGrossLev : 'N/A');
+    md += `| **${b.name}** | ${b.namesStr} | ${items.length} | ${bIdl.toLocaleString()} LOC | ${bArt.toLocaleString()} LOC | ${bCust.toLocaleString()} LOC | ${bGrossLev} | ${bDerivedLev} | ${bEffort.toFixed(1)} hrs |\n`;
   }
 
-  md += `| **TOTAL MIGRATED** | **17 Authoritative Surfaces** | **${summary.bundledCount}** | **${summary.totalIdlLoc.toLocaleString()} LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | **${realizedLeverage}x** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** |\n`;
+  md += `| **TOTAL MIGRATED** | **17 Authoritative Surfaces** | **${summary.bundledCount}** | **${summary.totalIdlLoc.toLocaleString()} LOC** | **${summary.totalArtifactLoc.toLocaleString()} LOC** | **${summary.totalCustomLoc.toLocaleString()} LOC** | **${grossLeverage}x** | **${derivedLeverage}x** | **${summary.totalMeasuredEffort.toFixed(1)} hrs** |\n`;
 
   md += `
 ---
 
 ## 4. Master Surface Coverage Ledger
 
-The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifacts, custom lines, and honest custom percentages.
+The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifacts, custom lines, gross leverage, and derived leverage.
 
-| # | Surface Name | Category | Status | Legacy Tax | IDL LOC | Artifact LOC | Leverage | Honest Custom | Custom % | Integration Bundle & Rationale |
-| :-: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| # | Surface Name | Category | Status | Legacy Tax | IDL LOC | Artifact LOC | Gross Lev | Derived Lev | Honest Custom | Custom % | Integration Bundle & Rationale |
+| :-: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 `;
 
   for (const item of ledger) {
@@ -443,7 +458,10 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
     if (item.stats) {
       const idlStr = `${item.stats.idlLoc} LOC`;
       const artStr = `${item.stats.totalArtifactLoc.toLocaleString()} LOC`;
-      const levStr = `**${item.stats.leverageRatio.toFixed(2)}x**`;
+      const grossStr = `**${item.stats.grossLeverage.toFixed(2)}x**`;
+      const derivedStr = item.stats.derivedLeverage !== null
+        ? `**${item.stats.derivedLeverage.toFixed(2)}x**`
+        : '*(high custom)*';
       const custStr = `${item.stats.honestCustomLoc} LOC`;
       const custFracStr = item.stats.customFraction > 15.0
         ? `⚠️ **${item.stats.customFraction.toFixed(1)}%**`
@@ -454,11 +472,12 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
       const rationaleText = item.rationale ? `<br>_${item.rationale}_` : '';
       const notes = `${bundleLink}${rationaleText}`;
 
-      md += `| ${num} | **\`${item.name}\`**${gateStr} | ${item.category} | ${statusBadge} | ${taxStr} | ${idlStr} | ${artStr} | ${levStr} | ${custStr} | ${custFracStr} | ${notes} |\n`;
+      md += `| ${num} | **\`${item.name}\`**${gateStr} | ${item.category} | ${statusBadge} | ${taxStr} | ${idlStr} | ${artStr} | ${grossStr} | ${derivedStr} | ${custStr} | ${custFracStr} | ${notes} |\n`;
     } else {
       const idlStr = '-';
       const artStr = '-';
-      const levStr = '-';
+      const grossStr = '-';
+      const derivedStr = '-';
       const custStr = '-';
       const custFracStr = '-';
       let notes = '*(unmigrated)*';
@@ -467,7 +486,7 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
       } else {
         notes = `Ready for migration (${item.existingTestsCount} test(s) in \`bro\`)`;
       }
-      md += `| ${num} | **\`${item.name}\`**${gateStr} | ${item.category} | ${statusBadge} | ${taxStr} | ${idlStr} | ${artStr} | ${levStr} | ${custStr} | ${custFracStr} | ${notes} |\n`;
+      md += `| ${num} | **\`${item.name}\`**${gateStr} | ${item.category} | ${statusBadge} | ${taxStr} | ${idlStr} | ${artStr} | ${grossStr} | ${derivedStr} | ${custStr} | ${custFracStr} | ${notes} |\n`;
     }
   }
 
@@ -479,7 +498,7 @@ The complete 66-surface ledger tracking legacy tax, authored IDL, emitted artifa
 Per SPEC §4, the equivalence test suite is the sole acceptance oracle for migration. The following 13 cataloged surfaces currently have **0 existing test files** in \`D:/projects/bro\` and are strictly blocked until unit test harnesses are authored:
 
 | # | Surface ID | Surface Name | Category | Feature Gate | Hand Tax | Missing Test Pointers |
-| :-: | :--- | :--- | :--- | :---: | :---: | :--- |
+| :-: | :--- | :--- | :--- | :--- | :---: | :--- |
 `;
 
   const blocked = ledger.filter(l => l.status === 'blocked-on-tests');
@@ -492,16 +511,16 @@ Per SPEC §4, the equivalence test suite is the sole acceptance oracle for migra
 
 ## 6. Tail Horizon & Scheduling Projection
 
-Re-pricing derived directly from Work Order 3 honest actuals across all 5 complexity tiers:
+Re-pricing derived directly from Work Order 4 actuals (post-M2 vocabulary extension) across all 5 complexity tiers:
 
-| Complexity Tier | Remaining Count | Remaining Hand Tax | Est IDL LOC | Est Artifact LOC | Est Realized Leverage | Est Hours / Surface | Total Est Hours |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Tier 1: Stateless Math & Utilities** | 6 | 9,800 LOC | ~1,800 LOC | ~6,500 LOC | 3.6x | 1.5 hrs | **9.0 hrs** |
-| **Tier 2: Singletons & Probes** | 10 | 11,200 LOC | ~2,200 LOC | ~7,800 LOC | 3.5x | 1.5 hrs | **15.0 hrs** |
-| **Tier 3: DOM Classes & Lifecycle Objects** | 12 | 21,500 LOC | ~4,800 LOC | ~20,000 LOC | 4.2x | 2.5 hrs | **30.0 hrs** |
-| **Tier 4: ML Towers & Streaming AI** | 11 | 27,500 LOC | ~5,500 LOC | ~22,000 LOC | 4.0x | 2.5 hrs | **27.5 hrs** |
-| **Tier 5: Core Graphics & Physics** | 10 | 73,549 LOC | ~15,000 LOC | ~62,000 LOC | 4.1x | 5.0 hrs | **50.0 hrs** |
-| **REMAINING TAIL TOTAL** | **49 Surfaces** | **143,549 LOC** | **~29,300 LOC** | **~118,300 LOC** | **4.0x avg** | **2.7 hrs avg** | **131.5 hrs (~3.3 weeks)** |
+| Complexity Tier | Remaining Count | Remaining Hand Tax | Est IDL LOC | Est Artifact LOC | Est Gross Lev | Est Derived Lev | Est Hours / Surface | Total Est Hours |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Tier 1: Stateless Math & Utilities** | 6 | 9,800 LOC | ~1,800 LOC | ~6,500 LOC | 3.6x | 4.2x | 1.5 hrs | **9.0 hrs** |
+| **Tier 2: Singletons & Probes** | 10 | 11,200 LOC | ~2,200 LOC | ~7,800 LOC | 3.5x | 4.5x | 1.5 hrs | **15.0 hrs** |
+| **Tier 3: DOM Classes & Lifecycle Objects** | 12 | 21,500 LOC | ~4,800 LOC | ~20,000 LOC | 4.2x | 6.5x | 2.5 hrs | **30.0 hrs** |
+| **Tier 4: ML Towers & Streaming AI** | 11 | 27,500 LOC | ~5,500 LOC | ~22,000 LOC | 4.0x | 4.8x | 2.5 hrs | **27.5 hrs** |
+| **Tier 5: Core Graphics & Physics** | 10 | 73,549 LOC | ~15,000 LOC | ~62,000 LOC | 4.1x | 5.5x | 5.0 hrs | **50.0 hrs** |
+| **REMAINING TAIL TOTAL** | **49 Surfaces** | **143,549 LOC** | **~29,300 LOC** | **~118,300 LOC** | **4.0x avg** | **5.3x avg** | **2.7 hrs avg** | **131.5 hrs (~3.3 weeks)** |
 `;
 
   return md;
