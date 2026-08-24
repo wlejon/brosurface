@@ -79,7 +79,6 @@ const SURFACE_IDL_MAP = {
   'abort': 'abort',
   'bro.flora': 'flora',
   'bro.math': 'math',
-  'bro.worldgen': 'worldgen',
   'bro.diar': 'diar',
   'bro.triposplat': 'triposplat',
   'bro.diffusion': 'diffusion',
@@ -106,7 +105,6 @@ const MEASURED_EFFORT = {
   'bro.paths': 1.0,
   'bro.flora': 2.0,
   'bro.math': 2.0,
-  'bro.worldgen': 2.5,
   'bro.diar': 2.0,
   'bro.triposplat': 2.5,
   'bro.diffusion': 3.0,
@@ -127,7 +125,6 @@ const CUSTOM_RATIONALES = {
   'bro.motion': 'ARDY-G1 text-to-motion diffusion pipeline executing safetensors unpickling and 25 fps motion sequence generation.',
   'bro.flora': 'Synthetic silviculture ecosystem simulation state, bud fate, branching math, and procedural mesh emitters.',
   'bro.math': 'Fast 3D spatial hash index, SplitMix64 PRNG, exponential signal filter, and geometric intersection queries.',
-  'bro.worldgen': 'Neural terrain world generation pipeline executing coarse/latent/residual stages with tile memoization.',
   'bro.diar': 'Sortformer 4-speaker Conformer-Transformer diarization, streaming sessions, and offline cluster diarizer.',
   'bro.triposplat': 'Single-image 3D Gaussian Splat reconstruction, DINOv3 ViT-H backbone, FlowDiT, and BiRefNet matting.',
   'bro.diffusion': 'Text-to-image neural diffusion inference pipeline, multi-scheduler stepping, and attention steering.',
@@ -441,8 +438,8 @@ pie title Engine Surface Migration Status (${summary.totalSurfaces} Surfaces)
     },
     {
       name: 'WO-4 Batch 3 (M4)',
-      surfaces: ['bro.flora', 'bro.math', 'bro.worldgen', 'bro.diar', 'bro.triposplat', 'bro.diffusion'],
-      namesStr: '`bro.flora`, `bro.math`, `bro.worldgen`, `bro.diar`, `bro.triposplat`, `bro.diffusion`',
+      surfaces: ['bro.flora', 'bro.math', 'bro.diar', 'bro.triposplat', 'bro.diffusion'],
+      namesStr: '`bro.flora`, `bro.math`, `bro.diar`, `bro.triposplat`, `bro.diffusion`',
     },
   ];
 

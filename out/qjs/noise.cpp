@@ -282,7 +282,7 @@ static JSValue fast_noise_gen_uniform_grid2_d(JSContext* ctx, JSValueConst this_
 
     if (xSize <= 0 || ySize <= 0)
         return JS_ThrowRangeError(ctx, "Grid dimensions must be positive");
-    
+
     float step = static_cast<float>(frequency);
     size_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);
     std::vector<float> output(count);
@@ -318,11 +318,11 @@ static JSValue fast_noise_gen_uniform_grid2_d_into(JSContext* ctx, JSValueConst 
 
     if (xSize <= 0 || ySize <= 0)
         return JS_ThrowRangeError(ctx, "Grid dimensions must be positive");
-    
+
     size_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);
     if (n_dest < count)
         return JS_ThrowRangeError(ctx, "dest too small: %zu floats required", count);
-    
+
     float step = static_cast<float>(frequency);
     w->node->GenUniformGrid2D(dest,
                                static_cast<float>(xOffset), static_cast<float>(yOffset),
@@ -357,7 +357,7 @@ static JSValue fast_noise_gen_uniform_grid3_d(JSContext* ctx, JSValueConst this_
 
     if (xSize <= 0 || ySize <= 0 || zSize <= 0)
         return JS_ThrowRangeError(ctx, "Grid dimensions must be positive");
-    
+
     float step = static_cast<float>(frequency);
     size_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize) * static_cast<size_t>(zSize);
     std::vector<float> output(count);
@@ -399,11 +399,11 @@ static JSValue fast_noise_gen_uniform_grid3_d_into(JSContext* ctx, JSValueConst 
 
     if (xSize <= 0 || ySize <= 0 || zSize <= 0)
         return JS_ThrowRangeError(ctx, "Grid dimensions must be positive");
-    
+
     size_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize) * static_cast<size_t>(zSize);
     if (n_dest < count)
         return JS_ThrowRangeError(ctx, "dest too small: %zu floats required", count);
-    
+
     float step = static_cast<float>(frequency);
     w->node->GenUniformGrid3D(dest,
                                static_cast<float>(xOff), static_cast<float>(yOff),
@@ -443,7 +443,7 @@ static JSValue fast_noise_gen_position_array2_d(JSContext* ctx, JSValueConst thi
         return JS_ThrowRangeError(ctx, "dest too small: %zu floats required", count);
     if (count > static_cast<size_t>(INT32_MAX))
         return JS_ThrowRangeError(ctx, "position count exceeds INT_MAX");
-    
+
     w->node->GenPositionArray2D(dest, static_cast<int>(count), xs, ys,
                                  static_cast<float>(x_off), static_cast<float>(y_off),
                                  seed);
@@ -487,7 +487,7 @@ static JSValue fast_noise_gen_position_array3_d(JSContext* ctx, JSValueConst thi
         return JS_ThrowRangeError(ctx, "dest too small: %zu floats required", count);
     if (count > static_cast<size_t>(INT32_MAX))
         return JS_ThrowRangeError(ctx, "position count exceeds INT_MAX");
-    
+
     w->node->GenPositionArray3D(dest, static_cast<int>(count), xs, ys, zs,
                                  static_cast<float>(x_off), static_cast<float>(y_off),
                                  static_cast<float>(z_off), seed);
@@ -513,7 +513,7 @@ static JSValue fast_noise_gen_tileable2_d(JSContext* ctx, JSValueConst this_val,
 
     if (xSize <= 0 || ySize <= 0)
         return JS_ThrowRangeError(ctx, "Grid dimensions must be positive");
-    
+
     float step = static_cast<float>(frequency);
     size_t count = static_cast<size_t>(xSize) * static_cast<size_t>(ySize);
     std::vector<float> output(count);
@@ -526,23 +526,23 @@ static JSValue js_fast_noise_constructor(JSContext* ctx, JSValueConst new_target
 {
     if (argc < 1 || !JS_IsString(argv[0]))
         return JS_ThrowTypeError(ctx, "FastNoise: expected encoded node tree string");
-    
+
     const char* encoded = JS_ToCString(ctx, argv[0]);
     if (!encoded) return JS_EXCEPTION;
-    
+
     auto node = FastNoise::NewFromEncodedNodeTree(encoded);
     JS_FreeCString(ctx, encoded);
-    
+
     if (!node)
         return JS_ThrowTypeError(ctx, "FastNoise: invalid encoded node tree");
-    
+
     JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
     if (JS_IsException(proto)) return proto;
-    
+
     JSValue obj = JS_NewObjectProtoClass(ctx, proto, noise_class_id);
     JS_FreeValue(ctx, proto);
     if (JS_IsException(obj)) return obj;
-    
+
     auto* w = new NoiseWrapper{std::move(node)};
     JS_SetOpaque(obj, w);
     return obj;

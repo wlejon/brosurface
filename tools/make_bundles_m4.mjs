@@ -147,22 +147,6 @@ const bundles = [
     diff_triage: 'Zero behavioral diffs. 3D spatial hash index, SplitMix64 PRNG, exponential smoother filter, curve evaluators, and geometric intersection tests.',
   },
   {
-    ns: 'worldgen',
-    census: '#49 — Neural World Generation (bro.worldgen)',
-    title: 'worldgen (bro.worldgen)',
-    files: [
-      ['out/qjs/worldgen_bindings.cpp', 'src/js/worldgen_bindings.cpp'],
-      ['out/docs/worldgen-api.js', 'docs/worldgen-api.js'],
-    ],
-    artifacts: [
-      'out/qjs/worldgen_bindings.cpp',
-      'out/docs/worldgen-api.js',
-    ],
-    test_cmd: 'bash -c "BRO_ALLOW_STALE=1 BRO_TERRAIN_WEIGHTS=none ./tests/run_tests.sh worldgen"',
-    test_files: ['tests/worldgen/test_worldgen_stage.js (PASS)'],
-    diff_triage: 'Zero behavioral diffs. Multi-stage neural world pipeline, coarse/latent/residual stages, synchronous and asynchronous elevation reconstruction.',
-  },
-  {
     ns: 'diar',
     census: '#44 — Speaker Diarization (bro.diar)',
     title: 'diar (bro.diar)',

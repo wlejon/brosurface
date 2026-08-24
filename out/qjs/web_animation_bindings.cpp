@@ -1,3 +1,26 @@
+// ===========================================================================
+// element.animate() — Web Animations API (commonly-used subset).
+//
+// Supported: array-of-keyframes and object-of-arrays keyframe forms, offsets
+// (auto-distributed), per-keyframe easing; options as number (duration) or
+// {duration, delay, endDelay, iterations (Infinity ok), direction, easing,
+// fill, id}; Animation.play/pause/cancel/finish/reverse, currentTime,
+// playbackRate, playState, finished promise (rejects with an AbortError-shaped
+// DOMException on cancel), onfinish/oncancel; element.getAnimations() and
+// document.getAnimations().
+//
+// Deliberate simplifications (documented in docs/web-animations-api.js):
+//  - Property coverage = whatever the CSS transition interpolator supports
+//    (numbers/lengths, colors, transform/filter function lists); other values
+//    snap at 50%, and properties simply aren't clamped/validated.
+//  - Multiple animations on one element compose in creation order (the
+//    last-created wins per property) rather than full spec stacking.
+//  - commitStyles()/persist() are not implemented; composite modes other than
+//    "replace" are ignored.
+//  - getAnimations() returns running/paused animations plus finished ones
+//    still holding a forwards fill.
+// ===========================================================================
+
 #include "js/web_animation_bindings.h"
 #include "dom/element.h"
 #include "dom/document.h"
@@ -801,33 +824,33 @@ JSValue js_document_getAnimations(JSContext* ctx, JSValueConst /*this_val*/,
 
 void installWebAnimationBindings(JSContext* ctx)
 {
-        qjsbind::Class<AnimationJS>(ctx, "Animation", qjsbind::NoGlobal)
-            .gc_mark([](AnimationJS* a, JSRuntime* rt, JS_MarkFunc* mark) {
-                JS_MarkValue(rt, a->onfinish, mark);
-                JS_MarkValue(rt, a->oncancel, mark);
-                JS_MarkValue(rt, a->finishedPromise, mark);
-                JS_MarkValue(rt, a->finishedResolve, mark);
-                JS_MarkValue(rt, a->finishedReject, mark);
-            })
-            .function_list(js_animation_proto_funcs,
-                           sizeof(js_animation_proto_funcs) /
-                               sizeof(js_animation_proto_funcs[0]));
-    
-        JSValue eproto = JS_GetClassProto(ctx, js_element_class_id);
-        if (JS_IsObject(eproto)) {
-            JS_SetPropertyStr(ctx, eproto, "animate",
-                JS_NewCFunction(ctx, js_element_animate, "animate", 2));
-            JS_SetPropertyStr(ctx, eproto, "getAnimations",
-                JS_NewCFunction(ctx, js_element_getAnimations, "getAnimations", 0));
-        }
-        JS_FreeValue(ctx, eproto);
-    
-        JSValue dproto = JS_GetClassProto(ctx, js_document_class_id);
-        if (JS_IsObject(dproto)) {
-            JS_SetPropertyStr(ctx, dproto, "getAnimations",
-                JS_NewCFunction(ctx, js_document_getAnimations, "getAnimations", 0));
-        }
-        JS_FreeValue(ctx, dproto);
+    qjsbind::Class<AnimationJS>(ctx, "Animation", qjsbind::NoGlobal)
+        .gc_mark([](AnimationJS* a, JSRuntime* rt, JS_MarkFunc* mark) {
+            JS_MarkValue(rt, a->onfinish, mark);
+            JS_MarkValue(rt, a->oncancel, mark);
+            JS_MarkValue(rt, a->finishedPromise, mark);
+            JS_MarkValue(rt, a->finishedResolve, mark);
+            JS_MarkValue(rt, a->finishedReject, mark);
+        })
+        .function_list(js_animation_proto_funcs,
+                       sizeof(js_animation_proto_funcs) /
+                           sizeof(js_animation_proto_funcs[0]));
+
+    JSValue eproto = JS_GetClassProto(ctx, js_element_class_id);
+    if (JS_IsObject(eproto)) {
+        JS_SetPropertyStr(ctx, eproto, "animate",
+            JS_NewCFunction(ctx, js_element_animate, "animate", 2));
+        JS_SetPropertyStr(ctx, eproto, "getAnimations",
+            JS_NewCFunction(ctx, js_element_getAnimations, "getAnimations", 0));
+    }
+    JS_FreeValue(ctx, eproto);
+
+    JSValue dproto = JS_GetClassProto(ctx, js_document_class_id);
+    if (JS_IsObject(dproto)) {
+        JS_SetPropertyStr(ctx, dproto, "getAnimations",
+            JS_NewCFunction(ctx, js_document_getAnimations, "getAnimations", 0));
+    }
+    JS_FreeValue(ctx, dproto);
 }
 
 

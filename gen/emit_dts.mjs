@@ -425,7 +425,7 @@ function emitBroAlias(aliasName, targetName, doc) {
 
   // 5. Global Namespaces
   const isGlobalNs = (ns) => getAttr(ns, 'prefix') === '' || ns.name === ['Phys', 'ics'].join('');
-  const isFlatNs = (ns) => Boolean(getAttr(ns, 'vfs_paths') || ns.name === ['pa', 'ths'].join(''));
+  const isFlatNs = (ns) => ns.name === ['pa', 'ths'].join('');
 
   const globalNamespaces = namespaces.filter(isGlobalNs);
   for (const ns of globalNamespaces) {

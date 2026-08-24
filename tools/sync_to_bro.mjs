@@ -23,6 +23,7 @@ import { runEmitQjsbind } from '../gen/emit_qjsbind.mjs';
 import { runEmitBronzeHost } from '../gen/emit_bronze_host.mjs';
 import { runEmitStubs } from '../gen/emit_stubs.mjs';
 import { collectDrift } from './drift.mjs';
+import { ownerOf } from './ownership.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,18 +64,30 @@ runEmitStubs(path.join(BROSURFACE_ROOT, 'idl/'), path.join(BROSURFACE_ROOT, 'out
 // behind); it just must never be a surprise.
 if (!acceptDrift) {
   const drift = collectDrift();
-  if (drift && drift.drifted.length) {
-    console.log(`\n[Step 1b] ${drift.drifted.length} file(s) in bro differ from what this sync would write:\n`);
-    for (const d of [...drift.drifted].sort((a, b) => b.changed - a.changed)) {
-      console.log(`  ${String(d.changed).padStart(6)} lines  ${d.broPath}`);
+  // Only the files this sync will actually write, and only where writing them
+  // would delete something. Reordering and re-indentation are not worth
+  // stopping for -- drift.mjs already separates the two -- but a file that has
+  // grown past what the IDL models is, and that is the case that has twice
+  // reached main as a red build.
+  const blocking = (drift ? drift.drifted : []).filter(d =>
+    d.copied && d.owner === 'generator' &&
+    (d.loss.code.length || d.loss.comment.length));
+  if (blocking.length) {
+    console.log(`\n[Step 1b] ${blocking.length} file(s) in bro hold work this sync would delete:\n`);
+    const width = Math.max(...blocking.map(d => d.broPath.length));
+    for (const d of blocking) {
+      const bits = [];
+      if (d.loss.code.length) bits.push(`${d.loss.code.length} code`);
+      if (d.loss.comment.length) bits.push(`${d.loss.comment.length} comment`);
+      console.log(`  ${d.broPath.padEnd(width)}  ${bits.join(', ')} line(s)`);
     }
-    console.log('\nEach one would be overwritten. Read them with');
-    console.log('    node tools/drift.mjs --diff <name>');
-    console.log('and either fold the difference into idl/, or re-run with --accept-drift');
-    console.log('to overwrite deliberately.\n');
+    console.log('\nRead them with');
+    console.log('    node tools/drift.mjs --lost <name>');
+    console.log('then fold them back with `node tools/refold.mjs <name>`, or');
+    console.log('re-run with --accept-drift to overwrite them deliberately.\n');
     process.exit(1);
   }
-  console.log('\n[Step 1b] No drift: bro matches what this sync will write.');
+  console.log('\n[Step 1b] No lossy drift: this sync deletes nothing bro has.');
 }
 
 // 2. Direct copy of emitted QuickJS bindings to bro/src/js
@@ -82,16 +95,35 @@ console.log('\n[Step 2] Copying emitted QuickJS bindings to bro/src/js/...');
 const outQjsDir = path.join(BROSURFACE_ROOT, 'out', 'qjs');
 if (fs.existsSync(outQjsDir)) {
   const qjsFiles = fs.readdirSync(outQjsDir).filter(f => f.endsWith('.cpp'));
+  const newToBro = [];
   for (const f of qjsFiles) {
     const srcPath = path.join(outQjsDir, f);
-    if (f === 'blob.cpp' || f === 'noise.cpp' || f === 'intl.cpp' || f === 'vendor_globals.cpp' || f === 'image_gpu.cpp') {
-      // These live in brokit standalone or polyfills - skip copying to preserve bro integrity
+    // tools/ownership.mjs is the single list of who owns bro's copy. A file
+    // this generator cannot reproduce is not ours to overwrite, and the skip
+    // says which it is rather than leaving a silent gap in the log.
+    const { owner, why } = ownerOf('qjs', f);
+    if (owner !== 'generator') {
+      console.log(`  ⏭  [${owner}] ${f} - ${why}`);
       continue;
-    } else {
-      const dst = path.join(BRO_ROOT, 'src', 'js', f);
-      if (!isDryRun) fs.copyFileSync(srcPath, dst);
-      console.log(`  ✅ [bro] ${f} -> ${dst}`);
     }
+    const dst = path.join(BRO_ROOT, 'src', 'js', f);
+    // Update what bro has; do not invent what it does not. Twenty-eight of the
+    // emitted TUs have never existed in bro -- per-class files the IDL splits
+    // out that bro keeps folded into a larger binding. Dropping them into
+    // src/js/ leaves untracked source that no CMakeLists compiles and that the
+    // next `git add` sweeps up by accident. Adding a translation unit to bro is
+    // a decision with a build-system half; a copy loop does not get to make it.
+    if (!fs.existsSync(dst)) {
+      newToBro.push(f);
+      continue;
+    }
+    if (!isDryRun) fs.copyFileSync(srcPath, dst);
+    console.log(`  ✅ [bro] ${f} -> ${dst}`);
+  }
+  if (newToBro.length) {
+    console.log(`\n  ${newToBro.length} emitted TU(s) bro does not have, left alone:`);
+    console.log(`    ${newToBro.join(', ')}`);
+    console.log('    Add one to bro by hand, with its CMakeLists entry, if it is wanted.');
   }
 }
 

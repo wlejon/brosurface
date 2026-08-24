@@ -379,61 +379,61 @@ void SettingsBindings::cleanup(JSContext* ctx) {
 // ---------------------------------------------------------------------------
 
 void SettingsBindings::install(JSContext* ctx, engine::Settings* settings, platform::Window* window, engine::Engine* engine) {
-        auto* state = new SettingsState();
-        state->store = settings;
-        state->window = window;
-        state->engine = engine;
-    
-        JSValue global = JS_GetGlobalObject(ctx);
-        JS_SetPropertyStr(ctx, global, kSettingsKey,
-                          JS_NewInt64(ctx, static_cast<int64_t>(
-                              reinterpret_cast<intptr_t>(state))));
-    
-        JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
-        if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
-            broObj = JS_NewObject(ctx);
-            JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
-        }
-    
-        JSValue settingsObj = JS_NewObject(ctx);
-        JS_SetPropertyStr(ctx, settingsObj, "get",
-            JS_NewCFunction(ctx, js_settings_get, "get", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "getAll",
-            JS_NewCFunction(ctx, js_settings_get_all, "getAll", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "set",
-            JS_NewCFunction(ctx, js_settings_set, "set", 2));
-        JS_SetPropertyStr(ctx, settingsObj, "setDefault",
-            JS_NewCFunction(ctx, js_settings_set_default, "setDefault", 2));
-        JS_SetPropertyStr(ctx, settingsObj, "reset",
-            JS_NewCFunction(ctx, js_settings_reset, "reset", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "defineAction",
-            JS_NewCFunction(ctx, js_settings_define_action, "defineAction", 3));
-        JS_SetPropertyStr(ctx, settingsObj, "rebindAction",
-            JS_NewCFunction(ctx, js_settings_rebind_action, "rebindAction", 2));
-        JS_SetPropertyStr(ctx, settingsObj, "resetAction",
-            JS_NewCFunction(ctx, js_settings_reset_action, "resetAction", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "resetAllActions",
-            JS_NewCFunction(ctx, js_settings_reset_all_actions, "resetAllActions", 0));
-        JS_SetPropertyStr(ctx, settingsObj, "getActionKeys",
-            JS_NewCFunction(ctx, js_settings_get_action_keys, "getActionKeys", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "getKeyAction",
-            JS_NewCFunction(ctx, js_settings_get_key_action, "getKeyAction", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "getActionStrength",
-            JS_NewCFunction(ctx, js_settings_get_action_strength, "getActionStrength", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "isActionPressed",
-            JS_NewCFunction(ctx, js_settings_is_action_pressed, "isActionPressed", 1));
-        JS_SetPropertyStr(ctx, settingsObj, "getActions",
-            JS_NewCFunction(ctx, js_settings_get_actions, "getActions", 0));
-        JS_SetPropertyStr(ctx, settingsObj, "getAppActions",
-            JS_NewCFunction(ctx, js_settings_get_app_actions, "getAppActions", 0));
-        JS_SetPropertyStr(ctx, settingsObj, "getDisplayModes",
-            JS_NewCFunction(ctx, js_settings_get_display_modes, "getDisplayModes", 0));
-        JS_SetPropertyStr(ctx, settingsObj, "getDefaults",
-            JS_NewCFunction(ctx, js_settings_get_defaults, "getDefaults", 1));
-    
-        JS_SetPropertyStr(ctx, broObj, "settings", settingsObj);
-        JS_FreeValue(ctx, broObj);
-        JS_FreeValue(ctx, global);
+    auto* state = new SettingsState();
+    state->store = settings;
+    state->window = window;
+    state->engine = engine;
+
+    JSValue global = JS_GetGlobalObject(ctx);
+    JS_SetPropertyStr(ctx, global, kSettingsKey,
+                      JS_NewInt64(ctx, static_cast<int64_t>(
+                          reinterpret_cast<intptr_t>(state))));
+
+    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
+    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
+        broObj = JS_NewObject(ctx);
+        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
+    }
+
+    JSValue settingsObj = JS_NewObject(ctx);
+    JS_SetPropertyStr(ctx, settingsObj, "get",
+        JS_NewCFunction(ctx, js_settings_get, "get", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "getAll",
+        JS_NewCFunction(ctx, js_settings_get_all, "getAll", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "set",
+        JS_NewCFunction(ctx, js_settings_set, "set", 2));
+    JS_SetPropertyStr(ctx, settingsObj, "setDefault",
+        JS_NewCFunction(ctx, js_settings_set_default, "setDefault", 2));
+    JS_SetPropertyStr(ctx, settingsObj, "reset",
+        JS_NewCFunction(ctx, js_settings_reset, "reset", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "defineAction",
+        JS_NewCFunction(ctx, js_settings_define_action, "defineAction", 3));
+    JS_SetPropertyStr(ctx, settingsObj, "rebindAction",
+        JS_NewCFunction(ctx, js_settings_rebind_action, "rebindAction", 2));
+    JS_SetPropertyStr(ctx, settingsObj, "resetAction",
+        JS_NewCFunction(ctx, js_settings_reset_action, "resetAction", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "resetAllActions",
+        JS_NewCFunction(ctx, js_settings_reset_all_actions, "resetAllActions", 0));
+    JS_SetPropertyStr(ctx, settingsObj, "getActionKeys",
+        JS_NewCFunction(ctx, js_settings_get_action_keys, "getActionKeys", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "getKeyAction",
+        JS_NewCFunction(ctx, js_settings_get_key_action, "getKeyAction", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "getActionStrength",
+        JS_NewCFunction(ctx, js_settings_get_action_strength, "getActionStrength", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "isActionPressed",
+        JS_NewCFunction(ctx, js_settings_is_action_pressed, "isActionPressed", 1));
+    JS_SetPropertyStr(ctx, settingsObj, "getActions",
+        JS_NewCFunction(ctx, js_settings_get_actions, "getActions", 0));
+    JS_SetPropertyStr(ctx, settingsObj, "getAppActions",
+        JS_NewCFunction(ctx, js_settings_get_app_actions, "getAppActions", 0));
+    JS_SetPropertyStr(ctx, settingsObj, "getDisplayModes",
+        JS_NewCFunction(ctx, js_settings_get_display_modes, "getDisplayModes", 0));
+    JS_SetPropertyStr(ctx, settingsObj, "getDefaults",
+        JS_NewCFunction(ctx, js_settings_get_defaults, "getDefaults", 1));
+
+    JS_SetPropertyStr(ctx, broObj, "settings", settingsObj);
+    JS_FreeValue(ctx, broObj);
+    JS_FreeValue(ctx, global);
 }
 
 

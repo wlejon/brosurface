@@ -297,11 +297,11 @@ void ImageBitmapBindings::install(JSContext* ctx)
             .get("width",  [](IB* d) -> int { return d->width; })
             .get("height", [](IB* d) -> int { return d->height; })
             .method_raw("close", js_imagebitmap_close, 0);
-    
+
         JSValue global = JS_GetGlobalObject(ctx);
         JS_SetPropertyStr(ctx, global, "createImageBitmap",
             JS_NewCFunction(ctx, js_createImageBitmap, "createImageBitmap", 1));
-    
+
         {
             JSValue proto = JS_GetClassProto(ctx, qjsbind::class_id<IB>());
             JSValue ibCtor = JS_NewCFunction2(ctx,

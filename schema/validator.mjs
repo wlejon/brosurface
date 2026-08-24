@@ -101,7 +101,8 @@ export const GENERIC_TYPES = new Set([
 // adding it here, in that order.
 export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
   // Namespace / interface placement and identity
-  'cpp_file', 'cpp_header', 'cpp_namespace', 'cpp_install', 'cpp_includes',
+  'cpp_file', 'cpp_file_comment', 'cpp_header', 'cpp_namespace',
+  'cpp_install', 'cpp_includes',
   'cpp_prologue', 'cpp_epilogue', 'cpp_install_body', 'cpp_install_prologue',
   'install_body', 'install_fn', 'install_prologue', 'install_signature',
   'header', 'prefix', 'js_alias', 'js_global', 'global', 'global_var',
@@ -117,7 +118,7 @@ export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
   'unwrap_call', 'getter_unwrap', 'getter_body', 'getter_cpp', 'setter_cpp',
   'cpp_body', 'cpp_call', 'stub_body', 'engine_bound', 'engine_stashed',
   'engine_wrapper', 'element_base', 'element_registry', 'layered_store',
-  'vfs_paths', 'audio_stream_tap',
+  'audio_stream_tap',
 
   // bronze_host emitter
   'bh_file', 'bh_header', 'bh_namespace', 'bh_includes', 'bh_install',

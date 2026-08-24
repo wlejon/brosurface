@@ -382,7 +382,7 @@ void installMatchMediaBindings(JSContext* ctx)
             })
             .function_list(js_mql_proto_funcs,
                            sizeof(js_mql_proto_funcs) / sizeof(js_mql_proto_funcs[0]));
-    
+
         JSValue global = JS_GetGlobalObject(ctx);
         JS_SetPropertyStr(ctx, global, "matchMedia",
                           JS_NewCFunction(ctx, js_matchMedia, "matchMedia", 1));

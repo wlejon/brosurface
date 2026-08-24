@@ -79,22 +79,66 @@ make an unrecognised instruction an error rather than a shrug.**
 
 ## Drift: what a sync would change in bro
 
-`tools/sync_to_bro.mjs` copies emitted TUs directly over `bro/src/js` and
-`bro/src/bronze_host`. A repair made in bro and not folded back into the IDL is
-reverted by the next sync.
+`tools/sync_to_bro.mjs` copies emitted TUs directly over `bro/src/js`. A repair
+made in bro and not folded back into the IDL is reverted by the next sync.
 
 ```bash
-node tools/drift.mjs                 # every file a sync would rewrite
+node tools/drift.mjs                 # what a sync would rewrite, grouped
 node tools/drift.mjs --diff audio    # ...and what it would change
-node tools/drift.mjs --quiet         # exit 1 if bro has drifted
+node tools/drift.mjs --lost math     # ...just the lines it would delete
+node tools/drift.mjs --quiet         # exit 1 if a sync would lose something
 ```
 
 `check_out_fresh.mjs` asks whether `out/` matches a fresh generation.
-`drift.mjs` asks the question that actually bites: whether **bro** does. The
-sync refuses to run while any file has drifted, listing each one; fold the
-difference into `idl/` first, or pass `--accept-drift` to overwrite
-deliberately. Drift is often legitimate — bro is simply behind — but it must be
-a decision, never a surprise.
+`drift.mjs` asks the question that actually bites: whether **bro** does.
+
+"Different" is too blunt a verdict to act on, so drift is sorted by what taking
+it would cost. Both sides are reduced to a multiset of significant lines, with
+whitespace and brace style normalised away, and the report asks what bro has
+that a regeneration would not write back:
+
+* **reordered / reformatted** — nothing missing. The emitter puts `cleanup()`
+  after `install()` where the hand-written file had it first, or indents a
+  pasted block differently. Same program; take it.
+* **lossy** — something missing: a namespace alias, a static helper, the
+  twenty-line header explaining what the binding is for. `--lost <name>` prints
+  the exact lines. This is the case that blocks a sync.
+
+The sync also stops short of *creating* files. Twenty-seven emitted TUs have
+never existed in bro, which splits per-class files differently; dropping them
+into `src/js/` leaves untracked source no `CMakeLists` compiles. Adding a
+translation unit to bro has a build-system half, and a copy loop does not get
+to make that decision.
+
+## Refolding: repairing a blob that has rotted
+
+Large hand-written C++ rides in these IDLs as escaped strings — `cpp_prologue`,
+`install_body`, `cpp_includes`, `cpp_file_comment`. A verbatim copy rots the
+moment someone edits the original, and five files had rotted far enough that
+regenerating them deleted whole helper functions: `math_bindings.cpp` came back
+388 lines short, `window_bindings.cpp` without its per-realm state or clipboard
+bindings, `asset_path.cpp` as a different implementation entirely.
+
+The fix is not to stop generating them. It is to make repair a command:
+
+```bash
+node tools/refold.mjs --check math_bindings.cpp   # show the split
+node tools/refold.mjs math_bindings.cpp           # write it back into idl/
+node tools/drift.mjs                              # confirm
+```
+
+`refold.mjs` reads bro's TU, splits it at the seams the emitter composes it
+from, and writes each piece back into the attribute it came from. It leaves the
+declarative half of the IDL — the operations and attributes that drive the docs
+and the `.d.ts` — untouched.
+
+It is a structural split, not a semantic one. If a file still differs after a
+refold, the emitter shapes it differently, and *that* is what to fix. Every
+QuickJS TU currently regenerates to what bro has.
+
+`tools/ownership.mjs` names the only files a sync will not write: five vendored
+from brokit. There is deliberately no "bro owns this one" escape hatch — an
+exemption is how a generator quietly stops generating.
 
 ## Layout
 
@@ -103,7 +147,8 @@ idl/          the surface declarations (*.idl), one per namespace/class family
 schema/       the IDL grammar + validator
 gen/          the generator and its per-target emitters
 out/          generated artifacts (checked in for review/diffing; bro integrates via reviewed diffs)
-tools/        validate, sync, and drift.mjs (what a sync would change in bro)
+tools/        validate, sync, ownership.mjs (who owns bro's copy of each TU),
+              and drift.mjs (what a sync would change in bro)
 harness/      equivalence harness: builds generated bindings in a bro worktree, runs that namespace's existing tests
 docs/         DESIGN.md (serial-core decisions), SURFACE-INVENTORY.md (the census), migration playbook
 ```

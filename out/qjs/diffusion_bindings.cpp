@@ -1,4 +1,20 @@
 #if BRO_WITH_DIFFUSION
+// JS bindings for brodiffusion — diffusion-model text-to-image inference.
+//
+// Installed onto bro.diffusion.* by installDiffusionBindings(). The native
+// Pipeline (which owns the multi-GB model weights) lives behind an opaque
+// qjsbind handle — JS never holds or moves weight bytes, only the handle.
+// The same binding is installed in the main context and in each
+// worker context; a worker owns its own Pipeline and only plain cloneable
+// data (prompt/opts in, {width,height,data} image out) crosses postMessage.
+//
+// brodiffusion's CPU backend is always built, so this binding is always real
+// — it is NOT gated on BROTENSOR_HAS_GPU and does not touch the GPU-only
+// tensor_bindings_internal.h. Intermediate tensors (latents, attention maps)
+// are small and download to JS Float32Arrays on demand.
+//
+// This TU holds the Pipeline class (one-shot generation). The step-wise
+// PipelineState class is added alongside it.
 
 #include "js/diffusion_bindings.h"
 #include "util/interrupt.h"
@@ -31,6 +47,14 @@ extern "C" {
 
 namespace bro::js {
 
+
+// Short names for the four libraries this TU reaches into. Everything
+// below is inside bro::js, so the aliases live here rather than at file
+// scope.
+namespace bdp   = brodiffusion::pipeline;
+namespace bds   = brotensor::safetensors;
+namespace bdc   = brolm::clip;
+namespace bdsch = brodiffusion::scheduler;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Wrapper structs (opaque handles)
@@ -1686,32 +1710,32 @@ static JSValue js_expandNoise(JSContext* ctx, JSValueConst,
 // ---------------------------------------------------------------------------
 
 void installDiffusionBindings(JSContext* ctx) {
-        registerPipelineClass(ctx);
-        registerPipelineStateClass(ctx);
-    
-        JSValue global = JS_GetGlobalObject(ctx);
-        JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
-        if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
-            JS_FreeValue(ctx, broObj);
-            broObj = JS_NewObject(ctx);
-            JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
-        }
-    
-        JSValue diff = JS_NewObject(ctx);
-        JS_SetPropertyStr(ctx, diff, "version",
-                          JS_NewString(ctx, brodiffusion::version_string()));
-        JS_SetPropertyStr(ctx, diff, "init",
-                          JS_NewCFunction(ctx, js_init, "init", 0));
-        JS_SetPropertyStr(ctx, diff, "createPipeline",
-                          JS_NewCFunction(ctx, js_createPipeline, "createPipeline", 1));
-        JS_SetPropertyStr(ctx, diff, "loadModel",
-                          JS_NewCFunction(ctx, js_loadModel, "loadModel", 2));
-        JS_SetPropertyStr(ctx, diff, "expandNoise",
-                          JS_NewCFunction(ctx, js_expandNoise, "expandNoise", 2));
-        JS_SetPropertyStr(ctx, broObj, "diffusion", diff);
-    
+    registerPipelineClass(ctx);
+    registerPipelineStateClass(ctx);
+
+    JSValue global = JS_GetGlobalObject(ctx);
+    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
+    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {
         JS_FreeValue(ctx, broObj);
-        JS_FreeValue(ctx, global);
+        broObj = JS_NewObject(ctx);
+        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
+    }
+
+    JSValue diff = JS_NewObject(ctx);
+    JS_SetPropertyStr(ctx, diff, "version",
+                      JS_NewString(ctx, brodiffusion::version_string()));
+    JS_SetPropertyStr(ctx, diff, "init",
+                      JS_NewCFunction(ctx, js_init, "init", 0));
+    JS_SetPropertyStr(ctx, diff, "createPipeline",
+                      JS_NewCFunction(ctx, js_createPipeline, "createPipeline", 1));
+    JS_SetPropertyStr(ctx, diff, "loadModel",
+                      JS_NewCFunction(ctx, js_loadModel, "loadModel", 2));
+    JS_SetPropertyStr(ctx, diff, "expandNoise",
+                      JS_NewCFunction(ctx, js_expandNoise, "expandNoise", 2));
+    JS_SetPropertyStr(ctx, broObj, "diffusion", diff);
+
+    JS_FreeValue(ctx, broObj);
+    JS_FreeValue(ctx, global);
 }
 
 

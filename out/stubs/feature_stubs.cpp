@@ -36,7 +36,6 @@
 #include "js/tileworld_bindings.h"
 #include "js/tts_bindings.h"
 #include "js/wake_bindings.h"
-#include "js/worldgen_bindings.h"
 
 namespace bro::js {
 
@@ -204,13 +203,6 @@ void installTtsBindings(JSContext* ctx) {
 #if !BRO_WITH_SOUNDML
 void installWakeBindings(JSContext* ctx) {
     installUnavailableNamespace(ctx, "wake", "BRO_WITH_SOUNDML");
-}
-#endif
-
-// ── WORLDGEN ───────────────────────────────────────────────────────────────────────
-#if !BRO_WITH_DIFFUSION
-void installWorldgenBindings(JSContext* ctx) {
-    installUnavailableNamespace(ctx, "worldgen", "BRO_WITH_DIFFUSION");
 }
 #endif
 

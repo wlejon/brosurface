@@ -363,7 +363,7 @@ void SceneBindings::install(JSContext* ctx)
                 auto s = h ? h->src.lock() : nullptr;
                 return s && s->graph;
             });
-    
+
         // --- Tween class ---
         qjsbind::Class<TweenWrapper>(ctx, "Tween")
             .get("isRunning", [](TweenWrapper* w, JSContext* ctx) -> JSValue {
@@ -395,7 +395,7 @@ void SceneBindings::install(JSContext* ctx)
             .method_raw("pause", js_tween_pause, 0)
             .method_raw("resume", js_tween_resume, 0)
             .method_raw("destroy", js_tween_destroy, 0);
-    
+
         // --- AnimationPlayer class (data-driven clips; scene.createAnimationPlayer) ---
         qjsbind::Class<ClipPlayerWrapper>(ctx, "AnimationPlayer")
             .get("playing", [](ClipPlayerWrapper* w, JSContext* ctx) -> JSValue {
@@ -445,7 +445,7 @@ void SceneBindings::install(JSContext* ctx)
             .method_raw("stop", js_clip_stop, 0)
             .method_raw("seek", js_clip_seek, 1)
             .method_raw("destroy", js_clip_destroy, 0);
-    
+
         // --- SceneNode class ---
         // Custom finalizer so a collected wrapper drops the node's cache entry;
         // see wrapNode in scene_bindings_internal.h. It deletes the wrapper too,
@@ -820,7 +820,7 @@ void SceneBindings::install(JSContext* ctx)
                 }
                 return JS_UNDEFINED;
             })
-    
+
             // Transform
             .prop("position",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -956,7 +956,7 @@ void SceneBindings::install(JSContext* ctx)
             .prop("scaleZ",
                 [](NodeWrapper* w) -> double { return w->node() ? w->node()->scale().z : 1; },
                 [](NodeWrapper* w, double val) { if (w->node()) w->node()->setScale(w->node()->scale().x, w->node()->scale().y, (float)val); })
-    
+
             // Mesh material (PBR) — no-op on non-mesh nodes.
             .prop("metallic",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -1022,7 +1022,7 @@ void SceneBindings::install(JSContext* ctx)
                         M->setEmissiveColor((float)c3[0], (float)c3[1], (float)c3[2]);
                     }
                 })
-    
+
             // LightNode properties — no-op on non-light nodes.
             .get("kind", [](NodeWrapper* w, JSContext* ctx) -> JSValue {
                 if (!w || !w->node() || w->node()->type() != scene::SceneNode::Type::Light)
@@ -1091,7 +1091,7 @@ void SceneBindings::install(JSContext* ctx)
                     const bool isLight = nodeType == scene::SceneNode::Type::Light;
                     const bool isMesh  = nodeType == scene::SceneNode::Type::Mesh;
                     if (!isLight && !isMesh) return;
-    
+
                     // Decode to linear RGBA once, then hand it to whichever node
                     // type we have. Lights ignore alpha; meshes keep their existing
                     // alpha unless the value supplies a fourth component.
@@ -1114,7 +1114,7 @@ void SceneBindings::install(JSContext* ctx)
                     } else {
                         return;
                     }
-    
+
                     if (isLight) {
                         static_cast<scene::LightNode*>(w->node())->setColor(cr, cg, cb);
                     } else {
@@ -1232,7 +1232,7 @@ void SceneBindings::install(JSContext* ctx)
                     if (w && w->node() && w->node()->type() == scene::SceneNode::Type::Light)
                         static_cast<scene::LightNode*>(w->node())->setCascadeSplitLambda((float)val);
                 })
-    
+
             // Shape properties (silently return undefined / no-op for non-shape nodes)
             .prop("width",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -1325,7 +1325,7 @@ void SceneBindings::install(JSContext* ctx)
                         s->setHasStroke(true);
                     }
                 })
-    
+
             // Physics properties
             .prop("autoSync",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -1356,7 +1356,7 @@ void SceneBindings::install(JSContext* ctx)
                 }
                 return JS_UNDEFINED;
             })
-    
+
             // World anchor + billboard (Shape/Sprite/Html only — no-ops elsewhere)
             .prop("worldAnchor",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -1405,7 +1405,7 @@ void SceneBindings::install(JSContext* ctx)
                         w->node()->setBillboardMode(scene::SceneNode::BillboardMode::Full);
                     }
                 })
-    
+
             // HtmlNode: `root` is the detached DOM Element that JS can mutate
             // imperatively. Mutations automatically mark the DOM dirty; the raster
             // thread re-rasterizes on the next frame.
@@ -1417,7 +1417,7 @@ void SceneBindings::install(JSContext* ctx)
                 if (!root) return JS_NULL;
                 return DomBindings::wrapElement(ctx, root);
             })
-    
+
             .get("parent", [](NodeWrapper* w, JSContext* ctx) -> JSValue {
                 if (!w || !w->node()) return JS_NULL;
                 auto* p = w->node()->parent();
@@ -1433,7 +1433,7 @@ void SceneBindings::install(JSContext* ctx)
                     if (w && w->node() && w->node()->type() == scene::SceneNode::Type::Mesh)
                         static_cast<scene::MeshNode*>(w->node())->setNearClipDist((float)val);
                 })
-    
+
             // Complex read-only properties
             .get("children", [](NodeWrapper* w, JSContext* ctx) -> JSValue {
                 if (!w || !w->node()) return JS_NewArray(ctx);
@@ -1445,7 +1445,7 @@ void SceneBindings::install(JSContext* ctx)
                 }
                 return arr;
             })
-    
+
             // SpriteNode: frame index + isPlaying + currentAnimation
             .prop("frameIndex",
                 [](NodeWrapper* w, JSContext* ctx) -> JSValue {
@@ -1632,7 +1632,7 @@ void SceneBindings::install(JSContext* ctx)
                     if (!w || !w->node() || w->node()->type() != scene::SceneNode::Type::Sprite) return;
                     installSpriteEndCallback(static_cast<scene::SpriteNode*>(w->node()), ctx, val);
                 })
-    
+
             // Methods (raw — complex arg handling)
             .method_raw("add", js_node_add, 1)
             .method_raw("remove", js_node_remove, 1)
@@ -1692,7 +1692,7 @@ void SceneBindings::install(JSContext* ctx)
             .method_raw("burst", js_particles_burst, 1)
             .method_raw("clear", js_particles_clear, 0)
             .method_raw("configure", js_particles_configure, 1);
-    
+
         // --- SceneGraph class ---
         qjsbind::Class<GraphWrapper>(ctx, "SceneGraph")
             // Properties
@@ -1723,7 +1723,7 @@ void SceneBindings::install(JSContext* ctx)
             .prop("msaa",
                 [](GraphWrapper* w) -> double { return w && w->graph() ? w->graph()->msaa() : 0; },
                 [](GraphWrapper* w, double val) { if (w && w->graph()) w->graph()->setMSAA((int)val); })
-    
+
             // Methods (all raw — complex arg handling)
             .method_raw("createNode", js_sg_createNode, 1)
             .method_raw("createShape", js_sg_createShape, 1)
@@ -1815,7 +1815,7 @@ void SceneBindings::install(JSContext* ctx)
             })
             .method_raw("attachAIWorld", graphAttachAIWorld, 2)
             .method_raw("detachAIWorld", graphDetachAIWorld, 0);
-    
+
         // --- bro.impostor — native C++ camera-facing octahedral impostor billboards ---
         JSValue global = JS_GetGlobalObject(ctx);
         JSValue broVal = JS_GetPropertyStr(ctx, global, "bro");
@@ -1825,7 +1825,7 @@ void SceneBindings::install(JSContext* ctx)
                 if (argc < 3) return JS_UNDEFINED;
                 auto* gw = qjsbind::unwrap<GraphWrapper>(ctx, argv[0]);
                 if (!gw || !gw->graph()) return JS_UNDEFINED;
-    
+
                 scene::ImpostorAtlasInfo atlas;
                 JSValue atlasVal = argv[1];
                 JSValue wVal = JS_GetPropertyStr(ctx, atlasVal, "width");
@@ -1838,7 +1838,7 @@ void SceneBindings::install(JSContext* ctx)
                 if (!JS_IsUndefined(rVal)) JS_ToInt32(ctx, &atlas.rows, rVal);
                 JS_FreeValue(ctx, wVal); JS_FreeValue(ctx, hVal);
                 JS_FreeValue(ctx, cVal); JS_FreeValue(ctx, rVal);
-    
+
                 JSValue bndVal = JS_GetPropertyStr(ctx, atlasVal, "bounds");
                 if (!JS_IsUndefined(bndVal) && !JS_IsNull(bndVal)) {
                     JSValue radVal = JS_GetPropertyStr(ctx, bndVal, "radius");
@@ -1858,7 +1858,7 @@ void SceneBindings::install(JSContext* ctx)
                     JS_FreeValue(ctx, ctrVal);
                 }
                 JS_FreeValue(ctx, bndVal);
-    
+
                 auto extractBuffer = [ctx](JSValue val, size_t& outLen) -> uint8_t* {
                     size_t off = 0, len = 0;
                     JSValue ab = JS_GetTypedArrayBuffer(ctx, val, &off, &len, nullptr);
@@ -1870,7 +1870,7 @@ void SceneBindings::install(JSContext* ctx)
                     outLen = len;
                     return base + off;
                 };
-    
+
                 JSValue rgbaVal = JS_GetPropertyStr(ctx, atlasVal, "atlasRGBA");
                 size_t texLen = 0;
                 uint8_t* texRaw = extractBuffer(rgbaVal, texLen);
@@ -1878,13 +1878,13 @@ void SceneBindings::install(JSContext* ctx)
                     atlas.textureData.assign(texRaw, texRaw + texLen);
                 }
                 JS_FreeValue(ctx, rgbaVal);
-    
+
                 size_t transformLen = 0;
                 uint8_t* transformRaw = extractBuffer(argv[2], transformLen);
                 if (!transformRaw || transformLen < sizeof(float) * 9) return JS_UNDEFINED;
                 const float* transformData = reinterpret_cast<const float*>(transformRaw);
                 size_t transformFloatCount = transformLen / sizeof(float);
-    
+
                 scene::ImpostorOptions opts;
                 if (argc >= 4 && JS_IsObject(argv[3])) {
                     JSValue mVal = JS_GetPropertyStr(ctx, argv[3], "margin");
@@ -1897,16 +1897,16 @@ void SceneBindings::install(JSContext* ctx)
                     if (!JS_IsUndefined(cfVal)) { double v; JS_ToFloat64(ctx, &v, cfVal); opts.cullFar = static_cast<float>(v); }
                     JS_FreeValue(ctx, cfVal);
                 }
-    
+
                 auto res = scene::createImpostorLayer(gw->graph(), atlas, transformData, transformFloatCount, opts);
                 if (!res.node) return JS_UNDEFINED;
-    
+
                 JSValue resObj = JS_NewObject(ctx);
                 JS_SetPropertyStr(ctx, resObj, "node", wrapNode(ctx, res.node, gw->graph()));
                 JS_SetPropertyStr(ctx, resObj, "quadCount", JS_NewInt32(ctx, res.quadCount));
                 return resObj;
             };
-    
+
             JS_SetPropertyStr(ctx, impostorObj, "createLayer", JS_NewCFunction(ctx, js_impostor_createLayer, "createLayer", 3));
             JS_SetPropertyStr(ctx, broVal, "impostor", impostorObj);
         }

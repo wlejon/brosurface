@@ -348,7 +348,7 @@ void DialogBindings::install(JSContext* ctx, SDL_Window* window, TickCallback ti
     s_window = window;
         s_tickCb = std::move(tickCb);
         s_interactive = interactive;
-    
+
         qjsbind::Global(ctx)
             .function("showOpenFileDialog",   js_showOpenFileDialog,   0)
             .function("showOpenFolderDialog", js_showOpenFolderDialog, 0)

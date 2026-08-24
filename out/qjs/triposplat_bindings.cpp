@@ -1,4 +1,15 @@
 #if BRO_WITH_TRIPOSPLAT
+// JS bindings for TripoSplat — single-image -> 3D Gaussian Splat (bro.triposplat).
+// See triposplat_bindings.h for the composition rationale.
+//
+//   const ts = bro.triposplat.load({ dinov3, vae, flow, decoder, device });
+//   const cloud = ts.generate(image, { seed, steps, guidanceScale, shift, numGaussians });
+//   // cloud = { positions, scales, rotations, opacities, sh, shDegree, count } (typed arrays)
+//   scene.createGaussianSplat({ cloud, scale: 1 });
+//
+// image is an ImageBitmap or an ImageData-shaped { data, width, height } (RGBA).
+// Heavy (multi-second) — run inside a Worker for a responsive UI; the binding is
+// installed in the worker context too.
 
 #include "js/triposplat_bindings.h"
 #include "js/imagebitmap_bindings.h"
@@ -602,23 +613,23 @@ JSValue tsInit(JSContext* ctx, JSValueConst, int, JSValueConst*) {
 // ---------------------------------------------------------------------------
 
 void installTriposplatBindings(JSContext* ctx) {
-        tsRegisterClass(ctx);
-    
-        JSValue global = JS_GetGlobalObject(ctx);
-        JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
-        if (JS_IsUndefined(broObj)) {
-            broObj = JS_NewObject(ctx);
-            JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
-        }
-    
-        JSValue ns = JS_NewObject(ctx);
-        JS_SetPropertyStr(ctx, ns, "init", JS_NewCFunction(ctx, tsInit, "init", 0));
-        JS_SetPropertyStr(ctx, ns, "load", JS_NewCFunction(ctx, tsLoad, "load", 1));
-        JS_SetPropertyStr(ctx, ns, "cancel", JS_NewCFunction(ctx, tsCancel, "cancel", 0));
-        JS_SetPropertyStr(ctx, broObj, "triposplat", ns);
-    
-        JS_FreeValue(ctx, broObj);
-        JS_FreeValue(ctx, global);
+    tsRegisterClass(ctx);
+
+    JSValue global = JS_GetGlobalObject(ctx);
+    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");
+    if (JS_IsUndefined(broObj)) {
+        broObj = JS_NewObject(ctx);
+        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));
+    }
+
+    JSValue ns = JS_NewObject(ctx);
+    JS_SetPropertyStr(ctx, ns, "init", JS_NewCFunction(ctx, tsInit, "init", 0));
+    JS_SetPropertyStr(ctx, ns, "load", JS_NewCFunction(ctx, tsLoad, "load", 1));
+    JS_SetPropertyStr(ctx, ns, "cancel", JS_NewCFunction(ctx, tsCancel, "cancel", 0));
+    JS_SetPropertyStr(ctx, broObj, "triposplat", ns);
+
+    JS_FreeValue(ctx, broObj);
+    JS_FreeValue(ctx, global);
 }
 
 

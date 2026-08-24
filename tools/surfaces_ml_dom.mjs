@@ -452,29 +452,6 @@ export const ML_DOM_SURFACES = [
     tests: ['tests/triposplat/test_triposplat_binding.js']
   },
   {
-    id: 'bro.worldgen',
-    name: 'bro.worldgen',
-    category: 'Machine Learning / Learned Terrain',
-    pilot: false,
-    gate: 'BRO_WITH_DIFFUSION',
-    description: 'Learned neural elevation field terrain generation',
-    quickjs: [
-      { path: 'src/js/worldgen_bindings.cpp' },
-      { path: 'src/js/worldgen_bindings.h' },
-      { path: 'src/js/async_job.cpp' },
-      { path: 'src/js/async_job.h' }
-    ],
-    bronze_host: [],
-    stubs: [
-      { path: 'src/js/feature_stubs.cpp', start: 89, end: 93, gate: 'BRO_WITH_DIFFUSION' }
-    ],
-    docs: [{ path: 'docs/worldgen-api.js' }],
-    ts: [],
-    headless: [],
-    shapes: ['handle (WorldgenModel)', 'promise', 'typedarray (Float32Array elevation)', 'number (coords, seed)', 'dict/options'],
-    tests: ['tests/worldgen/test_worldgen_stage.js']
-  },
-  {
     id: 'bro.motion',
     name: 'bro.motion',
     category: 'Machine Learning / Motion Generation',

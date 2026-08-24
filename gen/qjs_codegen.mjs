@@ -62,6 +62,46 @@ export function toSnakeCase(str) {
 }
 
 /**
+ * Writes the translation unit's opening comment.
+ *
+ * These headers are the only place some bindings explain themselves: which
+ * model a namespace loads, why a class is shaped the way it is, which parts of
+ * a web spec were deliberately left out. A generator with no slot for them
+ * deletes them on every regeneration, and the loss reads as tidying. So give
+ * them a slot -- `cpp_file_comment` on the definition, emitted verbatim above
+ * the includes and inside the feature guard, which is where the hand-written
+ * files put it.
+ */
+function pushFileComment(lines, def) {
+  const comment = getAttr(def, 'cpp_file_comment');
+  if (!comment) return false;
+  for (const line of comment.split('\n')) lines.push(line);
+  return true;
+}
+
+/**
+ * Pastes a hand-written C++ block into the emitted TU at `indent`.
+ *
+ * The naive form -- prefixing every line with four spaces -- is wrong twice
+ * over. A block authored already indented (because it was lifted out of the
+ * function it used to live in) comes back out at eight, and a blank line comes
+ * back out as four spaces of trailing whitespace. Both show up as whole-file
+ * diffs against the tree the block was taken from, which buries the real
+ * changes next to them.
+ *
+ * So strip the block's own common indentation first, re-indent to the target,
+ * and leave blank lines blank.
+ */
+function pushBlock(lines, source, indent = '    ') {
+  const body = source.split('\n');
+  const depths = body.filter(l => l.trim()).map(l => l.match(/^[ \t]*/)[0].length);
+  const common = depths.length ? Math.min(...depths) : 0;
+  for (const line of body) {
+    lines.push(line.trim() ? indent + line.slice(common) : '');
+  }
+}
+
+/**
  * Emits a complete C++ translation unit for a Namespace AST node.
  * @param {Object} nsDef - Namespace AST node
  * @returns {string}
@@ -72,9 +112,6 @@ export function emitNamespaceTU(nsDef) {
   }
   if (hasAttr(nsDef, 'audio_stream_tap')) {
     return emitAudioStreamTapTU(nsDef);
-  }
-  if (hasAttr(nsDef, 'vfs_paths')) {
-    return emitVfsPathsTU(nsDef);
   }
 
   const lines = [];
@@ -89,10 +126,9 @@ export function emitNamespaceTU(nsDef) {
   const cppPrologue = getAttr(nsDef, 'cpp_prologue') || '';
 
   // 1. Headers & Includes
-  if (cppGuard) {
-    lines.push(`#if ${cppGuard}`);
-    lines.push('');
-  }
+  if (cppGuard) lines.push(`#if ${cppGuard}`);
+  const hasFileComment = pushFileComment(lines, nsDef);
+  if (cppGuard || hasFileComment) lines.push('');
   lines.push(`#include "${cppHeader}"`);
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
@@ -172,9 +208,7 @@ export function emitNamespaceTU(nsDef) {
       }
       const getterBody = getAttr(a, 'getter_body') || getAttr(a, 'cpp_body');
       if (getterBody) {
-        for (const gb of getterBody.split('\n')) {
-          lines.push(`    ${gb}`);
-        }
+        pushBlock(lines, getterBody);
       } else if (getterCpp) {
         lines.push(emitReturnConversion(a.dataType, getterCpp, '    '));
       } else {
@@ -190,9 +224,7 @@ export function emitNamespaceTU(nsDef) {
           lines.push(`    auto* eng = getEngine(ctx);`);
         }
         if (setterCpp) {
-          for (const sl of setterCpp.split('\n')) {
-            lines.push(`    ${sl}`);
-          }
+          pushBlock(lines, setterCpp);
         } else {
           lines.push(`    if (argc < 1) return JS_UNDEFINED;`);
           lines.push(emitArgExtraction({ name: 'val', dataType: a.dataType, optional: false, defaultValue: null }, 0, '    '));
@@ -213,9 +245,7 @@ export function emitNamespaceTU(nsDef) {
 
       lines.push(`static JSValue ${fnName}(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {`);
       if (customBody) {
-        for (const cl of customBody.split('\n')) {
-          lines.push(`    ${cl}`);
-        }
+        pushBlock(lines, customBody);
       } else {
         if (op.parameters.length > 0) {
           for (let i = 0; i < op.parameters.length; i++) {
@@ -251,16 +281,12 @@ export function emitNamespaceTU(nsDef) {
 
   const installPrologue = getAttr(nsDef, 'install_prologue') || getAttr(nsDef, 'cpp_install_prologue');
   if (installPrologue) {
-    for (const pl of installPrologue.split('\n')) {
-      lines.push(`    ${pl}`);
-    }
+    pushBlock(lines, installPrologue);
     lines.push('');
   }
 
   if (installBody) {
-    for (const ib of installBody.split('\n')) {
-      lines.push(`    ${ib}`);
-    }
+    pushBlock(lines, installBody);
     lines.push(`}`);
     lines.push('');
   } else {
@@ -368,10 +394,9 @@ export function emitInterfaceTU(interfaceDefs) {
   const lines = [];
 
   // 1. Header includes
-  if (cppGuard) {
-    lines.push(`#if ${cppGuard}`);
-    lines.push('');
-  }
+  if (cppGuard) lines.push(`#if ${cppGuard}`);
+  const hasFileComment = pushFileComment(lines, primary);
+  if (cppGuard || hasFileComment) lines.push('');
   lines.push(`#include "${cppHeader}"`);
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
@@ -401,16 +426,12 @@ export function emitInterfaceTU(interfaceDefs) {
 
       if (dataStruct && dataMember) {
         lines.push(`struct ${dataStruct} {`);
-        for (const dm of dataMember.split('\n')) {
-          lines.push(`    ${dm}`);
-        }
+        pushBlock(lines, dataMember);
         lines.push(`};`);
         lines.push('');
       } else if (wrapperMember) {
         lines.push(`struct ${wrapperStruct} {`);
-        for (const wm of wrapperMember.split('\n')) {
-          lines.push(`    ${wm}`);
-        }
+        pushBlock(lines, wrapperMember);
         lines.push(`};`);
         lines.push('');
       }
@@ -524,9 +545,7 @@ export function emitInterfaceTU(interfaceDefs) {
       lines.push(`{`);
 
       if (customBody) {
-        for (const cl of customBody.split('\n')) {
-          lines.push(`    ${cl}`);
-        }
+        pushBlock(lines, customBody);
       } else if (customCall) {
         if (!op.isStatic) {
           const wrapperStruct = getAttr(iface, 'wrapper_struct') || `${ifaceName}Wrapper`;
@@ -545,9 +564,7 @@ export function emitInterfaceTU(interfaceDefs) {
           lines.push(emitArgExtraction(op.parameters[i], i, '    '));
         }
         lines.push('');
-        for (const cl of customCall.split('\n')) {
-          lines.push(`    ${cl}`);
-        }
+        pushBlock(lines, customCall);
       } else {
         // Fully generic operation trampoline (used by mutation tests & generic operations)
         if (!op.isStatic) {
@@ -622,9 +639,7 @@ export function emitInterfaceTU(interfaceDefs) {
       lines.push(`                                    int argc, JSValueConst* argv)`);
       lines.push(`{`);
       if (customBody) {
-        for (const cl of customBody.split('\n')) {
-          lines.push(`    ${cl}`);
-        }
+        pushBlock(lines, customBody);
       } else {
         lines.push(`    JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");`);
         lines.push(`    if (JS_IsException(proto)) return proto;`);
@@ -648,9 +663,7 @@ export function emitInterfaceTU(interfaceDefs) {
 
   const installBody = getAttr(primary, 'install_body') || getAttr(primary, 'cpp_install_body');
   if (installBody) {
-    for (const ib of installBody.split('\n')) {
-      lines.push(`    ${ib}`);
-    }
+    pushBlock(lines, installBody);
   } else {
     lines.push(`    JSRuntime* rt = JS_GetRuntime(ctx);`);
     lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
@@ -1986,10 +1999,9 @@ export function emitEngineWrapperTU(interfaceDefs) {
   const wrapperStruct = `${pascal}Wrapper`;
 
   const lines = [];
-  if (cppGuard) {
-    lines.push(`#if ${cppGuard}`);
-    lines.push('');
-  }
+  if (cppGuard) lines.push(`#if ${cppGuard}`);
+  const hasFileComment = pushFileComment(lines, primary);
+  if (cppGuard || hasFileComment) lines.push('');
   lines.push(`#include "${cppHeader}"`);
   if (cppIncludes) {
     for (const inc of cppIncludes.split('\n')) {
@@ -2332,73 +2344,6 @@ export function emitEngineWrapperTU(interfaceDefs) {
     lines.push('');
     lines.push(`#endif // ${cppGuard}`);
   }
-  lines.push('');
-  return lines.join('\n');
-}
-
-/**
- * Generic AST-driven emitter for VFS path resolution namespaces.
- * @param {Object} nsDef
- * @returns {string}
- */
-export function emitVfsPathsTU(nsDef) {
-  const ns = nsDef.name;
-  const snake = toSnakeCase(ns);
-  const cppHeader = getAttr(nsDef, 'cpp_header') || `js/${snake}.h`;
-  const cppNamespace = getAttr(nsDef, 'cpp_namespace') || 'bro::js';
-  const cppIncludes = getAttr(nsDef, 'cpp_includes') || '';
-  const cppInstall = getAttr(nsDef, 'cpp_install') || 'installAssetPathBindings';
-
-  const lines = [];
-  lines.push(`#include "${cppHeader}"`);
-  if (cppIncludes) {
-    for (const inc of cppIncludes.split('\n')) {
-      const trimmed = inc.trim();
-      if (!trimmed) continue;
-      lines.push(trimmed.startsWith('#') ? trimmed : `#include ${trimmed}`);
-    }
-  }
-  lines.push('');
-  lines.push(`namespace ${cppNamespace} {`);
-  lines.push('');
-  lines.push(`static JSValue js_get_app_dir(JSContext* ctx, JSValueConst, int, JSValueConst*) {`);
-  lines.push(`    const auto& appDir = bro::engine::Engine::instance().appDir();`);
-  lines.push(`    return JS_NewString(ctx, appDir.c_str());`);
-  lines.push(`}`);
-  lines.push('');
-  lines.push(`static JSValue js_resolve_path(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {`);
-  lines.push(`    if (argc < 1) return JS_UNDEFINED;`);
-  lines.push(`    const char* pathStr = JS_ToCString(ctx, argv[0]);`);
-  lines.push(`    if (!pathStr) return JS_EXCEPTION;`);
-  lines.push(`    std::string path(pathStr);`);
-  lines.push(`    JS_FreeCString(ctx, pathStr);`);
-  lines.push(`    std::string resolved = bro::vfs::resolvePath(path);`);
-  lines.push(`    return JS_NewString(ctx, resolved.c_str());`);
-  lines.push(`}`);
-  lines.push('');
-  lines.push(`void ${cppInstall}(JSContext* ctx) {`);
-  lines.push(`    JSValue global = JS_GetGlobalObject(ctx);`);
-  lines.push(`    JSValue broObj = JS_GetPropertyStr(ctx, global, "bro");`);
-  lines.push(`    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {`);
-  lines.push(`        broObj = JS_NewObject(ctx);`);
-  lines.push(`        JS_SetPropertyStr(ctx, global, "bro", JS_DupValue(ctx, broObj));`);
-  lines.push(`    }`);
-  lines.push('');
-  lines.push(`    JSAtom appDirAtom = JS_NewAtom(ctx, "appDir");`);
-  lines.push(`    JS_DefinePropertyGetSet(ctx, broObj, appDirAtom,`);
-  lines.push(`        JS_NewCFunction(ctx, js_get_app_dir, "appDir", 0),`);
-  lines.push(`        JS_UNDEFINED,`);
-  lines.push(`        JS_PROP_CONFIGURABLE | JS_PROP_ENUMERABLE);`);
-  lines.push(`    JS_FreeAtom(ctx, appDirAtom);`);
-  lines.push('');
-  lines.push(`    JS_SetPropertyStr(ctx, broObj, "resolvePath",`);
-  lines.push(`        JS_NewCFunction(ctx, js_resolve_path, "resolvePath", 1));`);
-  lines.push('');
-  lines.push(`    JS_FreeValue(ctx, broObj);`);
-  lines.push(`    JS_FreeValue(ctx, global);`);
-  lines.push(`}`);
-  lines.push('');
-  lines.push(`} // namespace ${cppNamespace}`);
   lines.push('');
   return lines.join('\n');
 }

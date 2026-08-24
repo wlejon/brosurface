@@ -111,11 +111,11 @@ static JSValue blob_slice(JSContext* ctx, JSValueConst this_val,
 {
     auto* data = getBlobData(ctx, this_val);
     if (!data) return JS_EXCEPTION;
-    
+
     int64_t size = static_cast<int64_t>(data->bytes.size());
     int64_t start = 0;
     int64_t end = size;
-    
+
     if (argc > 0 && !JS_IsUndefined(argv[0])) {
         JS_ToInt64(ctx, &start, argv[0]);
         if (start < 0) start = std::max<int64_t>(0, size + start);
@@ -126,7 +126,7 @@ static JSValue blob_slice(JSContext* ctx, JSValueConst this_val,
         if (end < 0) end = std::max<int64_t>(0, size + end);
         else end = std::min<int64_t>(size, end);
     }
-    
+
     std::string contentType;
     if (argc > 2 && !JS_IsUndefined(argv[2])) {
         const char* ctStr = JS_ToCString(ctx, argv[2]);
@@ -136,13 +136,13 @@ static JSValue blob_slice(JSContext* ctx, JSValueConst this_val,
             JS_FreeCString(ctx, ctStr);
         }
     }
-    
+
     auto* newData = new BlobData();
     newData->type = contentType;
     if (start < end) {
         newData->bytes.assign(data->bytes.begin() + start, data->bytes.begin() + end);
     }
-    
+
     JSValue proto = JS_GetClassProto(ctx, blob_class_id);
     JSValue obj = JS_NewObjectProtoClass(ctx, proto, blob_class_id);
     JS_FreeValue(ctx, proto);
@@ -159,11 +159,11 @@ static JSValue blob_text(JSContext* ctx, JSValueConst this_val,
 {
     auto* data = getBlobData(ctx, this_val);
     if (!data) return JS_EXCEPTION;
-    
+
     JSValue resolving_funcs[2];
     JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
     if (JS_IsException(promise)) return promise;
-    
+
     JSValue str = JS_NewStringLen(ctx, reinterpret_cast<const char*>(data->bytes.data()), data->bytes.size());
     JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &str);
     JS_FreeValue(ctx, str);
@@ -178,11 +178,11 @@ static JSValue blob_array_buffer(JSContext* ctx, JSValueConst this_val,
 {
     auto* data = getBlobData(ctx, this_val);
     if (!data) return JS_EXCEPTION;
-    
+
     JSValue resolving_funcs[2];
     JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
     if (JS_IsException(promise)) return promise;
-    
+
     JSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());
     JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &ab);
     JS_FreeValue(ctx, ab);
@@ -197,11 +197,11 @@ static JSValue blob_bytes(JSContext* ctx, JSValueConst this_val,
 {
     auto* data = getBlobData(ctx, this_val);
     if (!data) return JS_EXCEPTION;
-    
+
     JSValue resolving_funcs[2];
     JSValue promise = JS_NewPromiseCapability(ctx, resolving_funcs);
     if (JS_IsException(promise)) return promise;
-    
+
     JSValue ab = JS_NewArrayBufferCopy(ctx, data->bytes.data(), data->bytes.size());
     JSValue global = JS_GetGlobalObject(ctx);
     JSValue u8ctor = JS_GetPropertyStr(ctx, global, "Uint8Array");
@@ -209,7 +209,7 @@ static JSValue blob_bytes(JSContext* ctx, JSValueConst this_val,
     JS_FreeValue(ctx, u8ctor);
     JS_FreeValue(ctx, global);
     JS_FreeValue(ctx, ab);
-    
+
     JSValue ret = JS_Call(ctx, resolving_funcs[0], JS_UNDEFINED, 1, &u8arr);
     JS_FreeValue(ctx, u8arr);
     JS_FreeValue(ctx, ret);
@@ -236,7 +236,7 @@ static JSValue js_blob_constructor(JSContext* ctx, JSValueConst new_target,
                                     int argc, JSValueConst* argv)
 {
     auto* data = new BlobData();
-    
+
     if (argc > 0 && !JS_IsUndefined(argv[0])) {
         if (!JS_IsArray(argv[0])) {
             delete data;
@@ -256,7 +256,7 @@ static JSValue js_blob_constructor(JSContext* ctx, JSValueConst new_target,
             }
         }
     }
-    
+
     if (argc > 1 && !JS_IsUndefined(argv[1]) && JS_IsObject(argv[1])) {
         JSValue typeVal = JS_GetPropertyStr(ctx, argv[1], "type");
         if (JS_IsString(typeVal)) {
@@ -269,7 +269,7 @@ static JSValue js_blob_constructor(JSContext* ctx, JSValueConst new_target,
         }
         JS_FreeValue(ctx, typeVal);
     }
-    
+
     JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
     if (JS_IsException(proto)) {
         delete data;
@@ -318,14 +318,14 @@ static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
 {
     if (argc < 2) return JS_ThrowTypeError(ctx, "File constructor requires at least 2 arguments (bits, name)");
     if (!JS_IsArray(argv[0])) return JS_ThrowTypeError(ctx, "File bits must be a sequence/array");
-    
+
     const char* nameStr = JS_ToCString(ctx, argv[1]);
     if (!nameStr) return JS_EXCEPTION;
-    
+
     auto* data = new FileData();
     data->name = nameStr;
     JS_FreeCString(ctx, nameStr);
-    
+
     JSValue lenVal = JS_GetPropertyStr(ctx, argv[0], "length");
     uint32_t len = 0;
     JS_ToUint32(ctx, &len, lenVal);
@@ -339,7 +339,7 @@ static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
             return JS_EXCEPTION;
         }
     }
-    
+
     data->lastModified = 0;
     if (argc > 2 && !JS_IsUndefined(argv[2]) && JS_IsObject(argv[2])) {
         JSValue typeVal = JS_GetPropertyStr(ctx, argv[2], "type");
@@ -352,14 +352,14 @@ static JSValue js_file_constructor(JSContext* ctx, JSValueConst new_target,
             }
         }
         JS_FreeValue(ctx, typeVal);
-    
+
         JSValue lmVal = JS_GetPropertyStr(ctx, argv[2], "lastModified");
         if (JS_IsNumber(lmVal)) {
             JS_ToFloat64(ctx, &data->lastModified, lmVal);
         }
         JS_FreeValue(ctx, lmVal);
     }
-    
+
     JSValue proto = JS_GetPropertyStr(ctx, new_target, "prototype");
     if (JS_IsException(proto)) {
         delete data;

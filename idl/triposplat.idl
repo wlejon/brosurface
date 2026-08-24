@@ -9,6 +9,7 @@ interface TripoSplatPipeline {};
 
 [
   cpp_file="triposplat_bindings.cpp",
+  cpp_file_comment="// JS bindings for TripoSplat — single-image -> 3D Gaussian Splat (bro.triposplat).\n// See triposplat_bindings.h for the composition rationale.\n//\n//   const ts = bro.triposplat.load({ dinov3, vae, flow, decoder, device });\n//   const cloud = ts.generate(image, { seed, steps, guidanceScale, shift, numGaussians });\n//   // cloud = { positions, scales, rotations, opacities, sh, shDegree, count } (typed arrays)\n//   scene.createGaussianSplat({ cloud, scale: 1 });\n//\n// image is an ImageBitmap or an ImageData-shaped { data, width, height } (RGBA).\n// Heavy (multi-second) — run inside a Worker for a responsive UI; the binding is\n// installed in the worker context too.",
   cpp_header="js/triposplat_bindings.h",
   cpp_includes="\"js/imagebitmap_bindings.h\"\n\"util/interrupt.h\"\n<qjsbind/qjsbind.h>\n<brovisionml/dinov3.h>\n<brovisionml/birefnet.h>\n<brodiffusion/triposplat/vae_encoder.h>\n<brodiffusion/triposplat/flow_model.h>\n<brodiffusion/triposplat/octree_decoder.h>\n<brodiffusion/triposplat/sampler.h>\n<brotensor/runtime.h>\n<brotensor/safetensors.h>\n<brotensor/tensor.h>\n<broimage/encode.h>\n<include/core/SkData.h>\n<include/core/SkImage.h>\n<include/core/SkImageInfo.h>\n<algorithm>\n<atomic>\n<chrono>\n<cmath>\n<cstdint>\n<cstdio>\n<cstdlib>\n<memory>\n<random>\n<stdexcept>\n<string>\n<vector>",
   cpp_namespace="bro::js",

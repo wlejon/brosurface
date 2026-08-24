@@ -5839,53 +5839,6 @@ declare class Worker {
   terminate(): void;
 }
 
-declare class World {
-  /**
-   * World generation random seed.
-   */
-  readonly seed: number;
-  /**
-   * Model weights filesystem directory.
-   */
-  readonly directory: string;
-  /**
-   * Fine resolution cell size in metres.
-   */
-  readonly cellSize: number;
-  /**
-   * Intermediate latent stage cell size in metres.
-   */
-  readonly latentCellSize: number;
-  /**
-   * Coarse overview stage cell size in metres.
-   */
-  readonly coarseCellSize: number;
-  /**
-   * Asynchronously compute fine elevation in metres for cell region [i1, j1, i2, j2).
-   */
-  elevation(i1: number, j1: number, i2: number, j2: number, opts?: object): AsyncHandle;
-  /**
-   * Synchronously compute fine elevation grid in metres.
-   */
-  elevationSync(i1: number, j1: number, i2: number, j2: number, opts?: object): object;
-  /**
-   * Synchronously compute coarse terrain elevation channel at 7.68 km resolution.
-   */
-  coarse(i1: number, j1: number, i2: number, j2: number, opts?: object): object;
-  /**
-   * Asynchronously compute intermediate DAG stage buffer.
-   */
-  stage(name: string, i1: number, j1: number, i2: number, j2: number, opts?: object): AsyncHandle;
-  /**
-   * Synchronously compute intermediate DAG stage buffer.
-   */
-  stageSync(name: string, i1: number, j1: number, i2: number, j2: number): object;
-  /**
-   * Invalidate cached memoized tiles.
-   */
-  clearCache(): void;
-}
-
 // ── Global 'Physics' Namespace ──────────────────────────────────────────
 
 declare namespace Physics {
@@ -7373,39 +7326,6 @@ declare namespace bro {
      * @returns True if window was moved, false otherwise
      */
     function moveToDisplay(id: number): boolean;
-  }
-
-  /**
-   * =============================================================================
-   * bro.worldgen — learned neural terrain diffusion pipeline
-   * =============================================================================
-   *
-   * Deterministic, infinite neural world generation using brodiffusion WorldPipeline.
-   * Generates continuous elevation grids in metres from multi-scale UNets with coherent
-   * drainage networks, hydrological ridges, and coarse/latent stage intermediate diagnostics.
-   *
-   * @example
-   *   bro.worldgen.loadWorld("weights/terrain", {
-   *     seed: 42,
-   *     onReady: (world) => {
-   *       const tile = world.elevationSync(0, 0, 256, 256);
-   *       console.log(`Generated ${tile.width}x${tile.height} tile with cell size ${tile.cellSize}m`);
-   *     }
-   *   });
-   */
-  namespace worldgen {
-    /**
-     * Initialize brotensor acceleration runtime for neural terrain generation.
-     */
-    function init(): void;
-    /**
-     * Load a neural terrain world pipeline asynchronously from a model directory.
-     *
-     * @param dir Checkpoint model directory path.
-     * @param opts Seed and callback hooks (onReady, onError).
-     * @return Async job handle.
-     */
-    function loadWorld(dir: string, opts?: object): AsyncHandle;
   }
 
   /**
