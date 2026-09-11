@@ -1,0 +1,1061 @@
+{
+  "version": "1.0.0",
+  "subsystem": "rigging",
+  "namespaces": {},
+  "classes": {
+    "bro.rigging.SkinData": {
+      "name": "SkinData",
+      "methods": {
+        "clone": {
+          "symbol": "bro_SkinData_clone",
+          "returnType": "dynamic",
+          "returnClass": "SkinData",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "validate": {
+          "symbol": "bro_SkinData_validate",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "normalize": {
+          "symbol": "bro_SkinData_normalize",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "vertexCount": {
+          "getter": "bro_SkinData_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxWeights": {
+          "getter": "bro_SkinData_get_maxWeights",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SkinData_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_SkinData_destroy"
+      }
+    },
+    "SkinData": {
+      "name": "SkinData",
+      "methods": {
+        "clone": {
+          "symbol": "bro_SkinData_clone",
+          "returnType": "dynamic",
+          "returnClass": "SkinData",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "validate": {
+          "symbol": "bro_SkinData_validate",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "normalize": {
+          "symbol": "bro_SkinData_normalize",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "vertexCount": {
+          "getter": "bro_SkinData_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxWeights": {
+          "getter": "bro_SkinData_get_maxWeights",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SkinData_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_SkinData_destroy"
+      }
+    },
+    "bro.rigging.Skeleton": {
+      "name": "Skeleton",
+      "methods": {
+        "findBone": {
+          "symbol": "bro_Skeleton_findBone",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "boneName": {
+          "symbol": "bro_Skeleton_boneName",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneParent": {
+          "symbol": "bro_Skeleton_boneParent",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneBindPose": {
+          "symbol": "bro_Skeleton_boneBindPose",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneInverseBind": {
+          "symbol": "bro_Skeleton_boneInverseBind",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clone": {
+          "symbol": "bro_Skeleton_clone",
+          "returnType": "dynamic",
+          "returnClass": "Skeleton",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "boneCount": {
+          "getter": "bro_Skeleton_get_boneCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Skeleton_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Skeleton_destroy"
+      }
+    },
+    "Skeleton": {
+      "name": "Skeleton",
+      "methods": {
+        "findBone": {
+          "symbol": "bro_Skeleton_findBone",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "boneName": {
+          "symbol": "bro_Skeleton_boneName",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneParent": {
+          "symbol": "bro_Skeleton_boneParent",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneBindPose": {
+          "symbol": "bro_Skeleton_boneBindPose",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "boneInverseBind": {
+          "symbol": "bro_Skeleton_boneInverseBind",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clone": {
+          "symbol": "bro_Skeleton_clone",
+          "returnType": "dynamic",
+          "returnClass": "Skeleton",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "boneCount": {
+          "getter": "bro_Skeleton_get_boneCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Skeleton_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Skeleton_destroy"
+      }
+    },
+    "bro.rigging.Pose": {
+      "name": "Pose",
+      "methods": {
+        "getBoneLocal": {
+          "symbol": "bro_Pose_getBoneLocal",
+          "returnType": "dynamic",
+          "returnClass": "PoseTRS",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "setBoneLocal": {
+          "symbol": "bro_Pose_setBoneLocal",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "getBoneModelMatrix": {
+          "symbol": "bro_Pose_getBoneModelMatrix",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clone": {
+          "symbol": "bro_Pose_clone",
+          "returnType": "dynamic",
+          "returnClass": "Pose",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "boneCount": {
+          "getter": "bro_Pose_get_boneCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Pose_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Pose_destroy"
+      }
+    },
+    "Pose": {
+      "name": "Pose",
+      "methods": {
+        "getBoneLocal": {
+          "symbol": "bro_Pose_getBoneLocal",
+          "returnType": "dynamic",
+          "returnClass": "PoseTRS",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "setBoneLocal": {
+          "symbol": "bro_Pose_setBoneLocal",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "getBoneModelMatrix": {
+          "symbol": "bro_Pose_getBoneModelMatrix",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clone": {
+          "symbol": "bro_Pose_clone",
+          "returnType": "dynamic",
+          "returnClass": "Pose",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "boneCount": {
+          "getter": "bro_Pose_get_boneCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Pose_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Pose_destroy"
+      }
+    },
+    "bro.rigging.SkeletalAnimation": {
+      "name": "SkeletalAnimation",
+      "methods": {
+        "evaluate": {
+          "symbol": "bro_SkeletalAnimation_evaluate",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "name": {
+          "getter": "bro_SkeletalAnimation_get_name",
+          "setter": null,
+          "returnType": "str"
+        },
+        "duration": {
+          "getter": "bro_SkeletalAnimation_get_duration",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "trackCount": {
+          "getter": "bro_SkeletalAnimation_get_trackCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SkeletalAnimation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SkeletalAnimation_destroy"
+      }
+    },
+    "SkeletalAnimation": {
+      "name": "SkeletalAnimation",
+      "methods": {
+        "evaluate": {
+          "symbol": "bro_SkeletalAnimation_evaluate",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "name": {
+          "getter": "bro_SkeletalAnimation_get_name",
+          "setter": null,
+          "returnType": "str"
+        },
+        "duration": {
+          "getter": "bro_SkeletalAnimation_get_duration",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "trackCount": {
+          "getter": "bro_SkeletalAnimation_get_trackCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SkeletalAnimation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SkeletalAnimation_destroy"
+      }
+    },
+    "bro.rigging.RigSpec": {
+      "name": "RigSpec",
+      "methods": {},
+      "properties": {
+        "type": {
+          "getter": "bro_RigSpec_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "requiredBones": {
+          "getter": "bro_RigSpec_get_requiredBones",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_RigSpec_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_RigSpec_destroy"
+      }
+    },
+    "RigSpec": {
+      "name": "RigSpec",
+      "methods": {},
+      "properties": {
+        "type": {
+          "getter": "bro_RigSpec_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "requiredBones": {
+          "getter": "bro_RigSpec_get_requiredBones",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_RigSpec_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_RigSpec_destroy"
+      }
+    },
+    "bro.rigging.VoxelChunk": {
+      "name": "VoxelChunk",
+      "methods": {
+        "set": {
+          "symbol": "bro_VoxelChunk_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "get": {
+          "symbol": "bro_VoxelChunk_get",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "toMesh": {
+          "symbol": "bro_VoxelChunk_toMesh",
+          "returnType": "dynamic",
+          "returnClass": "Mesh",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VoxelChunk_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "i32",
+          "i32",
+          "i32"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_VoxelChunk_destroy"
+      }
+    },
+    "VoxelChunk": {
+      "name": "VoxelChunk",
+      "methods": {
+        "set": {
+          "symbol": "bro_VoxelChunk_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "get": {
+          "symbol": "bro_VoxelChunk_get",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "toMesh": {
+          "symbol": "bro_VoxelChunk_toMesh",
+          "returnType": "dynamic",
+          "returnClass": "Mesh",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VoxelChunk_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "i32",
+          "i32",
+          "i32"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_VoxelChunk_destroy"
+      }
+    },
+    "bro.rigging.IK": {
+      "name": "IK",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_IK_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_IK_destroy"
+      }
+    },
+    "IK": {
+      "name": "IK",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_IK_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_IK_destroy"
+      }
+    },
+    "bro.rigging.Rig": {
+      "name": "Rig",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Rig_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Rig_destroy"
+      }
+    },
+    "Rig": {
+      "name": "Rig",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Rig_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Rig_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.SkinData",
+      "name": "clone",
+      "symbol": "bro_SkinData_clone",
+      "returnType": "dynamic",
+      "returnClass": "SkinData",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.SkinData",
+      "name": "validate",
+      "symbol": "bro_SkinData_validate",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.SkinData",
+      "name": "normalize",
+      "symbol": "bro_SkinData_normalize",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "findBone",
+      "symbol": "bro_Skeleton_findBone",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "boneName",
+      "symbol": "bro_Skeleton_boneName",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "boneParent",
+      "symbol": "bro_Skeleton_boneParent",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "boneBindPose",
+      "symbol": "bro_Skeleton_boneBindPose",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "boneInverseBind",
+      "symbol": "bro_Skeleton_boneInverseBind",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Skeleton",
+      "name": "clone",
+      "symbol": "bro_Skeleton_clone",
+      "returnType": "dynamic",
+      "returnClass": "Skeleton",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Pose",
+      "name": "getBoneLocal",
+      "symbol": "bro_Pose_getBoneLocal",
+      "returnType": "dynamic",
+      "returnClass": "PoseTRS",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Pose",
+      "name": "setBoneLocal",
+      "symbol": "bro_Pose_setBoneLocal",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Pose",
+      "name": "getBoneModelMatrix",
+      "symbol": "bro_Pose_getBoneModelMatrix",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.Pose",
+      "name": "clone",
+      "symbol": "bro_Pose_clone",
+      "returnType": "dynamic",
+      "returnClass": "Pose",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.SkeletalAnimation",
+      "name": "evaluate",
+      "symbol": "bro_SkeletalAnimation_evaluate",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.VoxelChunk",
+      "name": "set",
+      "symbol": "bro_VoxelChunk_set",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.VoxelChunk",
+      "name": "get",
+      "symbol": "bro_VoxelChunk_get",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rigging.VoxelChunk",
+      "name": "toMesh",
+      "symbol": "bro_VoxelChunk_toMesh",
+      "returnType": "dynamic",
+      "returnClass": "Mesh",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "IK.solveTwoBone",
+      "symbol": "bro_IK_solveTwoBone",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.IK.solveTwoBone",
+      "symbol": "bro_IK_solveTwoBone",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.solveTwoBone",
+      "symbol": "bro_IK_solveTwoBone",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "IK.solveFabrik",
+      "symbol": "bro_IK_solveFabrik",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.IK.solveFabrik",
+      "symbol": "bro_IK_solveFabrik",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.solveFabrik",
+      "symbol": "bro_IK_solveFabrik",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "IK.solveLookAt",
+      "symbol": "bro_IK_solveLookAt",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.IK.solveLookAt",
+      "symbol": "bro_IK_solveLookAt",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.solveLookAt",
+      "symbol": "bro_IK_solveLookAt",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "Rig.detectLandmarks",
+      "symbol": "bro_Rig_detectLandmarks",
+      "returnType": "dynamic",
+      "returnClass": "RigDetectionResult",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.Rig.detectLandmarks",
+      "symbol": "bro_Rig_detectLandmarks",
+      "returnType": "dynamic",
+      "returnClass": "RigDetectionResult",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.detectLandmarks",
+      "symbol": "bro_Rig_detectLandmarks",
+      "returnType": "dynamic",
+      "returnClass": "RigDetectionResult",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "Rig.fitSkeleton",
+      "symbol": "bro_Rig_fitSkeleton",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.Rig.fitSkeleton",
+      "symbol": "bro_Rig_fitSkeleton",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.fitSkeleton",
+      "symbol": "bro_Rig_fitSkeleton",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "Rig.autoRig",
+      "symbol": "bro_Rig_autoRig",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.Rig.autoRig",
+      "symbol": "bro_Rig_autoRig",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.autoRig",
+      "symbol": "bro_Rig_autoRig",
+      "returnType": "dynamic",
+      "returnClass": "RigFitResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "Rig.transferWeights",
+      "symbol": "bro_Rig_transferWeights",
+      "returnType": "dynamic",
+      "returnClass": "SkinData",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.Rig.transferWeights",
+      "symbol": "bro_Rig_transferWeights",
+      "returnType": "dynamic",
+      "returnClass": "SkinData",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rigging.transferWeights",
+      "symbol": "bro_Rig_transferWeights",
+      "returnType": "dynamic",
+      "returnClass": "SkinData",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "version": "1.0.0",
+  "subsystem": "motion",
+  "namespaces": {
+    "bro.motion": {
+      "functions": {
+        "init": {
+          "symbol": "bro_motion_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "load": {
+          "symbol": "bro_motion_load",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.motion.ArdyMotionPipeline": {
+      "name": "ArdyMotionPipeline",
+      "methods": {
+        "generate": {
+          "symbol": "bro_ArdyMotionPipeline_generate",
+          "returnType": "dynamic",
+          "returnClass": "MotionClip",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_ArdyMotionPipeline_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ArdyMotionPipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ArdyMotionPipeline_destroy"
+      }
+    },
+    "ArdyMotionPipeline": {
+      "name": "ArdyMotionPipeline",
+      "methods": {
+        "generate": {
+          "symbol": "bro_ArdyMotionPipeline_generate",
+          "returnType": "dynamic",
+          "returnClass": "MotionClip",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_ArdyMotionPipeline_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ArdyMotionPipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ArdyMotionPipeline_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.motion.ArdyMotionPipeline",
+      "name": "generate",
+      "symbol": "bro_ArdyMotionPipeline_generate",
+      "returnType": "dynamic",
+      "returnClass": "MotionClip",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.motion.init",
+      "symbol": "bro_motion_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_motion_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.motion.load",
+      "symbol": "bro_motion_load",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.load",
+      "symbol": "bro_motion_load",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "subsystem": "triposplat",
+  "namespaces": {
+    "bro.triposplat": {
+      "functions": {
+        "init": {
+          "symbol": "bro_triposplat_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "load": {
+          "symbol": "bro_triposplat_load",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "cancel": {
+          "symbol": "bro_triposplat_cancel",
+          "returnType": "void",
+          "paramTypes": []
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.triposplat.TripoSplatPipeline": {
+      "name": "TripoSplatPipeline",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_TripoSplatPipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TripoSplatPipeline_destroy"
+      }
+    },
+    "TripoSplatPipeline": {
+      "name": "TripoSplatPipeline",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_TripoSplatPipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TripoSplatPipeline_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "bro.triposplat.init",
+      "symbol": "bro_triposplat_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.triposplat.load",
+      "symbol": "bro_triposplat_load",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.triposplat.cancel",
+      "symbol": "bro_triposplat_cancel",
+      "returnType": "void",
+      "paramTypes": []
+    }
+  ]
+}
