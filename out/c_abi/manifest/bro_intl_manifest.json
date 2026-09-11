@@ -7,6 +7,7 @@
         "getCanonicalLocales": {
           "symbol": "bro_Intl_getCanonicalLocales",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -999,6 +1000,7 @@
       "jsPath": "bro.Intl.getCanonicalLocales",
       "symbol": "bro_Intl_getCanonicalLocales",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]

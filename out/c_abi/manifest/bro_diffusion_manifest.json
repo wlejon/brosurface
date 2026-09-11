@@ -1,0 +1,196 @@
+{
+  "version": "1.0.0",
+  "subsystem": "diffusion",
+  "namespaces": {
+    "bro.diffusion": {
+      "functions": {
+        "init": {
+          "symbol": "bro_diffusion_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "createPipeline": {
+          "symbol": "bro_diffusion_createPipeline",
+          "returnType": "dynamic",
+          "returnClass": "Pipeline",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "loadModel": {
+          "symbol": "bro_diffusion_loadModel",
+          "returnType": "dynamic",
+          "returnClass": "Pipeline",
+          "paramTypes": [
+            "str",
+            "dynamic"
+          ]
+        },
+        "expandNoise": {
+          "symbol": "bro_diffusion_expandNoise",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "version": {
+          "getter": "bro_diffusion_get_version",
+          "setter": null,
+          "returnType": "str"
+        }
+      }
+    }
+  },
+  "classes": {
+    "bro.diffusion.Pipeline": {
+      "name": "Pipeline",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Pipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Pipeline_destroy"
+      }
+    },
+    "Pipeline": {
+      "name": "Pipeline",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Pipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Pipeline_destroy"
+      }
+    },
+    "bro.diffusion.PipelineState": {
+      "name": "PipelineState",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PipelineState_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PipelineState_destroy"
+      }
+    },
+    "PipelineState": {
+      "name": "PipelineState",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PipelineState_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PipelineState_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.diffusion.version",
+      "getter": "bro_diffusion_get_version",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.version",
+      "getter": "bro_diffusion_get_version",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.diffusion.init",
+      "symbol": "bro_diffusion_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_diffusion_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.diffusion.createPipeline",
+      "symbol": "bro_diffusion_createPipeline",
+      "returnType": "dynamic",
+      "returnClass": "Pipeline",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.createPipeline",
+      "symbol": "bro_diffusion_createPipeline",
+      "returnType": "dynamic",
+      "returnClass": "Pipeline",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.diffusion.loadModel",
+      "symbol": "bro_diffusion_loadModel",
+      "returnType": "dynamic",
+      "returnClass": "Pipeline",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.loadModel",
+      "symbol": "bro_diffusion_loadModel",
+      "returnType": "dynamic",
+      "returnClass": "Pipeline",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.diffusion.expandNoise",
+      "symbol": "bro_diffusion_expandNoise",
+      "returnType": "dynamic",
+      "returnClass": "Float32Array",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.expandNoise",
+      "symbol": "bro_diffusion_expandNoise",
+      "returnType": "dynamic",
+      "returnClass": "Float32Array",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

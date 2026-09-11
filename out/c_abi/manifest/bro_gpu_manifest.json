@@ -14,6 +14,7 @@
         "memoryInfo": {
           "symbol": "bro_gpu_memoryInfo",
           "returnType": "dynamic",
+          "returnClass": "GpuMemoryInfo",
           "paramTypes": [
             "str"
           ]
@@ -139,6 +140,7 @@
       "jsPath": "bro.gpu.memoryInfo",
       "symbol": "bro_gpu_memoryInfo",
       "returnType": "dynamic",
+      "returnClass": "GpuMemoryInfo",
       "paramTypes": [
         "str"
       ]
@@ -148,6 +150,7 @@
       "jsPath": "bro.memoryInfo",
       "symbol": "bro_gpu_memoryInfo",
       "returnType": "dynamic",
+      "returnClass": "GpuMemoryInfo",
       "paramTypes": [
         "str"
       ]

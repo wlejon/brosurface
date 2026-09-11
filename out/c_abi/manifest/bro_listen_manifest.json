@@ -7,6 +7,7 @@
         "open": {
           "symbol": "bro_listen_open",
           "returnType": "dynamic",
+          "returnClass": "ListenStream",
           "paramTypes": [
             "dynamic"
           ]
@@ -19,6 +20,7 @@
         "apps": {
           "symbol": "bro_listen_apps",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         },
         "retain": {
@@ -31,6 +33,7 @@
         "audio": {
           "symbol": "bro_listen_audio",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -39,11 +42,13 @@
         "frame": {
           "symbol": "bro_listen_frame",
           "returnType": "dynamic",
+          "returnClass": "long long",
           "paramTypes": []
         },
         "info": {
           "symbol": "bro_listen_info",
           "returnType": "dynamic",
+          "returnClass": "ListenRetentionInfo",
           "paramTypes": []
         }
       },
@@ -331,6 +336,7 @@
       "jsPath": "bro.listen.open",
       "symbol": "bro_listen_open",
       "returnType": "dynamic",
+      "returnClass": "ListenStream",
       "paramTypes": [
         "dynamic"
       ]
@@ -340,6 +346,7 @@
       "jsPath": "bro.open",
       "symbol": "bro_listen_open",
       "returnType": "dynamic",
+      "returnClass": "ListenStream",
       "paramTypes": [
         "dynamic"
       ]
@@ -363,6 +370,7 @@
       "jsPath": "bro.listen.apps",
       "symbol": "bro_listen_apps",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -370,6 +378,7 @@
       "jsPath": "bro.apps",
       "symbol": "bro_listen_apps",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -395,6 +404,7 @@
       "jsPath": "bro.listen.audio",
       "symbol": "bro_listen_audio",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -405,6 +415,7 @@
       "jsPath": "bro.audio",
       "symbol": "bro_listen_audio",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -415,6 +426,7 @@
       "jsPath": "bro.listen.frame",
       "symbol": "bro_listen_frame",
       "returnType": "dynamic",
+      "returnClass": "long long",
       "paramTypes": []
     },
     {
@@ -422,6 +434,7 @@
       "jsPath": "bro.frame",
       "symbol": "bro_listen_frame",
       "returnType": "dynamic",
+      "returnClass": "long long",
       "paramTypes": []
     },
     {
@@ -429,6 +442,7 @@
       "jsPath": "bro.listen.info",
       "symbol": "bro_listen_info",
       "returnType": "dynamic",
+      "returnClass": "ListenRetentionInfo",
       "paramTypes": []
     },
     {
@@ -436,6 +450,7 @@
       "jsPath": "bro.info",
       "symbol": "bro_listen_info",
       "returnType": "dynamic",
+      "returnClass": "ListenRetentionInfo",
       "paramTypes": []
     }
   ]

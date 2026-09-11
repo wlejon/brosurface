@@ -7,6 +7,7 @@
         "peaks": {
           "symbol": "bro_media_peaks",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "str",
             "dynamic"
@@ -15,6 +16,7 @@
         "thumbnails": {
           "symbol": "bro_media_thumbnails",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "str",
             "dynamic"
@@ -464,6 +466,7 @@
       "jsPath": "bro.media.peaks",
       "symbol": "bro_media_peaks",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "str",
         "dynamic"
@@ -474,6 +477,7 @@
       "jsPath": "bro.peaks",
       "symbol": "bro_media_peaks",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "str",
         "dynamic"
@@ -484,6 +488,7 @@
       "jsPath": "bro.media.thumbnails",
       "symbol": "bro_media_thumbnails",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "str",
         "dynamic"
@@ -494,6 +499,7 @@
       "jsPath": "bro.thumbnails",
       "symbol": "bro_media_thumbnails",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "str",
         "dynamic"

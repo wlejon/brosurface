@@ -12,6 +12,7 @@
         "load": {
           "symbol": "bro_triposplat_load",
           "returnType": "dynamic",
+          "returnClass": "TripoSplatPipeline",
           "paramTypes": [
             "dynamic"
           ]
@@ -66,6 +67,7 @@
       "jsPath": "bro.triposplat.load",
       "symbol": "bro_triposplat_load",
       "returnType": "dynamic",
+      "returnClass": "TripoSplatPipeline",
       "paramTypes": [
         "dynamic"
       ]

@@ -7,6 +7,7 @@
         "createWorld": {
           "symbol": "bro_flora_createWorld",
           "returnType": "dynamic",
+          "returnClass": "FloraWorld",
           "paramTypes": [
             "dynamic"
           ]
@@ -14,6 +15,7 @@
         "leafCluster": {
           "symbol": "bro_flora_leafCluster",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -80,11 +82,13 @@
         "batches": {
           "symbol": "bro_flora_batches",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": []
         },
         "getBatches": {
           "symbol": "bro_flora_getBatches",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": []
         }
       },
@@ -389,6 +393,7 @@
       "jsPath": "bro.flora.createWorld",
       "symbol": "bro_flora_createWorld",
       "returnType": "dynamic",
+      "returnClass": "FloraWorld",
       "paramTypes": [
         "dynamic"
       ]
@@ -398,6 +403,7 @@
       "jsPath": "bro.createWorld",
       "symbol": "bro_flora_createWorld",
       "returnType": "dynamic",
+      "returnClass": "FloraWorld",
       "paramTypes": [
         "dynamic"
       ]
@@ -407,6 +413,7 @@
       "jsPath": "flora.createWorld",
       "symbol": "bro_flora_createWorld",
       "returnType": "dynamic",
+      "returnClass": "FloraWorld",
       "paramTypes": [
         "dynamic"
       ]
@@ -416,6 +423,7 @@
       "jsPath": "bro.flora.leafCluster",
       "symbol": "bro_flora_leafCluster",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -426,6 +434,7 @@
       "jsPath": "bro.leafCluster",
       "symbol": "bro_flora_leafCluster",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -436,6 +445,7 @@
       "jsPath": "flora.leafCluster",
       "symbol": "bro_flora_leafCluster",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -668,6 +678,7 @@
       "jsPath": "bro.flora.batches",
       "symbol": "bro_flora_batches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -675,6 +686,7 @@
       "jsPath": "bro.batches",
       "symbol": "bro_flora_batches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -682,6 +694,7 @@
       "jsPath": "flora.batches",
       "symbol": "bro_flora_batches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -689,6 +702,7 @@
       "jsPath": "bro.flora.getBatches",
       "symbol": "bro_flora_getBatches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -696,6 +710,7 @@
       "jsPath": "bro.getBatches",
       "symbol": "bro_flora_getBatches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -703,6 +718,7 @@
       "jsPath": "flora.getBatches",
       "symbol": "bro_flora_getBatches",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {

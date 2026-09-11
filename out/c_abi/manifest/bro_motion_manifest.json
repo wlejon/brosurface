@@ -12,6 +12,7 @@
         "load": {
           "symbol": "bro_motion_load",
           "returnType": "dynamic",
+          "returnClass": "ArdyMotionPipeline",
           "paramTypes": [
             "dynamic"
           ]
@@ -115,6 +116,7 @@
       "jsPath": "bro.motion.load",
       "symbol": "bro_motion_load",
       "returnType": "dynamic",
+      "returnClass": "ArdyMotionPipeline",
       "paramTypes": [
         "dynamic"
       ]
@@ -124,6 +126,7 @@
       "jsPath": "bro.load",
       "symbol": "bro_motion_load",
       "returnType": "dynamic",
+      "returnClass": "ArdyMotionPipeline",
       "paramTypes": [
         "dynamic"
       ]

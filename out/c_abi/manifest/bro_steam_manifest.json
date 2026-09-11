@@ -62,11 +62,13 @@
         "getFriends": {
           "symbol": "bro_steam_getFriends",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         },
         "getAvatar": {
           "symbol": "bro_steam_getAvatar",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "str",
             "dynamic"
@@ -88,6 +90,7 @@
         "createLobby": {
           "symbol": "bro_steam_createLobby",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "str",
             "i32"
@@ -96,6 +99,7 @@
         "joinLobby": {
           "symbol": "bro_steam_joinLobby",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "str"
           ]
@@ -119,6 +123,7 @@
         "getLobbyMembers": {
           "symbol": "bro_steam_getLobbyMembers",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "str"
           ]
@@ -166,6 +171,7 @@
         "decodeVoice": {
           "symbol": "bro_steam_decodeVoice",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "dynamic",
             "i32"
@@ -667,6 +673,7 @@
       "jsPath": "bro.steam.getFriends",
       "symbol": "bro_steam_getFriends",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -674,6 +681,7 @@
       "jsPath": "bro.getFriends",
       "symbol": "bro_steam_getFriends",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -681,6 +689,7 @@
       "jsPath": "bro.steam.getAvatar",
       "symbol": "bro_steam_getAvatar",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str",
         "dynamic"
@@ -691,6 +700,7 @@
       "jsPath": "bro.getAvatar",
       "symbol": "bro_steam_getAvatar",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str",
         "dynamic"
@@ -735,6 +745,7 @@
       "jsPath": "bro.steam.createLobby",
       "symbol": "bro_steam_createLobby",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str",
         "i32"
@@ -745,6 +756,7 @@
       "jsPath": "bro.createLobby",
       "symbol": "bro_steam_createLobby",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str",
         "i32"
@@ -755,6 +767,7 @@
       "jsPath": "bro.steam.joinLobby",
       "symbol": "bro_steam_joinLobby",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str"
       ]
@@ -764,6 +777,7 @@
       "jsPath": "bro.joinLobby",
       "symbol": "bro_steam_joinLobby",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "str"
       ]
@@ -813,6 +827,7 @@
       "jsPath": "bro.steam.getLobbyMembers",
       "symbol": "bro_steam_getLobbyMembers",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "str"
       ]
@@ -822,6 +837,7 @@
       "jsPath": "bro.getLobbyMembers",
       "symbol": "bro_steam_getLobbyMembers",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "str"
       ]
@@ -935,6 +951,7 @@
       "jsPath": "bro.steam.decodeVoice",
       "symbol": "bro_steam_decodeVoice",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "dynamic",
         "i32"
@@ -945,6 +962,7 @@
       "jsPath": "bro.decodeVoice",
       "symbol": "bro_steam_decodeVoice",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "dynamic",
         "i32"

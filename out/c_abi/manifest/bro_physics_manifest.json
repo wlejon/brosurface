@@ -7,6 +7,7 @@
         "createWorldHandle": {
           "symbol": "bro_Physics_createWorldHandle",
           "returnType": "dynamic",
+          "returnClass": "PhysicsWorldHandle",
           "paramTypes": [
             "dynamic"
           ]
@@ -30,6 +31,7 @@
         "getGravity": {
           "symbol": "bro_Physics_getGravity",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         },
         "setLayers": {
@@ -61,6 +63,7 @@
         "getTransform": {
           "symbol": "bro_Physics_getTransform",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "i32"
           ]
@@ -68,6 +71,7 @@
         "getVelocity": {
           "symbol": "bro_Physics_getVelocity",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "i32"
           ]
@@ -154,6 +158,7 @@
         "getUserData": {
           "symbol": "bro_Physics_getUserData",
           "returnType": "dynamic",
+          "returnClass": "any",
           "paramTypes": [
             "i32"
           ]
@@ -195,6 +200,7 @@
         "raycast": {
           "symbol": "bro_Physics_raycast",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "f64",
             "f64",
@@ -209,6 +215,7 @@
         "raycastClosest": {
           "symbol": "bro_Physics_raycastClosest",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "f64",
             "f64",
@@ -223,6 +230,7 @@
         "castShape": {
           "symbol": "bro_Physics_castShape",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -230,6 +238,7 @@
         "castShapeClosest": {
           "symbol": "bro_Physics_castShapeClosest",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -237,6 +246,7 @@
         "overlapShape": {
           "symbol": "bro_Physics_overlapShape",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -244,6 +254,7 @@
         "overlapPoint": {
           "symbol": "bro_Physics_overlapPoint",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "f64",
             "f64",
@@ -254,6 +265,7 @@
         "getContacts": {
           "symbol": "bro_Physics_getContacts",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         },
         "setFrictionCombine": {
@@ -323,6 +335,7 @@
         "getBodyProperties": {
           "symbol": "bro_Physics_getBodyProperties",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "i32"
           ]
@@ -378,6 +391,7 @@
         "getAllTransforms": {
           "symbol": "bro_Physics_getAllTransforms",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "i32"
           ]
@@ -385,6 +399,7 @@
         "createCharacter": {
           "symbol": "bro_Physics_createCharacter",
           "returnType": "dynamic",
+          "returnClass": "PhysicsCharacter",
           "paramTypes": [
             "dynamic"
           ]
@@ -392,6 +407,7 @@
         "createVehicle": {
           "symbol": "bro_Physics_createVehicle",
           "returnType": "dynamic",
+          "returnClass": "PhysicsVehicle",
           "paramTypes": [
             "dynamic"
           ]
@@ -399,6 +415,7 @@
         "createRagdoll": {
           "symbol": "bro_Physics_createRagdoll",
           "returnType": "dynamic",
+          "returnClass": "PhysicsRagdoll",
           "paramTypes": [
             "dynamic"
           ]
@@ -406,6 +423,7 @@
         "createSoftBody": {
           "symbol": "bro_Physics_createSoftBody",
           "returnType": "dynamic",
+          "returnClass": "PhysicsSoftBody",
           "paramTypes": [
             "dynamic"
           ]
@@ -468,6 +486,7 @@
         "getBrokenConstraints": {
           "symbol": "bro_Physics_getBrokenConstraints",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         }
       },
@@ -967,6 +986,7 @@
       "jsPath": "bro.Physics.createWorldHandle",
       "symbol": "bro_Physics_createWorldHandle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsWorldHandle",
       "paramTypes": [
         "dynamic"
       ]
@@ -976,6 +996,7 @@
       "jsPath": "bro.createWorldHandle",
       "symbol": "bro_Physics_createWorldHandle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsWorldHandle",
       "paramTypes": [
         "dynamic"
       ]
@@ -985,6 +1006,7 @@
       "jsPath": "Physics.createWorldHandle",
       "symbol": "bro_Physics_createWorldHandle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsWorldHandle",
       "paramTypes": [
         "dynamic"
       ]
@@ -994,6 +1016,7 @@
       "jsPath": "bro.physics.createWorldHandle",
       "symbol": "bro_Physics_createWorldHandle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsWorldHandle",
       "paramTypes": [
         "dynamic"
       ]
@@ -1083,6 +1106,7 @@
       "jsPath": "bro.Physics.getGravity",
       "symbol": "bro_Physics_getGravity",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -1090,6 +1114,7 @@
       "jsPath": "bro.getGravity",
       "symbol": "bro_Physics_getGravity",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -1097,6 +1122,7 @@
       "jsPath": "Physics.getGravity",
       "symbol": "bro_Physics_getGravity",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -1104,6 +1130,7 @@
       "jsPath": "bro.physics.getGravity",
       "symbol": "bro_Physics_getGravity",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -1247,6 +1274,7 @@
       "jsPath": "bro.Physics.getTransform",
       "symbol": "bro_Physics_getTransform",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1256,6 +1284,7 @@
       "jsPath": "bro.getTransform",
       "symbol": "bro_Physics_getTransform",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1265,6 +1294,7 @@
       "jsPath": "Physics.getTransform",
       "symbol": "bro_Physics_getTransform",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1274,6 +1304,7 @@
       "jsPath": "bro.physics.getTransform",
       "symbol": "bro_Physics_getTransform",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1283,6 +1314,7 @@
       "jsPath": "bro.Physics.getVelocity",
       "symbol": "bro_Physics_getVelocity",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1292,6 +1324,7 @@
       "jsPath": "bro.getVelocity",
       "symbol": "bro_Physics_getVelocity",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1301,6 +1334,7 @@
       "jsPath": "Physics.getVelocity",
       "symbol": "bro_Physics_getVelocity",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1310,6 +1344,7 @@
       "jsPath": "bro.physics.getVelocity",
       "symbol": "bro_Physics_getVelocity",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -1699,6 +1734,7 @@
       "jsPath": "bro.Physics.getUserData",
       "symbol": "bro_Physics_getUserData",
       "returnType": "dynamic",
+      "returnClass": "any",
       "paramTypes": [
         "i32"
       ]
@@ -1708,6 +1744,7 @@
       "jsPath": "bro.getUserData",
       "symbol": "bro_Physics_getUserData",
       "returnType": "dynamic",
+      "returnClass": "any",
       "paramTypes": [
         "i32"
       ]
@@ -1717,6 +1754,7 @@
       "jsPath": "Physics.getUserData",
       "symbol": "bro_Physics_getUserData",
       "returnType": "dynamic",
+      "returnClass": "any",
       "paramTypes": [
         "i32"
       ]
@@ -1726,6 +1764,7 @@
       "jsPath": "bro.physics.getUserData",
       "symbol": "bro_Physics_getUserData",
       "returnType": "dynamic",
+      "returnClass": "any",
       "paramTypes": [
         "i32"
       ]
@@ -1903,6 +1942,7 @@
       "jsPath": "bro.Physics.raycast",
       "symbol": "bro_Physics_raycast",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1919,6 +1959,7 @@
       "jsPath": "bro.raycast",
       "symbol": "bro_Physics_raycast",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1935,6 +1976,7 @@
       "jsPath": "Physics.raycast",
       "symbol": "bro_Physics_raycast",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1951,6 +1993,7 @@
       "jsPath": "bro.physics.raycast",
       "symbol": "bro_Physics_raycast",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1967,6 +2010,7 @@
       "jsPath": "bro.Physics.raycastClosest",
       "symbol": "bro_Physics_raycastClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1983,6 +2027,7 @@
       "jsPath": "bro.raycastClosest",
       "symbol": "bro_Physics_raycastClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -1999,6 +2044,7 @@
       "jsPath": "Physics.raycastClosest",
       "symbol": "bro_Physics_raycastClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -2015,6 +2061,7 @@
       "jsPath": "bro.physics.raycastClosest",
       "symbol": "bro_Physics_raycastClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "f64",
         "f64",
@@ -2031,6 +2078,7 @@
       "jsPath": "bro.Physics.castShape",
       "symbol": "bro_Physics_castShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2040,6 +2088,7 @@
       "jsPath": "bro.castShape",
       "symbol": "bro_Physics_castShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2049,6 +2098,7 @@
       "jsPath": "Physics.castShape",
       "symbol": "bro_Physics_castShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2058,6 +2108,7 @@
       "jsPath": "bro.physics.castShape",
       "symbol": "bro_Physics_castShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2067,6 +2118,7 @@
       "jsPath": "bro.Physics.castShapeClosest",
       "symbol": "bro_Physics_castShapeClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -2076,6 +2128,7 @@
       "jsPath": "bro.castShapeClosest",
       "symbol": "bro_Physics_castShapeClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -2085,6 +2138,7 @@
       "jsPath": "Physics.castShapeClosest",
       "symbol": "bro_Physics_castShapeClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -2094,6 +2148,7 @@
       "jsPath": "bro.physics.castShapeClosest",
       "symbol": "bro_Physics_castShapeClosest",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -2103,6 +2158,7 @@
       "jsPath": "bro.Physics.overlapShape",
       "symbol": "bro_Physics_overlapShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2112,6 +2168,7 @@
       "jsPath": "bro.overlapShape",
       "symbol": "bro_Physics_overlapShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2121,6 +2178,7 @@
       "jsPath": "Physics.overlapShape",
       "symbol": "bro_Physics_overlapShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2130,6 +2188,7 @@
       "jsPath": "bro.physics.overlapShape",
       "symbol": "bro_Physics_overlapShape",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2139,6 +2198,7 @@
       "jsPath": "bro.Physics.overlapPoint",
       "symbol": "bro_Physics_overlapPoint",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "f64",
         "f64",
@@ -2151,6 +2211,7 @@
       "jsPath": "bro.overlapPoint",
       "symbol": "bro_Physics_overlapPoint",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "f64",
         "f64",
@@ -2163,6 +2224,7 @@
       "jsPath": "Physics.overlapPoint",
       "symbol": "bro_Physics_overlapPoint",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "f64",
         "f64",
@@ -2175,6 +2237,7 @@
       "jsPath": "bro.physics.overlapPoint",
       "symbol": "bro_Physics_overlapPoint",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "f64",
         "f64",
@@ -2187,6 +2250,7 @@
       "jsPath": "bro.Physics.getContacts",
       "symbol": "bro_Physics_getContacts",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -2194,6 +2258,7 @@
       "jsPath": "bro.getContacts",
       "symbol": "bro_Physics_getContacts",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -2201,6 +2266,7 @@
       "jsPath": "Physics.getContacts",
       "symbol": "bro_Physics_getContacts",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -2208,6 +2274,7 @@
       "jsPath": "bro.physics.getContacts",
       "symbol": "bro_Physics_getContacts",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -2535,6 +2602,7 @@
       "jsPath": "bro.Physics.getBodyProperties",
       "symbol": "bro_Physics_getBodyProperties",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -2544,6 +2612,7 @@
       "jsPath": "bro.getBodyProperties",
       "symbol": "bro_Physics_getBodyProperties",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -2553,6 +2622,7 @@
       "jsPath": "Physics.getBodyProperties",
       "symbol": "bro_Physics_getBodyProperties",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -2562,6 +2632,7 @@
       "jsPath": "bro.physics.getBodyProperties",
       "symbol": "bro_Physics_getBodyProperties",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -2819,6 +2890,7 @@
       "jsPath": "bro.Physics.getAllTransforms",
       "symbol": "bro_Physics_getAllTransforms",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "i32"
       ]
@@ -2828,6 +2900,7 @@
       "jsPath": "bro.getAllTransforms",
       "symbol": "bro_Physics_getAllTransforms",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "i32"
       ]
@@ -2837,6 +2910,7 @@
       "jsPath": "Physics.getAllTransforms",
       "symbol": "bro_Physics_getAllTransforms",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "i32"
       ]
@@ -2846,6 +2920,7 @@
       "jsPath": "bro.physics.getAllTransforms",
       "symbol": "bro_Physics_getAllTransforms",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "i32"
       ]
@@ -2855,6 +2930,7 @@
       "jsPath": "bro.Physics.createCharacter",
       "symbol": "bro_Physics_createCharacter",
       "returnType": "dynamic",
+      "returnClass": "PhysicsCharacter",
       "paramTypes": [
         "dynamic"
       ]
@@ -2864,6 +2940,7 @@
       "jsPath": "bro.createCharacter",
       "symbol": "bro_Physics_createCharacter",
       "returnType": "dynamic",
+      "returnClass": "PhysicsCharacter",
       "paramTypes": [
         "dynamic"
       ]
@@ -2873,6 +2950,7 @@
       "jsPath": "Physics.createCharacter",
       "symbol": "bro_Physics_createCharacter",
       "returnType": "dynamic",
+      "returnClass": "PhysicsCharacter",
       "paramTypes": [
         "dynamic"
       ]
@@ -2882,6 +2960,7 @@
       "jsPath": "bro.physics.createCharacter",
       "symbol": "bro_Physics_createCharacter",
       "returnType": "dynamic",
+      "returnClass": "PhysicsCharacter",
       "paramTypes": [
         "dynamic"
       ]
@@ -2891,6 +2970,7 @@
       "jsPath": "bro.Physics.createVehicle",
       "symbol": "bro_Physics_createVehicle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsVehicle",
       "paramTypes": [
         "dynamic"
       ]
@@ -2900,6 +2980,7 @@
       "jsPath": "bro.createVehicle",
       "symbol": "bro_Physics_createVehicle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsVehicle",
       "paramTypes": [
         "dynamic"
       ]
@@ -2909,6 +2990,7 @@
       "jsPath": "Physics.createVehicle",
       "symbol": "bro_Physics_createVehicle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsVehicle",
       "paramTypes": [
         "dynamic"
       ]
@@ -2918,6 +3000,7 @@
       "jsPath": "bro.physics.createVehicle",
       "symbol": "bro_Physics_createVehicle",
       "returnType": "dynamic",
+      "returnClass": "PhysicsVehicle",
       "paramTypes": [
         "dynamic"
       ]
@@ -2927,6 +3010,7 @@
       "jsPath": "bro.Physics.createRagdoll",
       "symbol": "bro_Physics_createRagdoll",
       "returnType": "dynamic",
+      "returnClass": "PhysicsRagdoll",
       "paramTypes": [
         "dynamic"
       ]
@@ -2936,6 +3020,7 @@
       "jsPath": "bro.createRagdoll",
       "symbol": "bro_Physics_createRagdoll",
       "returnType": "dynamic",
+      "returnClass": "PhysicsRagdoll",
       "paramTypes": [
         "dynamic"
       ]
@@ -2945,6 +3030,7 @@
       "jsPath": "Physics.createRagdoll",
       "symbol": "bro_Physics_createRagdoll",
       "returnType": "dynamic",
+      "returnClass": "PhysicsRagdoll",
       "paramTypes": [
         "dynamic"
       ]
@@ -2954,6 +3040,7 @@
       "jsPath": "bro.physics.createRagdoll",
       "symbol": "bro_Physics_createRagdoll",
       "returnType": "dynamic",
+      "returnClass": "PhysicsRagdoll",
       "paramTypes": [
         "dynamic"
       ]
@@ -2963,6 +3050,7 @@
       "jsPath": "bro.Physics.createSoftBody",
       "symbol": "bro_Physics_createSoftBody",
       "returnType": "dynamic",
+      "returnClass": "PhysicsSoftBody",
       "paramTypes": [
         "dynamic"
       ]
@@ -2972,6 +3060,7 @@
       "jsPath": "bro.createSoftBody",
       "symbol": "bro_Physics_createSoftBody",
       "returnType": "dynamic",
+      "returnClass": "PhysicsSoftBody",
       "paramTypes": [
         "dynamic"
       ]
@@ -2981,6 +3070,7 @@
       "jsPath": "Physics.createSoftBody",
       "symbol": "bro_Physics_createSoftBody",
       "returnType": "dynamic",
+      "returnClass": "PhysicsSoftBody",
       "paramTypes": [
         "dynamic"
       ]
@@ -2990,6 +3080,7 @@
       "jsPath": "bro.physics.createSoftBody",
       "symbol": "bro_Physics_createSoftBody",
       "returnType": "dynamic",
+      "returnClass": "PhysicsSoftBody",
       "paramTypes": [
         "dynamic"
       ]
@@ -3275,6 +3366,7 @@
       "jsPath": "bro.Physics.getBrokenConstraints",
       "symbol": "bro_Physics_getBrokenConstraints",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -3282,6 +3374,7 @@
       "jsPath": "bro.getBrokenConstraints",
       "symbol": "bro_Physics_getBrokenConstraints",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -3289,6 +3382,7 @@
       "jsPath": "Physics.getBrokenConstraints",
       "symbol": "bro_Physics_getBrokenConstraints",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -3296,6 +3390,7 @@
       "jsPath": "bro.physics.getBrokenConstraints",
       "symbol": "bro_Physics_getBrokenConstraints",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     }
   ]

@@ -190,9 +190,14 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
           const paramDecl = paramsC.length > 0 ? paramsC.join(', ') : 'void';
           headerLines.push(`${retC} ${symName}(${paramDecl});`);
 
+          const returnClass = (retBronze === 'dynamic' && m.returnType && m.returnType.name)
+            ? m.returnType.name
+            : undefined;
+
           manifest.namespaces[nsName].functions[fnName] = {
             symbol: symName,
             returnType: retBronze,
+            ...(returnClass ? { returnClass } : {}),
             paramTypes: paramsBronze
           };
           manifest.symbols.push({
@@ -200,6 +205,7 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
             jsPath: `${nsName}.${fnName}`,
             symbol: symName,
             returnType: retBronze,
+            ...(returnClass ? { returnClass } : {}),
             paramTypes: paramsBronze
           });
 
@@ -211,6 +217,7 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
                 jsPath: aliasPath,
                 symbol: symName,
                 returnType: retBronze,
+                ...(returnClass ? { returnClass } : {}),
                 paramTypes: paramsBronze
               });
             }

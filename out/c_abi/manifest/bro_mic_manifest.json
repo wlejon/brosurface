@@ -29,11 +29,13 @@
         "stats": {
           "symbol": "bro_mic_stats",
           "returnType": "dynamic",
+          "returnClass": "MicStats",
           "paramTypes": []
         },
         "levels": {
           "symbol": "bro_mic_levels",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "i32"
           ]
@@ -117,6 +119,7 @@
       "jsPath": "bro.mic.stats",
       "symbol": "bro_mic_stats",
       "returnType": "dynamic",
+      "returnClass": "MicStats",
       "paramTypes": []
     },
     {
@@ -124,6 +127,7 @@
       "jsPath": "bro.stats",
       "symbol": "bro_mic_stats",
       "returnType": "dynamic",
+      "returnClass": "MicStats",
       "paramTypes": []
     },
     {
@@ -131,6 +135,7 @@
       "jsPath": "bro.mic.levels",
       "symbol": "bro_mic_levels",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "i32"
       ]
@@ -140,6 +145,7 @@
       "jsPath": "bro.levels",
       "symbol": "bro_mic_levels",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "i32"
       ]

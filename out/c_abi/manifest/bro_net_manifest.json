@@ -75,6 +75,7 @@
         "peers": {
           "symbol": "bro_net_peers",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": []
         },
         "getPeerAddress": {
@@ -87,11 +88,13 @@
         "stats": {
           "symbol": "bro_net_stats",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": []
         },
         "getPeerStats": {
           "symbol": "bro_net_getPeerStats",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "i32"
           ]
@@ -305,6 +308,7 @@
       "jsPath": "bro.net.peers",
       "symbol": "bro_net_peers",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -312,6 +316,7 @@
       "jsPath": "bro.peers",
       "symbol": "bro_net_peers",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -337,6 +342,7 @@
       "jsPath": "bro.net.stats",
       "symbol": "bro_net_stats",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -344,6 +350,7 @@
       "jsPath": "bro.stats",
       "symbol": "bro_net_stats",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": []
     },
     {
@@ -351,6 +358,7 @@
       "jsPath": "bro.net.getPeerStats",
       "symbol": "bro_net_getPeerStats",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
@@ -360,6 +368,7 @@
       "jsPath": "bro.getPeerStats",
       "symbol": "bro_net_getPeerStats",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "i32"
       ]
