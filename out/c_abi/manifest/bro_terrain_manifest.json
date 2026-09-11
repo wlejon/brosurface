@@ -1,0 +1,516 @@
+{
+  "version": "1.0.0",
+  "subsystem": "terrain",
+  "namespaces": {},
+  "classes": {
+    "bro.terrain.Terrain": {
+      "name": "Terrain",
+      "methods": {
+        "update": {
+          "symbol": "bro_Terrain_update",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "raycast": {
+          "symbol": "bro_Terrain_raycast",
+          "returnType": "dynamic",
+          "returnClass": "TerrainRaycastResult",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64"
+          ]
+        },
+        "setVoxel": {
+          "symbol": "bro_Terrain_setVoxel",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "getVoxel": {
+          "symbol": "bro_Terrain_getVoxel",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "rebuild": {
+          "symbol": "bro_Terrain_rebuild",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "configure": {
+          "symbol": "bro_Terrain_configure",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "invalidateRegion": {
+          "symbol": "bro_Terrain_invalidateRegion",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setHeightSource": {
+          "symbol": "bro_Terrain_setHeightSource",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "heightAt": {
+          "symbol": "bro_Terrain_heightAt",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "normalAt": {
+          "symbol": "bro_Terrain_normalAt",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "elevation": {
+          "symbol": "bro_Terrain_elevation",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "splat": {
+          "symbol": "bro_Terrain_splat",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_Terrain_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "chunkCount": {
+          "getter": "bro_Terrain_get_chunkCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "triangleCount": {
+          "getter": "bro_Terrain_get_triangleCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "vertexCount": {
+          "getter": "bro_Terrain_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "farDistance": {
+          "getter": "bro_Terrain_get_farDistance",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "planetRadius": {
+          "getter": "bro_Terrain_get_planetRadius",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "origin": {
+          "getter": "bro_Terrain_get_origin",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "layers": {
+          "getter": "bro_Terrain_get_layers",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Terrain_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Terrain_destroy"
+      }
+    },
+    "Terrain": {
+      "name": "Terrain",
+      "methods": {
+        "update": {
+          "symbol": "bro_Terrain_update",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "raycast": {
+          "symbol": "bro_Terrain_raycast",
+          "returnType": "dynamic",
+          "returnClass": "TerrainRaycastResult",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64"
+          ]
+        },
+        "setVoxel": {
+          "symbol": "bro_Terrain_setVoxel",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "getVoxel": {
+          "symbol": "bro_Terrain_getVoxel",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "rebuild": {
+          "symbol": "bro_Terrain_rebuild",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "configure": {
+          "symbol": "bro_Terrain_configure",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "invalidateRegion": {
+          "symbol": "bro_Terrain_invalidateRegion",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setHeightSource": {
+          "symbol": "bro_Terrain_setHeightSource",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "heightAt": {
+          "symbol": "bro_Terrain_heightAt",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "normalAt": {
+          "symbol": "bro_Terrain_normalAt",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "elevation": {
+          "symbol": "bro_Terrain_elevation",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "splat": {
+          "symbol": "bro_Terrain_splat",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_Terrain_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "chunkCount": {
+          "getter": "bro_Terrain_get_chunkCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "triangleCount": {
+          "getter": "bro_Terrain_get_triangleCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "vertexCount": {
+          "getter": "bro_Terrain_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "farDistance": {
+          "getter": "bro_Terrain_get_farDistance",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "planetRadius": {
+          "getter": "bro_Terrain_get_planetRadius",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "origin": {
+          "getter": "bro_Terrain_get_origin",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "layers": {
+          "getter": "bro_Terrain_get_layers",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Terrain_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Terrain_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "update",
+      "symbol": "bro_Terrain_update",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "raycast",
+      "symbol": "bro_Terrain_raycast",
+      "returnType": "dynamic",
+      "returnClass": "TerrainRaycastResult",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "setVoxel",
+      "symbol": "bro_Terrain_setVoxel",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "getVoxel",
+      "symbol": "bro_Terrain_getVoxel",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "rebuild",
+      "symbol": "bro_Terrain_rebuild",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "configure",
+      "symbol": "bro_Terrain_configure",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "invalidateRegion",
+      "symbol": "bro_Terrain_invalidateRegion",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "setHeightSource",
+      "symbol": "bro_Terrain_setHeightSource",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "heightAt",
+      "symbol": "bro_Terrain_heightAt",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "normalAt",
+      "symbol": "bro_Terrain_normalAt",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "elevation",
+      "symbol": "bro_Terrain_elevation",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "splat",
+      "symbol": "bro_Terrain_splat",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.terrain.Terrain",
+      "name": "destroy",
+      "symbol": "bro_Terrain_destroy",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

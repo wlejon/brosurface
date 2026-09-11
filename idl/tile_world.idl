@@ -88,9 +88,12 @@ interface TileWorld {
   readonly attribute long width;
   readonly attribute long height;
   readonly attribute long chunkCount;
+  readonly attribute long chunks;
+  attribute boolean paging;
   readonly attribute long vertexCount;
   readonly attribute long triangleCount;
 
+  long update(optional unrestricted double camX = 0, optional unrestricted double camY = 0, optional unrestricted double camZ = 0);
   void setTile(long layer, long x, long y, long tileId);
   long getTile(long layer, long x, long y);
   void fillRect(long layer, long x, long y, long w, long h, long tileId);

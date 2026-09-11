@@ -47,6 +47,17 @@ namespace flora {
    * @return Mesh instance containing generated leaf vertices and indices.
    */
   object leafCluster(any phyllotaxy, optional object opts);
+
+  void setWind(double strength, optional double dirX = 0, optional double dirY = 0);
+  void wind(double strength, optional double dirX = 0, optional double dirY = 0);
+  void setDensity(double density);
+  void density(double density);
+  void update(double dt);
+  void clear();
+  void placement(object config);
+  void addPlacement(object config);
+  object batches();
+  object getBatches();
 };
 
 [

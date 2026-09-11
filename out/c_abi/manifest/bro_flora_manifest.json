@@ -1,0 +1,858 @@
+{
+  "version": "1.0.0",
+  "subsystem": "flora",
+  "namespaces": {
+    "bro.flora": {
+      "functions": {
+        "createWorld": {
+          "symbol": "bro_flora_createWorld",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "leafCluster": {
+          "symbol": "bro_flora_leafCluster",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "setWind": {
+          "symbol": "bro_flora_setWind",
+          "returnType": "void",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "wind": {
+          "symbol": "bro_flora_wind",
+          "returnType": "void",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setDensity": {
+          "symbol": "bro_flora_setDensity",
+          "returnType": "void",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "density": {
+          "symbol": "bro_flora_density",
+          "returnType": "void",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "update": {
+          "symbol": "bro_flora_update",
+          "returnType": "void",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_flora_clear",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "placement": {
+          "symbol": "bro_flora_placement",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "addPlacement": {
+          "symbol": "bro_flora_addPlacement",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "batches": {
+          "symbol": "bro_flora_batches",
+          "returnType": "dynamic",
+          "paramTypes": []
+        },
+        "getBatches": {
+          "symbol": "bro_flora_getBatches",
+          "returnType": "dynamic",
+          "paramTypes": []
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.flora.FloraWorld": {
+      "name": "FloraWorld",
+      "methods": {
+        "addPrototype": {
+          "symbol": "bro_FloraWorld_addPrototype",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addVoronoiSite": {
+          "symbol": "bro_FloraWorld_addVoronoiSite",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64",
+            "f64"
+          ]
+        },
+        "addPlant": {
+          "symbol": "bro_FloraWorld_addPlant",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "removePlant": {
+          "symbol": "bro_FloraWorld_removePlant",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "step": {
+          "symbol": "bro_FloraWorld_step",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "plantInfo": {
+          "symbol": "bro_FloraWorld_plantInfo",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "setClimate": {
+          "symbol": "bro_FloraWorld_setClimate",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "sampleShadow": {
+          "symbol": "bro_FloraWorld_sampleShadow",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "validate": {
+          "symbol": "bro_FloraWorld_validate",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitMesh": {
+          "symbol": "bro_FloraWorld_emitMesh",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "emitSegments": {
+          "symbol": "bro_FloraWorld_emitSegments",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitFoliage": {
+          "symbol": "bro_FloraWorld_emitFoliage",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitBloomAnchors": {
+          "symbol": "bro_FloraWorld_emitBloomAnchors",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "simTime": {
+          "getter": "bro_FloraWorld_get_simTime",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "plantCount": {
+          "getter": "bro_FloraWorld_get_plantCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "prototypeCount": {
+          "getter": "bro_FloraWorld_get_prototypeCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "moduleCount": {
+          "getter": "bro_FloraWorld_get_moduleCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_FloraWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_FloraWorld_destroy"
+      }
+    },
+    "FloraWorld": {
+      "name": "FloraWorld",
+      "methods": {
+        "addPrototype": {
+          "symbol": "bro_FloraWorld_addPrototype",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addVoronoiSite": {
+          "symbol": "bro_FloraWorld_addVoronoiSite",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64",
+            "f64"
+          ]
+        },
+        "addPlant": {
+          "symbol": "bro_FloraWorld_addPlant",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "removePlant": {
+          "symbol": "bro_FloraWorld_removePlant",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "step": {
+          "symbol": "bro_FloraWorld_step",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "plantInfo": {
+          "symbol": "bro_FloraWorld_plantInfo",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "setClimate": {
+          "symbol": "bro_FloraWorld_setClimate",
+          "returnType": "dynamic",
+          "returnClass": "FloraWorld",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "sampleShadow": {
+          "symbol": "bro_FloraWorld_sampleShadow",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "validate": {
+          "symbol": "bro_FloraWorld_validate",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitMesh": {
+          "symbol": "bro_FloraWorld_emitMesh",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "emitSegments": {
+          "symbol": "bro_FloraWorld_emitSegments",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitFoliage": {
+          "symbol": "bro_FloraWorld_emitFoliage",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "emitBloomAnchors": {
+          "symbol": "bro_FloraWorld_emitBloomAnchors",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "simTime": {
+          "getter": "bro_FloraWorld_get_simTime",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "plantCount": {
+          "getter": "bro_FloraWorld_get_plantCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "prototypeCount": {
+          "getter": "bro_FloraWorld_get_prototypeCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "moduleCount": {
+          "getter": "bro_FloraWorld_get_moduleCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_FloraWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_FloraWorld_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.createWorld",
+      "symbol": "bro_flora_createWorld",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.createWorld",
+      "symbol": "bro_flora_createWorld",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.createWorld",
+      "symbol": "bro_flora_createWorld",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.leafCluster",
+      "symbol": "bro_flora_leafCluster",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.leafCluster",
+      "symbol": "bro_flora_leafCluster",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.leafCluster",
+      "symbol": "bro_flora_leafCluster",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.setWind",
+      "symbol": "bro_flora_setWind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setWind",
+      "symbol": "bro_flora_setWind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.setWind",
+      "symbol": "bro_flora_setWind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.wind",
+      "symbol": "bro_flora_wind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.wind",
+      "symbol": "bro_flora_wind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.wind",
+      "symbol": "bro_flora_wind",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.setDensity",
+      "symbol": "bro_flora_setDensity",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setDensity",
+      "symbol": "bro_flora_setDensity",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.setDensity",
+      "symbol": "bro_flora_setDensity",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.density",
+      "symbol": "bro_flora_density",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.density",
+      "symbol": "bro_flora_density",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.density",
+      "symbol": "bro_flora_density",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.update",
+      "symbol": "bro_flora_update",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.update",
+      "symbol": "bro_flora_update",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.update",
+      "symbol": "bro_flora_update",
+      "returnType": "void",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.clear",
+      "symbol": "bro_flora_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.clear",
+      "symbol": "bro_flora_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.clear",
+      "symbol": "bro_flora_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.placement",
+      "symbol": "bro_flora_placement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.placement",
+      "symbol": "bro_flora_placement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.placement",
+      "symbol": "bro_flora_placement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.addPlacement",
+      "symbol": "bro_flora_addPlacement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.addPlacement",
+      "symbol": "bro_flora_addPlacement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.addPlacement",
+      "symbol": "bro_flora_addPlacement",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.batches",
+      "symbol": "bro_flora_batches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.batches",
+      "symbol": "bro_flora_batches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.batches",
+      "symbol": "bro_flora_batches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flora.getBatches",
+      "symbol": "bro_flora_getBatches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.getBatches",
+      "symbol": "bro_flora_getBatches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "flora.getBatches",
+      "symbol": "bro_flora_getBatches",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "addPrototype",
+      "symbol": "bro_FloraWorld_addPrototype",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "addVoronoiSite",
+      "symbol": "bro_FloraWorld_addVoronoiSite",
+      "returnType": "dynamic",
+      "returnClass": "FloraWorld",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "addPlant",
+      "symbol": "bro_FloraWorld_addPlant",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "removePlant",
+      "symbol": "bro_FloraWorld_removePlant",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "step",
+      "symbol": "bro_FloraWorld_step",
+      "returnType": "dynamic",
+      "returnClass": "FloraWorld",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "plantInfo",
+      "symbol": "bro_FloraWorld_plantInfo",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "setClimate",
+      "symbol": "bro_FloraWorld_setClimate",
+      "returnType": "dynamic",
+      "returnClass": "FloraWorld",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "sampleShadow",
+      "symbol": "bro_FloraWorld_sampleShadow",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "validate",
+      "symbol": "bro_FloraWorld_validate",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "emitMesh",
+      "symbol": "bro_FloraWorld_emitMesh",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "emitSegments",
+      "symbol": "bro_FloraWorld_emitSegments",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "emitFoliage",
+      "symbol": "bro_FloraWorld_emitFoliage",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.flora.FloraWorld",
+      "name": "emitBloomAnchors",
+      "symbol": "bro_FloraWorld_emitBloomAnchors",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

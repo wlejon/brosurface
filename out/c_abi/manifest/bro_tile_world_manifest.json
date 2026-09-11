@@ -1,0 +1,814 @@
+{
+  "version": "1.0.0",
+  "subsystem": "tile_world",
+  "namespaces": {},
+  "classes": {
+    "bro.tile_world.TileWorld": {
+      "name": "TileWorld",
+      "methods": {
+        "update": {
+          "symbol": "bro_TileWorld_update",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setTile": {
+          "symbol": "bro_TileWorld_setTile",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "getTile": {
+          "symbol": "bro_TileWorld_getTile",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "fillRect": {
+          "symbol": "bro_TileWorld_fillRect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "clearLayer": {
+          "symbol": "bro_TileWorld_clearLayer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "pickTile": {
+          "symbol": "bro_TileWorld_pickTile",
+          "returnType": "dynamic",
+          "returnClass": "TilePickResult",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "findPath": {
+          "symbol": "bro_TileWorld_findPath",
+          "returnType": "dynamic",
+          "returnClass": "TilePathResult",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "computeRegions": {
+          "symbol": "bro_TileWorld_computeRegions",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "applyAutotile": {
+          "symbol": "bro_TileWorld_applyAutotile",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "extractVoxelMesh": {
+          "symbol": "bro_TileWorld_extractVoxelMesh",
+          "returnType": "dynamic",
+          "returnClass": "Mesh",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "setOrigin": {
+          "symbol": "bro_TileWorld_setOrigin",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "advance": {
+          "symbol": "bro_TileWorld_advance",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "addObjectKind": {
+          "symbol": "bro_TileWorld_addObjectKind",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "addObject": {
+          "symbol": "bro_TileWorld_addObject",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clearObjects": {
+          "symbol": "bro_TileWorld_clearObjects",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "objectCount": {
+          "symbol": "bro_TileWorld_objectCount",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "rebuildObjects": {
+          "symbol": "bro_TileWorld_rebuildObjects",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "rebuild": {
+          "symbol": "bro_TileWorld_rebuild",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "rebuildAll": {
+          "symbol": "bro_TileWorld_rebuildAll",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "configure": {
+          "symbol": "bro_TileWorld_configure",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "save": {
+          "symbol": "bro_TileWorld_save",
+          "returnType": "dynamic",
+          "returnClass": "ArrayBuffer",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "load": {
+          "symbol": "bro_TileWorld_load",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_TileWorld_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "node": {
+          "getter": "bro_TileWorld_get_node",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "SceneNode"
+        },
+        "width": {
+          "getter": "bro_TileWorld_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_TileWorld_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "chunkCount": {
+          "getter": "bro_TileWorld_get_chunkCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "chunks": {
+          "getter": "bro_TileWorld_get_chunks",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "paging": {
+          "getter": "bro_TileWorld_get_paging",
+          "setter": "bro_TileWorld_set_paging",
+          "returnType": "bool"
+        },
+        "vertexCount": {
+          "getter": "bro_TileWorld_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "triangleCount": {
+          "getter": "bro_TileWorld_get_triangleCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TileWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TileWorld_destroy"
+      }
+    },
+    "TileWorld": {
+      "name": "TileWorld",
+      "methods": {
+        "update": {
+          "symbol": "bro_TileWorld_update",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setTile": {
+          "symbol": "bro_TileWorld_setTile",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "getTile": {
+          "symbol": "bro_TileWorld_getTile",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "fillRect": {
+          "symbol": "bro_TileWorld_fillRect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "clearLayer": {
+          "symbol": "bro_TileWorld_clearLayer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "pickTile": {
+          "symbol": "bro_TileWorld_pickTile",
+          "returnType": "dynamic",
+          "returnClass": "TilePickResult",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "findPath": {
+          "symbol": "bro_TileWorld_findPath",
+          "returnType": "dynamic",
+          "returnClass": "TilePathResult",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "computeRegions": {
+          "symbol": "bro_TileWorld_computeRegions",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "applyAutotile": {
+          "symbol": "bro_TileWorld_applyAutotile",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "extractVoxelMesh": {
+          "symbol": "bro_TileWorld_extractVoxelMesh",
+          "returnType": "dynamic",
+          "returnClass": "Mesh",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "setOrigin": {
+          "symbol": "bro_TileWorld_setOrigin",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "advance": {
+          "symbol": "bro_TileWorld_advance",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "addObjectKind": {
+          "symbol": "bro_TileWorld_addObjectKind",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "addObject": {
+          "symbol": "bro_TileWorld_addObject",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clearObjects": {
+          "symbol": "bro_TileWorld_clearObjects",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "objectCount": {
+          "symbol": "bro_TileWorld_objectCount",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "rebuildObjects": {
+          "symbol": "bro_TileWorld_rebuildObjects",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "rebuild": {
+          "symbol": "bro_TileWorld_rebuild",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "rebuildAll": {
+          "symbol": "bro_TileWorld_rebuildAll",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "configure": {
+          "symbol": "bro_TileWorld_configure",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "save": {
+          "symbol": "bro_TileWorld_save",
+          "returnType": "dynamic",
+          "returnClass": "ArrayBuffer",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "load": {
+          "symbol": "bro_TileWorld_load",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_TileWorld_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "node": {
+          "getter": "bro_TileWorld_get_node",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "SceneNode"
+        },
+        "width": {
+          "getter": "bro_TileWorld_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_TileWorld_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "chunkCount": {
+          "getter": "bro_TileWorld_get_chunkCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "chunks": {
+          "getter": "bro_TileWorld_get_chunks",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "paging": {
+          "getter": "bro_TileWorld_get_paging",
+          "setter": "bro_TileWorld_set_paging",
+          "returnType": "bool"
+        },
+        "vertexCount": {
+          "getter": "bro_TileWorld_get_vertexCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "triangleCount": {
+          "getter": "bro_TileWorld_get_triangleCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TileWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TileWorld_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "update",
+      "symbol": "bro_TileWorld_update",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "setTile",
+      "symbol": "bro_TileWorld_setTile",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "getTile",
+      "symbol": "bro_TileWorld_getTile",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "fillRect",
+      "symbol": "bro_TileWorld_fillRect",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "clearLayer",
+      "symbol": "bro_TileWorld_clearLayer",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "pickTile",
+      "symbol": "bro_TileWorld_pickTile",
+      "returnType": "dynamic",
+      "returnClass": "TilePickResult",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "findPath",
+      "symbol": "bro_TileWorld_findPath",
+      "returnType": "dynamic",
+      "returnClass": "TilePathResult",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "computeRegions",
+      "symbol": "bro_TileWorld_computeRegions",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "applyAutotile",
+      "symbol": "bro_TileWorld_applyAutotile",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "extractVoxelMesh",
+      "symbol": "bro_TileWorld_extractVoxelMesh",
+      "returnType": "dynamic",
+      "returnClass": "Mesh",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "setOrigin",
+      "symbol": "bro_TileWorld_setOrigin",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "advance",
+      "symbol": "bro_TileWorld_advance",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "addObjectKind",
+      "symbol": "bro_TileWorld_addObjectKind",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "addObject",
+      "symbol": "bro_TileWorld_addObject",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "clearObjects",
+      "symbol": "bro_TileWorld_clearObjects",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "objectCount",
+      "symbol": "bro_TileWorld_objectCount",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "rebuildObjects",
+      "symbol": "bro_TileWorld_rebuildObjects",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "rebuild",
+      "symbol": "bro_TileWorld_rebuild",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "rebuildAll",
+      "symbol": "bro_TileWorld_rebuildAll",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "configure",
+      "symbol": "bro_TileWorld_configure",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "save",
+      "symbol": "bro_TileWorld_save",
+      "returnType": "dynamic",
+      "returnClass": "ArrayBuffer",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "load",
+      "symbol": "bro_TileWorld_load",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.tile_world.TileWorld",
+      "name": "destroy",
+      "symbol": "bro_TileWorld_destroy",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

@@ -267,6 +267,12 @@ interface Terrain {
    */
   void setHeightSource(Function? fn);
 
+  unrestricted double heightAt(unrestricted double x, unrestricted double z);
+  sequence<unrestricted double> normalAt(unrestricted double x, unrestricted double z);
+  unrestricted double elevation(unrestricted double x, unrestricted double z);
+  void splat(unrestricted double x, unrestricted double z, unrestricted double radius, long layer);
+  readonly attribute long layers;
+
   /**
    * Release all terrain meshes, destroy chunk structures, and detach from scene graph.
    */

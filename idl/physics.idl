@@ -105,6 +105,7 @@ namespace Physics {
   object? getBodyProperties(long tag);
   void setAreaOverride(long tag, object config);
   void setTimeStep(double dt);
+  void step(double dt);
   void setInterpolation(boolean enabled);
   boolean getInterpolation();
   boolean isActive(long tag);
