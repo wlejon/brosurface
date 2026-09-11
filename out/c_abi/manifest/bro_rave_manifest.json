@@ -1,0 +1,221 @@
+{
+  "version": "1.0.0",
+  "subsystem": "rave",
+  "namespaces": {
+    "bro.rave": {
+      "functions": {
+        "init": {
+          "symbol": "bro_rave_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "loadRave": {
+          "symbol": "bro_rave_loadRave",
+          "returnType": "dynamic",
+          "returnClass": "Rave",
+          "paramTypes": [
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.rave.Rave": {
+      "name": "Rave",
+      "methods": {
+        "encode": {
+          "symbol": "bro_Rave_encode",
+          "returnType": "dynamic",
+          "returnClass": "RaveLatent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_Rave_decode",
+          "returnType": "dynamic",
+          "returnClass": "RaveAudioBuffer",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_Rave_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "sampleRate": {
+          "getter": "bro_Rave_get_sampleRate",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nLatent": {
+          "getter": "bro_Rave_get_nLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "fullLatent": {
+          "getter": "bro_Rave_get_fullLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nBand": {
+          "getter": "bro_Rave_get_nBand",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "totalRatio": {
+          "getter": "bro_Rave_get_totalRatio",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Rave_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Rave_destroy"
+      }
+    },
+    "Rave": {
+      "name": "Rave",
+      "methods": {
+        "encode": {
+          "symbol": "bro_Rave_encode",
+          "returnType": "dynamic",
+          "returnClass": "RaveLatent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_Rave_decode",
+          "returnType": "dynamic",
+          "returnClass": "RaveAudioBuffer",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_Rave_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "sampleRate": {
+          "getter": "bro_Rave_get_sampleRate",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nLatent": {
+          "getter": "bro_Rave_get_nLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "fullLatent": {
+          "getter": "bro_Rave_get_fullLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nBand": {
+          "getter": "bro_Rave_get_nBand",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "totalRatio": {
+          "getter": "bro_Rave_get_totalRatio",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Rave_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Rave_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.rave.Rave",
+      "name": "encode",
+      "symbol": "bro_Rave_encode",
+      "returnType": "dynamic",
+      "returnClass": "RaveLatent",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.rave.Rave",
+      "name": "decode",
+      "symbol": "bro_Rave_decode",
+      "returnType": "dynamic",
+      "returnClass": "RaveAudioBuffer",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rave.init",
+      "symbol": "bro_rave_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_rave_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rave.loadRave",
+      "symbol": "bro_rave_loadRave",
+      "returnType": "dynamic",
+      "returnClass": "Rave",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.loadRave",
+      "symbol": "bro_rave_loadRave",
+      "returnType": "dynamic",
+      "returnClass": "Rave",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    }
+  ]
+}

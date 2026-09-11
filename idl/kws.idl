@@ -136,6 +136,7 @@ interface KwsStreamView {
   cpp_epilogue="void tickKws(JSContext* ctx) {\n    for (auto it = g_kws.tenants.begin(); it != g_kws.tenants.end(); ) {\n        KwsTenant* t = it->second.get();\n        // Prune a tenant whose stream has closed (handle .close()'d or GC'd).\n        // The stream's teardown removed its inference task (a barrier), so the\n        // onSpots closure can no longer run \u2014 safe to drop the tenant. Default\n        // mic is never invalid, so its tenant is never pruned here.\n        if (!listenHostValid(t->streamId)) {\n            stopListening(t);   // frees onSpot (detach is a no-op \u2014 stream gone)\n            it = g_kws.tenants.erase(it);\n            continue;\n        }\n        drainTenant(ctx, t);\n        ++it;\n    }\n}\n\nvoid cleanupKwsBindings(JSContext* /*ctx*/) {\n    unloadAll();\n    g_kws.audioEngine = nullptr;\n    g_kws.inference   = nullptr;\n    g_kws.ctx         = nullptr;\n}"
 ]
 namespace kws {
+  void init();
   void load(KwsPolicyOptions opts);
   void unload();
   long enroll(DOMString name, (Int32Array or sequence<long>) phonemeIds, optional KwsPolicyOptions policy);

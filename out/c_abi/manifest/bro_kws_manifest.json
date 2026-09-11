@@ -1,0 +1,1165 @@
+{
+  "version": "1.0.0",
+  "subsystem": "kws",
+  "namespaces": {
+    "bro.kws": {
+      "functions": {
+        "init": {
+          "symbol": "bro_kws_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "load": {
+          "symbol": "bro_kws_load",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "unload": {
+          "symbol": "bro_kws_unload",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "enroll": {
+          "symbol": "bro_kws_enroll",
+          "returnType": "i32",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromAudio": {
+          "symbol": "bro_kws_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromClasses": {
+          "symbol": "bro_kws_enrollFromClasses",
+          "returnType": "i32",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_kws_inspect",
+          "returnType": "dynamic",
+          "returnClass": "KwsInspection",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_kws_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_kws_clear",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "templates": {
+          "symbol": "bro_kws_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": []
+        },
+        "reset": {
+          "symbol": "bro_kws_reset",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "listen": {
+          "symbol": "bro_kws_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_kws_stop",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "suspend": {
+          "symbol": "bro_kws_suspend",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "resume": {
+          "symbol": "bro_kws_resume",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "isActive": {
+          "symbol": "bro_kws_isActive",
+          "returnType": "bool",
+          "paramTypes": []
+        },
+        "isSuspended": {
+          "symbol": "bro_kws_isSuspended",
+          "returnType": "bool",
+          "paramTypes": []
+        },
+        "isLoaded": {
+          "symbol": "bro_kws_isLoaded",
+          "returnType": "bool",
+          "paramTypes": []
+        },
+        "sampleRate": {
+          "symbol": "bro_kws_sampleRate",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "prefixProgress": {
+          "symbol": "bro_kws_prefixProgress",
+          "returnType": "f64",
+          "paramTypes": []
+        },
+        "progress": {
+          "symbol": "bro_kws_progress",
+          "returnType": "dynamic",
+          "returnClass": "KwsProgress",
+          "paramTypes": []
+        },
+        "posterior": {
+          "symbol": "bro_kws_posterior",
+          "returnType": "dynamic",
+          "returnClass": "KwsPosterior",
+          "paramTypes": [
+            "i32"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_kws_stats",
+          "returnType": "dynamic",
+          "returnClass": "KwsStats",
+          "paramTypes": []
+        },
+        "feed": {
+          "symbol": "bro_kws_feed",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.kws.KwsStreamView": {
+      "name": "KwsStreamView",
+      "methods": {
+        "enroll": {
+          "symbol": "bro_KwsStreamView_enroll",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromAudio": {
+          "symbol": "bro_KwsStreamView_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromClasses": {
+          "symbol": "bro_KwsStreamView_enrollFromClasses",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_KwsStreamView_inspect",
+          "returnType": "dynamic",
+          "returnClass": "KwsInspection",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_KwsStreamView_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_KwsStreamView_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "templates": {
+          "symbol": "bro_KwsStreamView_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_KwsStreamView_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "listen": {
+          "symbol": "bro_KwsStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_KwsStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "suspend": {
+          "symbol": "bro_KwsStreamView_suspend",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_KwsStreamView_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_KwsStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isSuspended": {
+          "symbol": "bro_KwsStreamView_isSuspended",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isLoaded": {
+          "symbol": "bro_KwsStreamView_isLoaded",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_KwsStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "prefixProgress": {
+          "symbol": "bro_KwsStreamView_prefixProgress",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "progress": {
+          "symbol": "bro_KwsStreamView_progress",
+          "returnType": "dynamic",
+          "returnClass": "KwsProgress",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "posterior": {
+          "symbol": "bro_KwsStreamView_posterior",
+          "returnType": "dynamic",
+          "returnClass": "KwsPosterior",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_KwsStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "KwsStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_KwsStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_KwsStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_KwsStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_KwsStreamView_destroy"
+      }
+    },
+    "KwsStreamView": {
+      "name": "KwsStreamView",
+      "methods": {
+        "enroll": {
+          "symbol": "bro_KwsStreamView_enroll",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromAudio": {
+          "symbol": "bro_KwsStreamView_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "enrollFromClasses": {
+          "symbol": "bro_KwsStreamView_enrollFromClasses",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_KwsStreamView_inspect",
+          "returnType": "dynamic",
+          "returnClass": "KwsInspection",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_KwsStreamView_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_KwsStreamView_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "templates": {
+          "symbol": "bro_KwsStreamView_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_KwsStreamView_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "listen": {
+          "symbol": "bro_KwsStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_KwsStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "suspend": {
+          "symbol": "bro_KwsStreamView_suspend",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_KwsStreamView_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_KwsStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isSuspended": {
+          "symbol": "bro_KwsStreamView_isSuspended",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isLoaded": {
+          "symbol": "bro_KwsStreamView_isLoaded",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_KwsStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "prefixProgress": {
+          "symbol": "bro_KwsStreamView_prefixProgress",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "progress": {
+          "symbol": "bro_KwsStreamView_progress",
+          "returnType": "dynamic",
+          "returnClass": "KwsProgress",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "posterior": {
+          "symbol": "bro_KwsStreamView_posterior",
+          "returnType": "dynamic",
+          "returnClass": "KwsPosterior",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_KwsStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "KwsStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_KwsStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_KwsStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_KwsStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_KwsStreamView_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "enroll",
+      "symbol": "bro_KwsStreamView_enroll",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "enrollFromAudio",
+      "symbol": "bro_KwsStreamView_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "enrollFromClasses",
+      "symbol": "bro_KwsStreamView_enrollFromClasses",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "inspect",
+      "symbol": "bro_KwsStreamView_inspect",
+      "returnType": "dynamic",
+      "returnClass": "KwsInspection",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "remove",
+      "symbol": "bro_KwsStreamView_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "clear",
+      "symbol": "bro_KwsStreamView_clear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "templates",
+      "symbol": "bro_KwsStreamView_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "reset",
+      "symbol": "bro_KwsStreamView_reset",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "listen",
+      "symbol": "bro_KwsStreamView_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "stop",
+      "symbol": "bro_KwsStreamView_stop",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "suspend",
+      "symbol": "bro_KwsStreamView_suspend",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "resume",
+      "symbol": "bro_KwsStreamView_resume",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "isActive",
+      "symbol": "bro_KwsStreamView_isActive",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "isSuspended",
+      "symbol": "bro_KwsStreamView_isSuspended",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "isLoaded",
+      "symbol": "bro_KwsStreamView_isLoaded",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "sampleRate",
+      "symbol": "bro_KwsStreamView_sampleRate",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "prefixProgress",
+      "symbol": "bro_KwsStreamView_prefixProgress",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "progress",
+      "symbol": "bro_KwsStreamView_progress",
+      "returnType": "dynamic",
+      "returnClass": "KwsProgress",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "posterior",
+      "symbol": "bro_KwsStreamView_posterior",
+      "returnType": "dynamic",
+      "returnClass": "KwsPosterior",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "stats",
+      "symbol": "bro_KwsStreamView_stats",
+      "returnType": "dynamic",
+      "returnClass": "KwsStats",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.kws.KwsStreamView",
+      "name": "feed",
+      "symbol": "bro_KwsStreamView_feed",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.init",
+      "symbol": "bro_kws_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_kws_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.load",
+      "symbol": "bro_kws_load",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.load",
+      "symbol": "bro_kws_load",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.unload",
+      "symbol": "bro_kws_unload",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.unload",
+      "symbol": "bro_kws_unload",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.enroll",
+      "symbol": "bro_kws_enroll",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.enroll",
+      "symbol": "bro_kws_enroll",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.enrollFromAudio",
+      "symbol": "bro_kws_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.enrollFromAudio",
+      "symbol": "bro_kws_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.enrollFromClasses",
+      "symbol": "bro_kws_enrollFromClasses",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.enrollFromClasses",
+      "symbol": "bro_kws_enrollFromClasses",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.inspect",
+      "symbol": "bro_kws_inspect",
+      "returnType": "dynamic",
+      "returnClass": "KwsInspection",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.inspect",
+      "symbol": "bro_kws_inspect",
+      "returnType": "dynamic",
+      "returnClass": "KwsInspection",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.remove",
+      "symbol": "bro_kws_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.remove",
+      "symbol": "bro_kws_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.clear",
+      "symbol": "bro_kws_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.clear",
+      "symbol": "bro_kws_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.templates",
+      "symbol": "bro_kws_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.templates",
+      "symbol": "bro_kws_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.reset",
+      "symbol": "bro_kws_reset",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.reset",
+      "symbol": "bro_kws_reset",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.listen",
+      "symbol": "bro_kws_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.listen",
+      "symbol": "bro_kws_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.stop",
+      "symbol": "bro_kws_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stop",
+      "symbol": "bro_kws_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.suspend",
+      "symbol": "bro_kws_suspend",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.suspend",
+      "symbol": "bro_kws_suspend",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.resume",
+      "symbol": "bro_kws_resume",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resume",
+      "symbol": "bro_kws_resume",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.isActive",
+      "symbol": "bro_kws_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isActive",
+      "symbol": "bro_kws_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.isSuspended",
+      "symbol": "bro_kws_isSuspended",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isSuspended",
+      "symbol": "bro_kws_isSuspended",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.isLoaded",
+      "symbol": "bro_kws_isLoaded",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isLoaded",
+      "symbol": "bro_kws_isLoaded",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.sampleRate",
+      "symbol": "bro_kws_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sampleRate",
+      "symbol": "bro_kws_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.prefixProgress",
+      "symbol": "bro_kws_prefixProgress",
+      "returnType": "f64",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.prefixProgress",
+      "symbol": "bro_kws_prefixProgress",
+      "returnType": "f64",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.progress",
+      "symbol": "bro_kws_progress",
+      "returnType": "dynamic",
+      "returnClass": "KwsProgress",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.progress",
+      "symbol": "bro_kws_progress",
+      "returnType": "dynamic",
+      "returnClass": "KwsProgress",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.posterior",
+      "symbol": "bro_kws_posterior",
+      "returnType": "dynamic",
+      "returnClass": "KwsPosterior",
+      "paramTypes": [
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.posterior",
+      "symbol": "bro_kws_posterior",
+      "returnType": "dynamic",
+      "returnClass": "KwsPosterior",
+      "paramTypes": [
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.stats",
+      "symbol": "bro_kws_stats",
+      "returnType": "dynamic",
+      "returnClass": "KwsStats",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stats",
+      "symbol": "bro_kws_stats",
+      "returnType": "dynamic",
+      "returnClass": "KwsStats",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.kws.feed",
+      "symbol": "bro_kws_feed",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.feed",
+      "symbol": "bro_kws_feed",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}
