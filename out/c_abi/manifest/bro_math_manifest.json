@@ -195,6 +195,7 @@
       "properties": {
         "size": {
           "getter": "bro_SpatialHash3D_get_size",
+          "setter": null,
           "returnType": "f64"
         }
       },
@@ -356,14 +357,17 @@
       "properties": {
         "current": {
           "getter": "bro_Smoother_get_current",
+          "setter": null,
           "returnType": "f64"
         },
         "target": {
           "getter": "bro_Smoother_get_target",
+          "setter": null,
           "returnType": "f64"
         },
         "coeff": {
           "getter": "bro_Smoother_get_coeff",
+          "setter": null,
           "returnType": "f64"
         }
       },

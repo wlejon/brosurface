@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "subsystem": "time",
+  "namespaces": {
+    "bro.time": {
+      "functions": {},
+      "properties": {
+        "scale": {
+          "getter": "bro_time_get_scale",
+          "setter": "bro_time_set_scale",
+          "returnType": "f64"
+        },
+        "paused": {
+          "getter": "bro_time_get_paused",
+          "setter": "bro_time_set_paused",
+          "returnType": "bool"
+        },
+        "now": {
+          "getter": "bro_time_get_now",
+          "setter": null,
+          "returnType": "f64"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.time.scale",
+      "getter": "bro_time_get_scale",
+      "setter": "bro_time_set_scale",
+      "returnType": "f64"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.time.paused",
+      "getter": "bro_time_get_paused",
+      "setter": "bro_time_set_paused",
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.time.now",
+      "getter": "bro_time_get_now",
+      "setter": null,
+      "returnType": "f64"
+    }
+  ]
+}

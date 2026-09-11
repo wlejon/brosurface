@@ -169,6 +169,8 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
     cppLines.push('#include <bromath/rng.h>');
     cppLines.push('#include <bromath/smoother.h>');
     cppLines.push('#include <cstring>');
+  } else if (subsystem === 'time') {
+    cppLines.push('#include "bro/c_abi/bro_engine_c_abi.h"');
   }
   cppLines.push('');
   cppLines.push('extern "C" {');
@@ -209,6 +211,34 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
             symbol: symName,
             returnType: retBronze,
             paramTypes: paramsBronze
+          });
+        } else if (m.type === 'AttributeMember') {
+          const propName = m.name;
+          const getSym = `bro_${def.name}_get_${propName}`;
+          const retC = typeToC(m.dataType);
+          const retBronze = typeToBronze(m.dataType);
+          headerLines.push(`${retC} ${getSym}(void);`);
+
+          let setSym = null;
+          if (!m.readonly) {
+            setSym = `bro_${def.name}_set_${propName}`;
+            headerLines.push(`void ${setSym}(${retC} val);`);
+          }
+
+          if (!manifest.namespaces[nsName].properties) {
+            manifest.namespaces[nsName].properties = {};
+          }
+          manifest.namespaces[nsName].properties[propName] = {
+            getter: getSym,
+            setter: setSym,
+            returnType: retBronze
+          };
+          manifest.symbols.push({
+            kind: 'property',
+            jsPath: `${nsName}.${propName}`,
+            getter: getSym,
+            setter: setSym,
+            returnType: retBronze
           });
         }
       }
@@ -288,8 +318,15 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
 
           headerLines.push(`${retC} ${getSym}(void* self);`);
 
+          let setSym = null;
+          if (!m.readonly) {
+            setSym = `bro_${def.name}_set_${propName}`;
+            headerLines.push(`void ${setSym}(void* self, ${retC} val);`);
+          }
+
           manifest.classes[clsName].properties[propName] = {
             getter: getSym,
+            setter: setSym,
             returnType: retBronze
           };
         }
@@ -513,6 +550,44 @@ double bro_Smoother_get_coeff(void* self) {
     return static_cast<double>(static_cast<bromath::Smoother*>(self)->coeff);
 }
 `);
+  } else if (subsystem === 'time') {
+    cppLines.push(`
+static double s_fallback_time_scale = 1.0;
+static bool s_fallback_time_paused = false;
+
+double bro_time_get_scale(void) {
+    const auto* b = bro_get_time_bridge();
+    return (b && b->getTimeScale) ? b->getTimeScale() : s_fallback_time_scale;
+}
+
+void bro_time_set_scale(double val) {
+    const auto* b = bro_get_time_bridge();
+    if (b && b->setTimeScale) {
+        b->setTimeScale(val);
+    } else {
+        s_fallback_time_scale = val;
+    }
+}
+
+bool bro_time_get_paused(void) {
+    const auto* b = bro_get_time_bridge();
+    return (b && b->getTimePaused) ? b->getTimePaused() : s_fallback_time_paused;
+}
+
+void bro_time_set_paused(bool val) {
+    const auto* b = bro_get_time_bridge();
+    if (b && b->setTimePaused) {
+        b->setTimePaused(val);
+    } else {
+        s_fallback_time_paused = val;
+    }
+}
+
+double bro_time_get_now(void) {
+    const auto* b = bro_get_time_bridge();
+    return (b && b->getTimeNowMs) ? b->getTimeNowMs() : 0.0;
+}
+`);
   }
 
   cppLines.push('} // extern "C"');
@@ -549,11 +624,11 @@ export function runEmitCAbi(idlPath = 'idl/', outDir = 'out/c_abi/') {
   }
 
   const generatedFiles = [];
+  const supportedSubsystems = new Set(['math', 'time']);
 
   for (const item of astList) {
     const baseName = path.basename(item.f, '.idl');
-    if (baseName !== 'math') {
-      // Phase 1 pilot targets math
+    if (!supportedSubsystems.has(baseName)) {
       continue;
     }
 
