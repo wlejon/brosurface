@@ -134,7 +134,7 @@ interface SpatialHash3D {
   /**
    * Find nearest point ID within maxDist.
    */
-  object? nearest(double x, double y, double z, double maxDist);
+  double nearest(double x, double y, double z, double maxDist);
 
   /**
    * Clear all index buckets.

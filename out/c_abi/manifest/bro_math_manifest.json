@@ -1,0 +1,782 @@
+{
+  "version": "1.0.0",
+  "subsystem": "math",
+  "namespaces": {
+    "bro.math": {
+      "functions": {
+        "lerp": {
+          "symbol": "bro_math_lerp",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clamp": {
+          "symbol": "bro_math_clamp",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "saturate": {
+          "symbol": "bro_math_saturate",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "invLerp": {
+          "symbol": "bro_math_invLerp",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "remap": {
+          "symbol": "bro_math_remap",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "smoothstep": {
+          "symbol": "bro_math_smoothstep",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "smootherstep": {
+          "symbol": "bro_math_smootherstep",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "degToRad": {
+          "symbol": "bro_math_degToRad",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "radToDeg": {
+          "symbol": "bro_math_radToDeg",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "wrapAngle": {
+          "symbol": "bro_math_wrapAngle",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "angleDiff": {
+          "symbol": "bro_math_angleDiff",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64"
+          ]
+        },
+        "fnv1a32": {
+          "symbol": "bro_math_fnv1a32",
+          "returnType": "f64",
+          "paramTypes": [
+            "str",
+            "f64"
+          ]
+        },
+        "hashU32": {
+          "symbol": "bro_math_hashU32",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64"
+          ]
+        },
+        "cellHash": {
+          "symbol": "bro_math_cellHash",
+          "returnType": "f64",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      }
+    }
+  },
+  "classes": {
+    "bro.math.SpatialHash3D": {
+      "name": "SpatialHash3D",
+      "methods": {
+        "insert": {
+          "symbol": "bro_SpatialHash3D_insert",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_SpatialHash3D_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "queryRadius": {
+          "symbol": "bro_SpatialHash3D_queryRadius",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "queryAABB": {
+          "symbol": "bro_SpatialHash3D_queryAABB",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "nearest": {
+          "symbol": "bro_SpatialHash3D_nearest",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_SpatialHash3D_clear",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "size": {
+          "getter": "bro_SpatialHash3D_get_size",
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SpatialHash3D_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64",
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_SpatialHash3D_destroy"
+      }
+    },
+    "bro.math.Rng": {
+      "name": "Rng",
+      "methods": {
+        "reseed": {
+          "symbol": "bro_Rng_reseed",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "float01": {
+          "symbol": "bro_Rng_float01",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "signed": {
+          "symbol": "bro_Rng_signed",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "range": {
+          "symbol": "bro_Rng_range",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "int": {
+          "symbol": "bro_Rng_int",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "uint32": {
+          "symbol": "bro_Rng_uint32",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "normal": {
+          "symbol": "bro_Rng_normal",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "gaussian2D": {
+          "symbol": "bro_Rng_gaussian2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "inUnitDisc": {
+          "symbol": "bro_Rng_inUnitDisc",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "inUnitSphere": {
+          "symbol": "bro_Rng_inUnitSphere",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "onUnitSphere": {
+          "symbol": "bro_Rng_onUnitSphere",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Rng_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Rng_destroy"
+      }
+    },
+    "bro.math.Smoother": {
+      "name": "Smoother",
+      "methods": {
+        "setTime": {
+          "symbol": "bro_Smoother_setTime",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_Smoother_reset",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "setTarget": {
+          "symbol": "bro_Smoother_setTarget",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "tick": {
+          "symbol": "bro_Smoother_tick",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "tickN": {
+          "symbol": "bro_Smoother_tickN",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "current": {
+          "getter": "bro_Smoother_get_current",
+          "returnType": "f64"
+        },
+        "target": {
+          "getter": "bro_Smoother_get_target",
+          "returnType": "f64"
+        },
+        "coeff": {
+          "getter": "bro_Smoother_get_coeff",
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Smoother_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64",
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Smoother_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "bro.math.lerp",
+      "symbol": "bro_math_lerp",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.clamp",
+      "symbol": "bro_math_clamp",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.saturate",
+      "symbol": "bro_math_saturate",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.invLerp",
+      "symbol": "bro_math_invLerp",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.remap",
+      "symbol": "bro_math_remap",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.smoothstep",
+      "symbol": "bro_math_smoothstep",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.smootherstep",
+      "symbol": "bro_math_smootherstep",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.degToRad",
+      "symbol": "bro_math_degToRad",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.radToDeg",
+      "symbol": "bro_math_radToDeg",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.wrapAngle",
+      "symbol": "bro_math_wrapAngle",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.angleDiff",
+      "symbol": "bro_math_angleDiff",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.fnv1a32",
+      "symbol": "bro_math_fnv1a32",
+      "returnType": "f64",
+      "paramTypes": [
+        "str",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.hashU32",
+      "symbol": "bro_math_hashU32",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.math.cellHash",
+      "symbol": "bro_math_cellHash",
+      "returnType": "f64",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "insert",
+      "symbol": "bro_SpatialHash3D_insert",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "remove",
+      "symbol": "bro_SpatialHash3D_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "queryRadius",
+      "symbol": "bro_SpatialHash3D_queryRadius",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "queryAABB",
+      "symbol": "bro_SpatialHash3D_queryAABB",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "nearest",
+      "symbol": "bro_SpatialHash3D_nearest",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.SpatialHash3D",
+      "name": "clear",
+      "symbol": "bro_SpatialHash3D_clear",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "reseed",
+      "symbol": "bro_Rng_reseed",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "float01",
+      "symbol": "bro_Rng_float01",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "signed",
+      "symbol": "bro_Rng_signed",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "range",
+      "symbol": "bro_Rng_range",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "int",
+      "symbol": "bro_Rng_int",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "uint32",
+      "symbol": "bro_Rng_uint32",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "normal",
+      "symbol": "bro_Rng_normal",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "gaussian2D",
+      "symbol": "bro_Rng_gaussian2D",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "inUnitDisc",
+      "symbol": "bro_Rng_inUnitDisc",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "inUnitSphere",
+      "symbol": "bro_Rng_inUnitSphere",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Rng",
+      "name": "onUnitSphere",
+      "symbol": "bro_Rng_onUnitSphere",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Smoother",
+      "name": "setTime",
+      "symbol": "bro_Smoother_setTime",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Smoother",
+      "name": "reset",
+      "symbol": "bro_Smoother_reset",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Smoother",
+      "name": "setTarget",
+      "symbol": "bro_Smoother_setTarget",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Smoother",
+      "name": "tick",
+      "symbol": "bro_Smoother_tick",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.math.Smoother",
+      "name": "tickN",
+      "symbol": "bro_Smoother_tickN",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    }
+  ]
+}
