@@ -154,6 +154,7 @@
         "queryRadius": {
           "symbol": "bro_SpatialHash3D_queryRadius",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -165,6 +166,7 @@
         "queryAABB": {
           "symbol": "bro_SpatialHash3D_queryAABB",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -243,6 +245,7 @@
         "queryRadius": {
           "symbol": "bro_SpatialHash3D_queryRadius",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -254,6 +257,7 @@
         "queryAABB": {
           "symbol": "bro_SpatialHash3D_queryAABB",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -364,6 +368,7 @@
         "gaussian2D": {
           "symbol": "bro_Rng_gaussian2D",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic",
             "f64"
@@ -372,6 +377,7 @@
         "inUnitDisc": {
           "symbol": "bro_Rng_inUnitDisc",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -379,6 +385,7 @@
         "inUnitSphere": {
           "symbol": "bro_Rng_inUnitSphere",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -386,6 +393,7 @@
         "onUnitSphere": {
           "symbol": "bro_Rng_onUnitSphere",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -464,6 +472,7 @@
         "gaussian2D": {
           "symbol": "bro_Rng_gaussian2D",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic",
             "f64"
@@ -472,6 +481,7 @@
         "inUnitDisc": {
           "symbol": "bro_Rng_inUnitDisc",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -479,6 +489,7 @@
         "inUnitSphere": {
           "symbol": "bro_Rng_inUnitSphere",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -486,6 +497,7 @@
         "onUnitSphere": {
           "symbol": "bro_Rng_onUnitSphere",
           "returnType": "dynamic",
+          "returnClass": "object",
           "paramTypes": [
             "dynamic"
           ]
@@ -836,6 +848,7 @@
       "name": "queryRadius",
       "symbol": "bro_SpatialHash3D_queryRadius",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -850,6 +863,7 @@
       "name": "queryAABB",
       "symbol": "bro_SpatialHash3D_queryAABB",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -967,6 +981,7 @@
       "name": "gaussian2D",
       "symbol": "bro_Rng_gaussian2D",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic",
         "f64"
@@ -978,6 +993,7 @@
       "name": "inUnitDisc",
       "symbol": "bro_Rng_inUnitDisc",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -988,6 +1004,7 @@
       "name": "inUnitSphere",
       "symbol": "bro_Rng_inUnitSphere",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]
@@ -998,6 +1015,7 @@
       "name": "onUnitSphere",
       "symbol": "bro_Rng_onUnitSphere",
       "returnType": "dynamic",
+      "returnClass": "object",
       "paramTypes": [
         "dynamic"
       ]

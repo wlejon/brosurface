@@ -213,12 +213,14 @@
         "frequency": {
           "getter": "bro_OscillatorNode_get_frequency",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "detune": {
           "getter": "bro_OscillatorNode_get_detune",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -274,12 +276,14 @@
         "frequency": {
           "getter": "bro_OscillatorNode_get_frequency",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "detune": {
           "getter": "bro_OscillatorNode_get_detune",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -314,7 +318,8 @@
         "gain": {
           "getter": "bro_GainNode_get_gain",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -349,7 +354,8 @@
         "gain": {
           "getter": "bro_GainNode_get_gain",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -399,22 +405,26 @@
         "frequency": {
           "getter": "bro_BiquadFilterNode_get_frequency",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "detune": {
           "getter": "bro_BiquadFilterNode_get_detune",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "Q": {
           "getter": "bro_BiquadFilterNode_get_Q",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "gain": {
           "getter": "bro_BiquadFilterNode_get_gain",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -464,22 +474,26 @@
         "frequency": {
           "getter": "bro_BiquadFilterNode_get_frequency",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "detune": {
           "getter": "bro_BiquadFilterNode_get_detune",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "Q": {
           "getter": "bro_BiquadFilterNode_get_Q",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         },
         "gain": {
           "getter": "bro_BiquadFilterNode_get_gain",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
         }
       },
       "constructor": {
@@ -975,6 +989,7 @@
         "listPorts": {
           "symbol": "bro_MidiInput_listPorts",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -997,6 +1012,7 @@
         "pollEvents": {
           "symbol": "bro_MidiInput_pollEvents",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1018,6 +1034,7 @@
         "listPorts": {
           "symbol": "bro_MidiInput_listPorts",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1040,6 +1057,7 @@
         "pollEvents": {
           "symbol": "bro_MidiInput_pollEvents",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1079,6 +1097,7 @@
         "getNotes": {
           "symbol": "bro_Sequence_getNotes",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1134,6 +1153,7 @@
         "getNotes": {
           "symbol": "bro_Sequence_getNotes",
           "returnType": "dynamic",
+          "returnClass": "sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1171,6 +1191,7 @@
         "createOscillator": {
           "symbol": "bro_AudioContext_createOscillator",
           "returnType": "dynamic",
+          "returnClass": "OscillatorNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1178,6 +1199,7 @@
         "createGain": {
           "symbol": "bro_AudioContext_createGain",
           "returnType": "dynamic",
+          "returnClass": "GainNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1185,6 +1207,7 @@
         "createBiquadFilter": {
           "symbol": "bro_AudioContext_createBiquadFilter",
           "returnType": "dynamic",
+          "returnClass": "BiquadFilterNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1192,6 +1215,7 @@
         "createAnalyser": {
           "symbol": "bro_AudioContext_createAnalyser",
           "returnType": "dynamic",
+          "returnClass": "AnalyserNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1199,6 +1223,7 @@
         "createMediaStreamSource": {
           "symbol": "bro_AudioContext_createMediaStreamSource",
           "returnType": "dynamic",
+          "returnClass": "MediaStreamAudioSourceNode",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -1207,6 +1232,7 @@
         "createVoiceAllocator": {
           "symbol": "bro_AudioContext_createVoiceAllocator",
           "returnType": "dynamic",
+          "returnClass": "VoiceAllocator",
           "paramTypes": [
             "dynamic",
             "i32"
@@ -1215,6 +1241,7 @@
         "createModMatrix": {
           "symbol": "bro_AudioContext_createModMatrix",
           "returnType": "dynamic",
+          "returnClass": "ModMatrix",
           "paramTypes": [
             "dynamic"
           ]
@@ -1222,6 +1249,7 @@
         "createMidiInput": {
           "symbol": "bro_AudioContext_createMidiInput",
           "returnType": "dynamic",
+          "returnClass": "MidiInput",
           "paramTypes": [
             "dynamic"
           ]
@@ -1229,6 +1257,7 @@
         "createSequence": {
           "symbol": "bro_AudioContext_createSequence",
           "returnType": "dynamic",
+          "returnClass": "Sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1264,6 +1293,7 @@
         "stopRecording": {
           "symbol": "bro_AudioContext_stopRecording",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic"
           ]
@@ -1279,6 +1309,7 @@
         "createClipFromFileAsync": {
           "symbol": "bro_AudioContext_createClipFromFileAsync",
           "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
           "paramTypes": [
             "dynamic",
             "str"
@@ -1287,6 +1318,7 @@
         "decodeAudioData": {
           "symbol": "bro_AudioContext_decodeAudioData",
           "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -1295,6 +1327,7 @@
         "decodeAudioFile": {
           "symbol": "bro_AudioContext_decodeAudioFile",
           "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
           "paramTypes": [
             "dynamic",
             "str"
@@ -1355,6 +1388,7 @@
         "getClipWaveform": {
           "symbol": "bro_AudioContext_getClipWaveform",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "i32",
@@ -1410,6 +1444,7 @@
         "getStreamStats": {
           "symbol": "bro_AudioContext_getStreamStats",
           "returnType": "dynamic",
+          "returnClass": "StreamStats",
           "paramTypes": [
             "dynamic",
             "i32"
@@ -1523,7 +1558,8 @@
         "destination": {
           "getter": "bro_AudioContext_get_destination",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioDestinationNode"
         }
       },
       "constructor": {
@@ -1541,6 +1577,7 @@
         "createOscillator": {
           "symbol": "bro_AudioContext_createOscillator",
           "returnType": "dynamic",
+          "returnClass": "OscillatorNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1548,6 +1585,7 @@
         "createGain": {
           "symbol": "bro_AudioContext_createGain",
           "returnType": "dynamic",
+          "returnClass": "GainNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1555,6 +1593,7 @@
         "createBiquadFilter": {
           "symbol": "bro_AudioContext_createBiquadFilter",
           "returnType": "dynamic",
+          "returnClass": "BiquadFilterNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1562,6 +1601,7 @@
         "createAnalyser": {
           "symbol": "bro_AudioContext_createAnalyser",
           "returnType": "dynamic",
+          "returnClass": "AnalyserNode",
           "paramTypes": [
             "dynamic"
           ]
@@ -1569,6 +1609,7 @@
         "createMediaStreamSource": {
           "symbol": "bro_AudioContext_createMediaStreamSource",
           "returnType": "dynamic",
+          "returnClass": "MediaStreamAudioSourceNode",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -1577,6 +1618,7 @@
         "createVoiceAllocator": {
           "symbol": "bro_AudioContext_createVoiceAllocator",
           "returnType": "dynamic",
+          "returnClass": "VoiceAllocator",
           "paramTypes": [
             "dynamic",
             "i32"
@@ -1585,6 +1627,7 @@
         "createModMatrix": {
           "symbol": "bro_AudioContext_createModMatrix",
           "returnType": "dynamic",
+          "returnClass": "ModMatrix",
           "paramTypes": [
             "dynamic"
           ]
@@ -1592,6 +1635,7 @@
         "createMidiInput": {
           "symbol": "bro_AudioContext_createMidiInput",
           "returnType": "dynamic",
+          "returnClass": "MidiInput",
           "paramTypes": [
             "dynamic"
           ]
@@ -1599,6 +1643,7 @@
         "createSequence": {
           "symbol": "bro_AudioContext_createSequence",
           "returnType": "dynamic",
+          "returnClass": "Sequence",
           "paramTypes": [
             "dynamic"
           ]
@@ -1634,6 +1679,7 @@
         "stopRecording": {
           "symbol": "bro_AudioContext_stopRecording",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic"
           ]
@@ -1649,6 +1695,7 @@
         "createClipFromFileAsync": {
           "symbol": "bro_AudioContext_createClipFromFileAsync",
           "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
           "paramTypes": [
             "dynamic",
             "str"
@@ -1657,6 +1704,7 @@
         "decodeAudioData": {
           "symbol": "bro_AudioContext_decodeAudioData",
           "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
           "paramTypes": [
             "dynamic",
             "dynamic"
@@ -1665,6 +1713,7 @@
         "decodeAudioFile": {
           "symbol": "bro_AudioContext_decodeAudioFile",
           "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
           "paramTypes": [
             "dynamic",
             "str"
@@ -1725,6 +1774,7 @@
         "getClipWaveform": {
           "symbol": "bro_AudioContext_getClipWaveform",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "i32",
@@ -1780,6 +1830,7 @@
         "getStreamStats": {
           "symbol": "bro_AudioContext_getStreamStats",
           "returnType": "dynamic",
+          "returnClass": "StreamStats",
           "paramTypes": [
             "dynamic",
             "i32"
@@ -1893,7 +1944,8 @@
         "destination": {
           "getter": "bro_AudioContext_get_destination",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "AudioDestinationNode"
         }
       },
       "constructor": {
@@ -2259,6 +2311,7 @@
       "name": "listPorts",
       "symbol": "bro_MidiInput_listPorts",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2290,6 +2343,7 @@
       "name": "pollEvents",
       "symbol": "bro_MidiInput_pollEvents",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2324,6 +2378,7 @@
       "name": "getNotes",
       "symbol": "bro_Sequence_getNotes",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2334,6 +2389,7 @@
       "name": "createOscillator",
       "symbol": "bro_AudioContext_createOscillator",
       "returnType": "dynamic",
+      "returnClass": "OscillatorNode",
       "paramTypes": [
         "dynamic"
       ]
@@ -2344,6 +2400,7 @@
       "name": "createGain",
       "symbol": "bro_AudioContext_createGain",
       "returnType": "dynamic",
+      "returnClass": "GainNode",
       "paramTypes": [
         "dynamic"
       ]
@@ -2354,6 +2411,7 @@
       "name": "createBiquadFilter",
       "symbol": "bro_AudioContext_createBiquadFilter",
       "returnType": "dynamic",
+      "returnClass": "BiquadFilterNode",
       "paramTypes": [
         "dynamic"
       ]
@@ -2364,6 +2422,7 @@
       "name": "createAnalyser",
       "symbol": "bro_AudioContext_createAnalyser",
       "returnType": "dynamic",
+      "returnClass": "AnalyserNode",
       "paramTypes": [
         "dynamic"
       ]
@@ -2374,6 +2433,7 @@
       "name": "createMediaStreamSource",
       "symbol": "bro_AudioContext_createMediaStreamSource",
       "returnType": "dynamic",
+      "returnClass": "MediaStreamAudioSourceNode",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -2385,6 +2445,7 @@
       "name": "createVoiceAllocator",
       "symbol": "bro_AudioContext_createVoiceAllocator",
       "returnType": "dynamic",
+      "returnClass": "VoiceAllocator",
       "paramTypes": [
         "dynamic",
         "i32"
@@ -2396,6 +2457,7 @@
       "name": "createModMatrix",
       "symbol": "bro_AudioContext_createModMatrix",
       "returnType": "dynamic",
+      "returnClass": "ModMatrix",
       "paramTypes": [
         "dynamic"
       ]
@@ -2406,6 +2468,7 @@
       "name": "createMidiInput",
       "symbol": "bro_AudioContext_createMidiInput",
       "returnType": "dynamic",
+      "returnClass": "MidiInput",
       "paramTypes": [
         "dynamic"
       ]
@@ -2416,6 +2479,7 @@
       "name": "createSequence",
       "symbol": "bro_AudioContext_createSequence",
       "returnType": "dynamic",
+      "returnClass": "Sequence",
       "paramTypes": [
         "dynamic"
       ]
@@ -2466,6 +2530,7 @@
       "name": "stopRecording",
       "symbol": "bro_AudioContext_stopRecording",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic"
       ]
@@ -2487,6 +2552,7 @@
       "name": "createClipFromFileAsync",
       "symbol": "bro_AudioContext_createClipFromFileAsync",
       "returnType": "dynamic",
+      "returnClass": "AsyncHandle",
       "paramTypes": [
         "dynamic",
         "str"
@@ -2498,6 +2564,7 @@
       "name": "decodeAudioData",
       "symbol": "bro_AudioContext_decodeAudioData",
       "returnType": "dynamic",
+      "returnClass": "AudioDecodedBuffer",
       "paramTypes": [
         "dynamic",
         "dynamic"
@@ -2509,6 +2576,7 @@
       "name": "decodeAudioFile",
       "symbol": "bro_AudioContext_decodeAudioFile",
       "returnType": "dynamic",
+      "returnClass": "AudioDecodedBuffer",
       "paramTypes": [
         "dynamic",
         "str"
@@ -2590,6 +2658,7 @@
       "name": "getClipWaveform",
       "symbol": "bro_AudioContext_getClipWaveform",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "i32",
@@ -2663,6 +2732,7 @@
       "name": "getStreamStats",
       "symbol": "bro_AudioContext_getStreamStats",
       "returnType": "dynamic",
+      "returnClass": "StreamStats",
       "paramTypes": [
         "dynamic",
         "i32"

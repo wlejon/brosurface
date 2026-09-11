@@ -1,0 +1,343 @@
+{
+  "version": "1.0.0",
+  "subsystem": "abort",
+  "namespaces": {},
+  "classes": {
+    "bro.abort.AbortSignal": {
+      "name": "AbortSignal",
+      "methods": {
+        "addEventListener": {
+          "symbol": "bro_AbortSignal_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_AbortSignal_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "dispatchEvent": {
+          "symbol": "bro_AbortSignal_dispatchEvent",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "throwIfAborted": {
+          "symbol": "bro_AbortSignal_throwIfAborted",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "aborted": {
+          "getter": "bro_AbortSignal_get_aborted",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "reason": {
+          "getter": "bro_AbortSignal_get_reason",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        },
+        "onabort": {
+          "getter": "bro_AbortSignal_get_onabort",
+          "setter": "bro_AbortSignal_set_onabort",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AbortSignal_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AbortSignal_destroy"
+      }
+    },
+    "AbortSignal": {
+      "name": "AbortSignal",
+      "methods": {
+        "addEventListener": {
+          "symbol": "bro_AbortSignal_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_AbortSignal_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "dispatchEvent": {
+          "symbol": "bro_AbortSignal_dispatchEvent",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "throwIfAborted": {
+          "symbol": "bro_AbortSignal_throwIfAborted",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "aborted": {
+          "getter": "bro_AbortSignal_get_aborted",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "reason": {
+          "getter": "bro_AbortSignal_get_reason",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        },
+        "onabort": {
+          "getter": "bro_AbortSignal_get_onabort",
+          "setter": "bro_AbortSignal_set_onabort",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AbortSignal_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AbortSignal_destroy"
+      }
+    },
+    "bro.abort.AbortController": {
+      "name": "AbortController",
+      "methods": {
+        "abort": {
+          "symbol": "bro_AbortController_abort",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "signal": {
+          "getter": "bro_AbortController_get_signal",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AbortSignal"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AbortController_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AbortController_destroy"
+      }
+    },
+    "AbortController": {
+      "name": "AbortController",
+      "methods": {
+        "abort": {
+          "symbol": "bro_AbortController_abort",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "signal": {
+          "getter": "bro_AbortController_get_signal",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AbortSignal"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AbortController_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AbortController_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.abort.AbortSignal",
+      "name": "addEventListener",
+      "symbol": "bro_AbortSignal_addEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.abort.AbortSignal",
+      "name": "removeEventListener",
+      "symbol": "bro_AbortSignal_removeEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.abort.AbortSignal",
+      "name": "dispatchEvent",
+      "symbol": "bro_AbortSignal_dispatchEvent",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.abort.AbortSignal",
+      "name": "throwIfAborted",
+      "symbol": "bro_AbortSignal_throwIfAborted",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "AbortSignal.abort",
+      "symbol": "bro_AbortSignal_abort",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.AbortSignal.abort",
+      "symbol": "bro_AbortSignal_abort",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.abort",
+      "symbol": "bro_AbortSignal_abort",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "AbortSignal.timeout",
+      "symbol": "bro_AbortSignal_timeout",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.AbortSignal.timeout",
+      "symbol": "bro_AbortSignal_timeout",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.timeout",
+      "symbol": "bro_AbortSignal_timeout",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "AbortSignal.any",
+      "symbol": "bro_AbortSignal_any",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.AbortSignal.any",
+      "symbol": "bro_AbortSignal_any",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.abort.any",
+      "symbol": "bro_AbortSignal_any",
+      "returnType": "dynamic",
+      "returnClass": "AbortSignal",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.abort.AbortController",
+      "name": "abort",
+      "symbol": "bro_AbortController_abort",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

@@ -302,7 +302,9 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
           const symName = `bro_${def.name}_${fnName}`;
           const retC = typeToC(m.returnType);
           const retBronze = typeToBronze(m.returnType);
-          const returnClass = (m.returnType && m.returnType.name === def.name) ? def.name : undefined;
+          const returnClass = (retBronze === 'dynamic' && m.returnType && m.returnType.name)
+            ? m.returnType.name
+            : ((m.returnType && m.returnType.name === def.name) ? def.name : undefined);
           let paramsC = isStatic ? [] : ['void* self'];
           let paramsBronze = isStatic ? [] : ['dynamic'];
 
@@ -367,6 +369,9 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
           const getSym = `bro_${def.name}_get_${propName}`;
           const retC = typeToC(m.dataType);
           const retBronze = typeToBronze(m.dataType);
+          const propReturnClass = (retBronze === 'dynamic' && m.dataType && m.dataType.name)
+            ? m.dataType.name
+            : undefined;
 
           headerLines.push(`${retC} ${getSym}(void* self);`);
 
@@ -379,7 +384,8 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
           manifest.classes[clsName].properties[propName] = {
             getter: getSym,
             setter: setSym,
-            returnType: retBronze
+            returnType: retBronze,
+            returnClass: propReturnClass
           };
         }
       }

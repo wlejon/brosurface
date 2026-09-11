@@ -65,6 +65,7 @@
         "audio": {
           "symbol": "bro_ListenStream_audio",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "dynamic",
@@ -74,6 +75,7 @@
         "frame": {
           "symbol": "bro_ListenStream_frame",
           "returnType": "dynamic",
+          "returnClass": "long long",
           "paramTypes": [
             "dynamic"
           ]
@@ -81,6 +83,7 @@
         "info": {
           "symbol": "bro_ListenStream_info",
           "returnType": "dynamic",
+          "returnClass": "ListenRetentionInfo",
           "paramTypes": [
             "dynamic"
           ]
@@ -120,22 +123,26 @@
         "wake": {
           "getter": "bro_ListenStream_get_wake",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "WakeStreamView"
         },
         "kws": {
           "getter": "bro_ListenStream_get_kws",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "KwsStreamView"
         },
         "sense": {
           "getter": "bro_ListenStream_get_sense",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "SenseStreamView"
         },
         "gesture": {
           "getter": "bro_ListenStream_get_gesture",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "GestureStreamView"
         }
       },
       "constructor": {
@@ -161,6 +168,7 @@
         "audio": {
           "symbol": "bro_ListenStream_audio",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "dynamic",
@@ -170,6 +178,7 @@
         "frame": {
           "symbol": "bro_ListenStream_frame",
           "returnType": "dynamic",
+          "returnClass": "long long",
           "paramTypes": [
             "dynamic"
           ]
@@ -177,6 +186,7 @@
         "info": {
           "symbol": "bro_ListenStream_info",
           "returnType": "dynamic",
+          "returnClass": "ListenRetentionInfo",
           "paramTypes": [
             "dynamic"
           ]
@@ -216,22 +226,26 @@
         "wake": {
           "getter": "bro_ListenStream_get_wake",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "WakeStreamView"
         },
         "kws": {
           "getter": "bro_ListenStream_get_kws",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "KwsStreamView"
         },
         "sense": {
           "getter": "bro_ListenStream_get_sense",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "SenseStreamView"
         },
         "gesture": {
           "getter": "bro_ListenStream_get_gesture",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "GestureStreamView"
         }
       },
       "constructor": {
@@ -262,6 +276,7 @@
       "name": "audio",
       "symbol": "bro_ListenStream_audio",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "dynamic",
@@ -274,6 +289,7 @@
       "name": "frame",
       "symbol": "bro_ListenStream_frame",
       "returnType": "dynamic",
+      "returnClass": "long long",
       "paramTypes": [
         "dynamic"
       ]
@@ -284,6 +300,7 @@
       "name": "info",
       "symbol": "bro_ListenStream_info",
       "returnType": "dynamic",
+      "returnClass": "ListenRetentionInfo",
       "paramTypes": [
         "dynamic"
       ]

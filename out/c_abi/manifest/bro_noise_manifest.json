@@ -18,6 +18,7 @@
         "getMembers": {
           "symbol": "bro_FastNoise_getMembers",
           "returnType": "dynamic",
+          "returnClass": "FastNoiseNodeMembers",
           "paramTypes": [
             "dynamic"
           ]
@@ -46,6 +47,7 @@
         "genUniformGrid2D": {
           "symbol": "bro_FastNoise_genUniformGrid2D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -73,6 +75,7 @@
         "genUniformGrid3D": {
           "symbol": "bro_FastNoise_genUniformGrid3D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -132,6 +135,7 @@
         "genTileable2D": {
           "symbol": "bro_FastNoise_genTileable2D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "i32",
@@ -177,6 +181,7 @@
         "getMembers": {
           "symbol": "bro_FastNoise_getMembers",
           "returnType": "dynamic",
+          "returnClass": "FastNoiseNodeMembers",
           "paramTypes": [
             "dynamic"
           ]
@@ -205,6 +210,7 @@
         "genUniformGrid2D": {
           "symbol": "bro_FastNoise_genUniformGrid2D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -232,6 +238,7 @@
         "genUniformGrid3D": {
           "symbol": "bro_FastNoise_genUniformGrid3D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -291,6 +298,7 @@
         "genTileable2D": {
           "symbol": "bro_FastNoise_genTileable2D",
           "returnType": "dynamic",
+          "returnClass": "Float32Array",
           "paramTypes": [
             "dynamic",
             "i32",
@@ -358,6 +366,7 @@
       "jsPath": "FastNoise.types",
       "symbol": "bro_FastNoise_types",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -365,6 +374,7 @@
       "jsPath": "bro.noise.FastNoise.types",
       "symbol": "bro_FastNoise_types",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -372,6 +382,7 @@
       "jsPath": "bro.noise.types",
       "symbol": "bro_FastNoise_types",
       "returnType": "dynamic",
+      "returnClass": "sequence",
       "paramTypes": []
     },
     {
@@ -632,6 +643,7 @@
       "name": "getMembers",
       "symbol": "bro_FastNoise_getMembers",
       "returnType": "dynamic",
+      "returnClass": "FastNoiseNodeMembers",
       "paramTypes": [
         "dynamic"
       ]
@@ -669,6 +681,7 @@
       "name": "genUniformGrid2D",
       "symbol": "bro_FastNoise_genUniformGrid2D",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -702,6 +715,7 @@
       "name": "genUniformGrid3D",
       "symbol": "bro_FastNoise_genUniformGrid3D",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -773,6 +787,7 @@
       "name": "genTileable2D",
       "symbol": "bro_FastNoise_genTileable2D",
       "returnType": "dynamic",
+      "returnClass": "Float32Array",
       "paramTypes": [
         "dynamic",
         "i32",

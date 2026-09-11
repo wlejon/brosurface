@@ -58,6 +58,7 @@
         "playEffect": {
           "symbol": "bro_GamepadHapticActuator_playEffect",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "dynamic",
             "str",
@@ -67,6 +68,7 @@
         "reset": {
           "symbol": "bro_GamepadHapticActuator_reset",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "dynamic"
           ]
@@ -81,7 +83,8 @@
         "effects": {
           "getter": "bro_GamepadHapticActuator_get_effects",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         }
       },
       "constructor": {
@@ -99,6 +102,7 @@
         "playEffect": {
           "symbol": "bro_GamepadHapticActuator_playEffect",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "dynamic",
             "str",
@@ -108,6 +112,7 @@
         "reset": {
           "symbol": "bro_GamepadHapticActuator_reset",
           "returnType": "dynamic",
+          "returnClass": "Promise",
           "paramTypes": [
             "dynamic"
           ]
@@ -122,7 +127,8 @@
         "effects": {
           "getter": "bro_GamepadHapticActuator_get_effects",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         }
       },
       "constructor": {
@@ -219,12 +225,14 @@
         "buttons": {
           "getter": "bro_Gamepad_get_buttons",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         },
         "axes": {
           "getter": "bro_Gamepad_get_axes",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         },
         "timestamp": {
           "getter": "bro_Gamepad_get_timestamp",
@@ -234,7 +242,8 @@
         "vibrationActuator": {
           "getter": "bro_Gamepad_get_vibrationActuator",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "GamepadHapticActuator"
         }
       },
       "constructor": {
@@ -273,12 +282,14 @@
         "buttons": {
           "getter": "bro_Gamepad_get_buttons",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         },
         "axes": {
           "getter": "bro_Gamepad_get_axes",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "sequence"
         },
         "timestamp": {
           "getter": "bro_Gamepad_get_timestamp",
@@ -288,7 +299,8 @@
         "vibrationActuator": {
           "getter": "bro_Gamepad_get_vibrationActuator",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "GamepadHapticActuator"
         }
       },
       "constructor": {
@@ -307,7 +319,8 @@
         "gamepad": {
           "getter": "bro_GamepadEvent_get_gamepad",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "Gamepad"
         }
       },
       "constructor": {
@@ -326,7 +339,8 @@
         "gamepad": {
           "getter": "bro_GamepadEvent_get_gamepad",
           "setter": null,
-          "returnType": "dynamic"
+          "returnType": "dynamic",
+          "returnClass": "Gamepad"
         }
       },
       "constructor": {
@@ -346,6 +360,7 @@
       "name": "playEffect",
       "symbol": "bro_GamepadHapticActuator_playEffect",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "dynamic",
         "str",
@@ -358,6 +373,7 @@
       "name": "reset",
       "symbol": "bro_GamepadHapticActuator_reset",
       "returnType": "dynamic",
+      "returnClass": "Promise",
       "paramTypes": [
         "dynamic"
       ]
