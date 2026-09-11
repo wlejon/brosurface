@@ -1,9 +1,3 @@
-// =============================================================================
-// bro_paths_c_abi.cpp — C++ forwarding implementations for bro.paths
-// Generated automatically by brosurface (gen/emit_c_abi.mjs).
-// =============================================================================
-
-#include "bro/c_abi/bro_paths_c_abi.h"
 #include "bro/c_abi/bro_engine_c_abi.h"
 #include <string>
 

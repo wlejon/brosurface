@@ -1,0 +1,289 @@
+{
+  "version": "1.0.0",
+  "subsystem": "window",
+  "namespaces": {
+    "bro.window": {
+      "functions": {
+        "minimize": {
+          "symbol": "bro_window_minimize",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "maximize": {
+          "symbol": "bro_window_maximize",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "restore": {
+          "symbol": "bro_window_restore",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "getPosition": {
+          "symbol": "bro_window_getPosition",
+          "returnType": "dynamic",
+          "paramTypes": []
+        },
+        "getPositionX": {
+          "symbol": "bro_window_getPositionX",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "getPositionY": {
+          "symbol": "bro_window_getPositionY",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "setPosition": {
+          "symbol": "bro_window_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "i32",
+            "i32"
+          ]
+        },
+        "getMinSize": {
+          "symbol": "bro_window_getMinSize",
+          "returnType": "dynamic",
+          "paramTypes": []
+        },
+        "getMinWidth": {
+          "symbol": "bro_window_getMinWidth",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "getMinHeight": {
+          "symbol": "bro_window_getMinHeight",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "setMinSize": {
+          "symbol": "bro_window_setMinSize",
+          "returnType": "void",
+          "paramTypes": [
+            "i32",
+            "i32"
+          ]
+        },
+        "getMaxSize": {
+          "symbol": "bro_window_getMaxSize",
+          "returnType": "dynamic",
+          "paramTypes": []
+        },
+        "getMaxWidth": {
+          "symbol": "bro_window_getMaxWidth",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "getMaxHeight": {
+          "symbol": "bro_window_getMaxHeight",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "setMaxSize": {
+          "symbol": "bro_window_setMaxSize",
+          "returnType": "void",
+          "paramTypes": [
+            "i32",
+            "i32"
+          ]
+        },
+        "getDisplays": {
+          "symbol": "bro_window_getDisplays",
+          "returnType": "dynamic",
+          "paramTypes": []
+        },
+        "getDisplayCount": {
+          "symbol": "bro_window_getDisplayCount",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "moveToDisplay": {
+          "symbol": "bro_window_moveToDisplay",
+          "returnType": "bool",
+          "paramTypes": [
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "state": {
+          "getter": "bro_window_get_state",
+          "setter": null,
+          "returnType": "str"
+        },
+        "borderless": {
+          "getter": "bro_window_get_borderless",
+          "setter": "bro_window_set_borderless",
+          "returnType": "bool"
+        },
+        "alwaysOnTop": {
+          "getter": "bro_window_get_alwaysOnTop",
+          "setter": "bro_window_set_alwaysOnTop",
+          "returnType": "bool"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.window.state",
+      "getter": "bro_window_get_state",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.window.borderless",
+      "getter": "bro_window_get_borderless",
+      "setter": "bro_window_set_borderless",
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.window.alwaysOnTop",
+      "getter": "bro_window_get_alwaysOnTop",
+      "setter": "bro_window_set_alwaysOnTop",
+      "returnType": "bool"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.minimize",
+      "symbol": "bro_window_minimize",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.maximize",
+      "symbol": "bro_window_maximize",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.restore",
+      "symbol": "bro_window_restore",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getPosition",
+      "symbol": "bro_window_getPosition",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getPositionX",
+      "symbol": "bro_window_getPositionX",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getPositionY",
+      "symbol": "bro_window_getPositionY",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.setPosition",
+      "symbol": "bro_window_setPosition",
+      "returnType": "void",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMinSize",
+      "symbol": "bro_window_getMinSize",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMinWidth",
+      "symbol": "bro_window_getMinWidth",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMinHeight",
+      "symbol": "bro_window_getMinHeight",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.setMinSize",
+      "symbol": "bro_window_setMinSize",
+      "returnType": "void",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMaxSize",
+      "symbol": "bro_window_getMaxSize",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMaxWidth",
+      "symbol": "bro_window_getMaxWidth",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getMaxHeight",
+      "symbol": "bro_window_getMaxHeight",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.setMaxSize",
+      "symbol": "bro_window_setMaxSize",
+      "returnType": "void",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getDisplays",
+      "symbol": "bro_window_getDisplays",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.getDisplayCount",
+      "symbol": "bro_window_getDisplayCount",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.window.moveToDisplay",
+      "symbol": "bro_window_moveToDisplay",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32"
+      ]
+    }
+  ]
+}

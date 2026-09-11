@@ -1,9 +1,3 @@
-// =============================================================================
-// bro_noise_c_abi.cpp — C++ forwarding implementations for bro.noise
-// Generated automatically by brosurface (gen/emit_c_abi.mjs).
-// =============================================================================
-
-#include "bro/c_abi/bro_noise_c_abi.h"
 #include <FastNoise/FastNoise.h>
 #include <FastNoise/Metadata.h>
 #include <cstring>

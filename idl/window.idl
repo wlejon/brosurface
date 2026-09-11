@@ -121,47 +121,18 @@ namespace window {
    * Retrieves current desktop coordinate position of the window.
    */
   WindowPosition getPosition();
-
-  /**
-   * Sets desktop coordinate position of the window.
-   * @param x Desktop X coordinate
-   * @param y Desktop Y coordinate
-   */
+  long getPositionX();
+  long getPositionY();
   void setPosition(long x, long y);
-
-  /**
-   * Retrieves minimum window resize bounds in pixels.
-   */
   WindowSize getMinSize();
-
-  /**
-   * Sets minimum window resize bounds.
-   * @param width Minimum width in pixels (0 for unconstrained)
-   * @param height Minimum height in pixels (0 for unconstrained)
-   */
+  long getMinWidth();
+  long getMinHeight();
   void setMinSize(long width, long height);
-
-  /**
-   * Retrieves maximum window resize bounds in pixels.
-   */
   WindowSize getMaxSize();
-
-  /**
-   * Sets maximum window resize bounds.
-   * @param width Maximum width in pixels (0 for unconstrained)
-   * @param height Maximum height in pixels (0 for unconstrained)
-   */
+  long getMaxWidth();
+  long getMaxHeight();
   void setMaxSize(long width, long height);
-
-  /**
-   * Enumerates all attached monitor displays.
-   */
   sequence<DisplayInfo> getDisplays();
-
-  /**
-   * Moves and centers the window on a specific display.
-   * @param id Target display identifier
-   * @returns True if window was moved, false otherwise
-   */
+  long getDisplayCount();
   boolean moveToDisplay(unsigned long id);
 };

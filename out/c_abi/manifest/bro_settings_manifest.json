@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "subsystem": "settings",
+  "namespaces": {
+    "bro.settings": {
+      "functions": {
+        "load": {
+          "symbol": "bro_settings_load",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "save": {
+          "symbol": "bro_settings_save",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "get": {
+          "symbol": "bro_settings_get",
+          "returnType": "str",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "set": {
+          "symbol": "bro_settings_set",
+          "returnType": "void",
+          "paramTypes": [
+            "str",
+            "str"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_settings_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "isActionPressed": {
+          "symbol": "bro_settings_isActionPressed",
+          "returnType": "bool",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "getActionStrength": {
+          "symbol": "bro_settings_getActionStrength",
+          "returnType": "f64",
+          "paramTypes": [
+            "str"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.load",
+      "symbol": "bro_settings_load",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.save",
+      "symbol": "bro_settings_save",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.get",
+      "symbol": "bro_settings_get",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.set",
+      "symbol": "bro_settings_set",
+      "returnType": "void",
+      "paramTypes": [
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.reset",
+      "symbol": "bro_settings_reset",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.isActionPressed",
+      "symbol": "bro_settings_isActionPressed",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.settings.getActionStrength",
+      "symbol": "bro_settings_getActionStrength",
+      "returnType": "f64",
+      "paramTypes": [
+        "str"
+      ]
+    }
+  ]
+}

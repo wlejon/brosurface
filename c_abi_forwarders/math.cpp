@@ -1,9 +1,3 @@
-// =============================================================================
-// bro_math_c_abi.cpp — C++ forwarding implementations for bro.math
-// Generated automatically by brosurface (gen/emit_c_abi.mjs).
-// =============================================================================
-
-#include "bro/c_abi/bro_math_c_abi.h"
 #include <bromath/scalar.h>
 #include <bromath/angle.h>
 #include <bromath/hash.h>

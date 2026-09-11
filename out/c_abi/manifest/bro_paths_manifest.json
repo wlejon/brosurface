@@ -31,21 +31,6 @@
           "returnType": "str"
         }
       }
-    },
-    "bro": {
-      "functions": {},
-      "properties": {
-        "appDir": {
-          "getter": "bro_paths_get_appDir",
-          "setter": null,
-          "returnType": "str"
-        },
-        "userDataDir": {
-          "getter": "bro_paths_get_userDataDir",
-          "setter": null,
-          "returnType": "str"
-        }
-      }
     }
   },
   "classes": {},

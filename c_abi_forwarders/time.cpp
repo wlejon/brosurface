@@ -1,9 +1,3 @@
-// =============================================================================
-// bro_time_c_abi.cpp — C++ forwarding implementations for bro.time
-// Generated automatically by brosurface (gen/emit_c_abi.mjs).
-// =============================================================================
-
-#include "bro/c_abi/bro_time_c_abi.h"
 #include "bro/c_abi/bro_engine_c_abi.h"
 
 extern "C" {

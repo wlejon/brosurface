@@ -19,4 +19,9 @@
 namespace settings {
   void load();
   void save();
+  DOMString get(DOMString key);
+  void set(DOMString key, DOMString val);
+  void reset(optional DOMString category);
+  boolean isActionPressed(DOMString action);
+  double getActionStrength(DOMString action);
 };
