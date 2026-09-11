@@ -211,6 +211,57 @@
         "symbol": "bro_KokoroModel_destroy"
       }
     },
+    "bro.KokoroModel": {
+      "name": "KokoroModel",
+      "methods": {
+        "encodePhonemes": {
+          "symbol": "bro_KokoroModel_encodePhonemes",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "loadVoice": {
+          "symbol": "bro_KokoroModel_loadVoice",
+          "returnType": "dynamic",
+          "returnClass": "Voice",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "createSession": {
+          "symbol": "bro_KokoroModel_createSession",
+          "returnType": "dynamic",
+          "returnClass": "KokoroSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_KokoroModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_KokoroModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_KokoroModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_KokoroModel_destroy"
+      }
+    },
     "bro.tts.Voice": {
       "name": "Voice",
       "methods": {},
@@ -236,6 +287,30 @@
       }
     },
     "Voice": {
+      "name": "Voice",
+      "methods": {},
+      "properties": {
+        "loaded": {
+          "getter": "bro_Voice_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "name": {
+          "getter": "bro_Voice_get_name",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Voice_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Voice_destroy"
+      }
+    },
+    "bro.Voice": {
       "name": "Voice",
       "methods": {},
       "properties": {
@@ -298,6 +373,44 @@
       }
     },
     "KokoroSession": {
+      "name": "KokoroSession",
+      "methods": {
+        "synthesize": {
+          "symbol": "bro_KokoroSession_synthesize",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_KokoroSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_KokoroSession_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_KokoroSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_KokoroSession_destroy"
+      }
+    },
+    "bro.KokoroSession": {
       "name": "KokoroSession",
       "methods": {
         "synthesize": {
@@ -447,6 +560,62 @@
         "symbol": "bro_QwenTtsModel_destroy"
       }
     },
+    "bro.QwenTtsModel": {
+      "name": "QwenTtsModel",
+      "methods": {
+        "createSession": {
+          "symbol": "bro_QwenTtsModel_createSession",
+          "returnType": "dynamic",
+          "returnClass": "QwenTtsSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "encodeAudio": {
+          "symbol": "bro_QwenTtsModel_encodeAudio",
+          "returnType": "dynamic",
+          "returnClass": "QwenAudioCodes",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "decodeCodes": {
+          "symbol": "bro_QwenTtsModel_decodeCodes",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_QwenTtsModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_QwenTtsModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "variant": {
+          "getter": "bro_QwenTtsModel_get_variant",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenTtsModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenTtsModel_destroy"
+      }
+    },
     "bro.tts.QwenTtsSession": {
       "name": "QwenTtsSession",
       "methods": {
@@ -490,6 +659,48 @@
       }
     },
     "QwenTtsSession": {
+      "name": "QwenTtsSession",
+      "methods": {
+        "synthesize": {
+          "symbol": "bro_QwenTtsSession_synthesize",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_QwenTtsSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_QwenTtsSession_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "variant": {
+          "getter": "bro_QwenTtsSession_get_variant",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenTtsSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenTtsSession_destroy"
+      }
+    },
+    "bro.QwenTtsSession": {
       "name": "QwenTtsSession",
       "methods": {
         "synthesize": {
@@ -599,6 +810,40 @@
         "symbol": "bro_SupertonicModel_destroy"
       }
     },
+    "bro.SupertonicModel": {
+      "name": "SupertonicModel",
+      "methods": {
+        "loadVoiceStyle": {
+          "symbol": "bro_SupertonicModel_loadVoiceStyle",
+          "returnType": "dynamic",
+          "returnClass": "SupertonicVoice",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_SupertonicModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_SupertonicModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SupertonicModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SupertonicModel_destroy"
+      }
+    },
     "bro.tts.SupertonicVoice": {
       "name": "SupertonicVoice",
       "methods": {},
@@ -624,6 +869,30 @@
       }
     },
     "SupertonicVoice": {
+      "name": "SupertonicVoice",
+      "methods": {},
+      "properties": {
+        "loaded": {
+          "getter": "bro_SupertonicVoice_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "name": {
+          "getter": "bro_SupertonicVoice_get_name",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SupertonicVoice_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SupertonicVoice_destroy"
+      }
+    },
+    "bro.SupertonicVoice": {
       "name": "SupertonicVoice",
       "methods": {},
       "properties": {
@@ -683,6 +952,41 @@
       }
     },
     "SpeakerEncoder": {
+      "name": "SpeakerEncoder",
+      "methods": {
+        "embedSpeaker": {
+          "symbol": "bro_SpeakerEncoder_embedSpeaker",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_SpeakerEncoder_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_SpeakerEncoder_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SpeakerEncoder_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SpeakerEncoder_destroy"
+      }
+    },
+    "bro.SpeakerEncoder": {
       "name": "SpeakerEncoder",
       "methods": {
         "embedSpeaker": {

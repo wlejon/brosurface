@@ -170,6 +170,52 @@
         "symbol": "bro_WhisperTokenizer_destroy"
       }
     },
+    "bro.WhisperTokenizer": {
+      "name": "WhisperTokenizer",
+      "methods": {
+        "encode": {
+          "symbol": "bro_WhisperTokenizer_encode",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_WhisperTokenizer_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "buildPrompt": {
+          "symbol": "bro_WhisperTokenizer_buildPrompt",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_WhisperTokenizer_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WhisperTokenizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WhisperTokenizer_destroy"
+      }
+    },
     "bro.stt.WhisperModel": {
       "name": "WhisperModel",
       "methods": {
@@ -215,6 +261,50 @@
       }
     },
     "WhisperModel": {
+      "name": "WhisperModel",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_WhisperModel_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createSession": {
+          "symbol": "bro_WhisperModel_createSession",
+          "returnType": "dynamic",
+          "returnClass": "WhisperSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_WhisperModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_WhisperModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WhisperModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WhisperModel_destroy"
+      }
+    },
+    "bro.WhisperModel": {
       "name": "WhisperModel",
       "methods": {
         "transcribe": {
@@ -334,6 +424,44 @@
         "symbol": "bro_WhisperSession_destroy"
       }
     },
+    "bro.WhisperSession": {
+      "name": "WhisperSession",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_WhisperSession_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_WhisperSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_WhisperSession_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WhisperSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WhisperSession_destroy"
+      }
+    },
     "bro.stt.ParakeetTokenizer": {
       "name": "ParakeetTokenizer",
       "methods": {
@@ -372,6 +500,43 @@
       }
     },
     "ParakeetTokenizer": {
+      "name": "ParakeetTokenizer",
+      "methods": {
+        "encode": {
+          "symbol": "bro_ParakeetTokenizer_encode",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_ParakeetTokenizer_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_ParakeetTokenizer_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ParakeetTokenizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ParakeetTokenizer_destroy"
+      }
+    },
+    "bro.ParakeetTokenizer": {
       "name": "ParakeetTokenizer",
       "methods": {
         "encode": {
@@ -494,6 +659,49 @@
         "symbol": "bro_ParakeetModel_destroy"
       }
     },
+    "bro.ParakeetModel": {
+      "name": "ParakeetModel",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_ParakeetModel_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createSession": {
+          "symbol": "bro_ParakeetModel_createSession",
+          "returnType": "dynamic",
+          "returnClass": "ParakeetSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_ParakeetModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_ParakeetModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ParakeetModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ParakeetModel_destroy"
+      }
+    },
     "bro.stt.ParakeetSession": {
       "name": "ParakeetSession",
       "methods": {
@@ -532,6 +740,43 @@
       }
     },
     "ParakeetSession": {
+      "name": "ParakeetSession",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_ParakeetSession_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_ParakeetSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_ParakeetSession_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ParakeetSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ParakeetSession_destroy"
+      }
+    },
+    "bro.ParakeetSession": {
       "name": "ParakeetSession",
       "methods": {
         "transcribe": {
@@ -654,6 +899,49 @@
         "symbol": "bro_QwenAsrModel_destroy"
       }
     },
+    "bro.QwenAsrModel": {
+      "name": "QwenAsrModel",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_QwenAsrModel_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createSession": {
+          "symbol": "bro_QwenAsrModel_createSession",
+          "returnType": "dynamic",
+          "returnClass": "QwenAsrSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_QwenAsrModel_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "device": {
+          "getter": "bro_QwenAsrModel_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenAsrModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenAsrModel_destroy"
+      }
+    },
     "bro.stt.QwenAsrSession": {
       "name": "QwenAsrSession",
       "methods": {
@@ -728,6 +1016,43 @@
         "symbol": "bro_QwenAsrSession_destroy"
       }
     },
+    "bro.QwenAsrSession": {
+      "name": "QwenAsrSession",
+      "methods": {
+        "transcribe": {
+          "symbol": "bro_QwenAsrSession_transcribe",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_QwenAsrSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_QwenAsrSession_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenAsrSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenAsrSession_destroy"
+      }
+    },
     "bro.stt.QwenAsrStream": {
       "name": "QwenAsrStream",
       "methods": {
@@ -765,6 +1090,42 @@
       }
     },
     "QwenAsrStream": {
+      "name": "QwenAsrStream",
+      "methods": {
+        "feed": {
+          "symbol": "bro_QwenAsrStream_feed",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "finish": {
+          "symbol": "bro_QwenAsrStream_finish",
+          "returnType": "dynamic",
+          "returnClass": "QwenAsrEncodeResult",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_QwenAsrStream_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenAsrStream_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenAsrStream_destroy"
+      }
+    },
+    "bro.QwenAsrStream": {
       "name": "QwenAsrStream",
       "methods": {
         "feed": {

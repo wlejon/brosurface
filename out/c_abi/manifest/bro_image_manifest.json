@@ -725,6 +725,81 @@
         "symbol": "bro_Image_destroy"
       }
     },
+    "bro.Image": {
+      "name": "Image",
+      "methods": {
+        "addEventListener": {
+          "symbol": "bro_Image_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_Image_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "src": {
+          "getter": "bro_Image_get_src",
+          "setter": "bro_Image_set_src",
+          "returnType": "str"
+        },
+        "width": {
+          "getter": "bro_Image_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_Image_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalWidth": {
+          "getter": "bro_Image_get_naturalWidth",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalHeight": {
+          "getter": "bro_Image_get_naturalHeight",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "complete": {
+          "getter": "bro_Image_get_complete",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "onload": {
+          "getter": "bro_Image_get_onload",
+          "setter": "bro_Image_set_onload",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        },
+        "onerror": {
+          "getter": "bro_Image_get_onerror",
+          "setter": "bro_Image_set_onerror",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Image_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Image_destroy"
+      }
+    },
     "bro.image.HTMLImageElement": {
       "name": "HTMLImageElement",
       "methods": {},
@@ -739,6 +814,19 @@
       }
     },
     "HTMLImageElement": {
+      "name": "HTMLImageElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLImageElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLImageElement_destroy"
+      }
+    },
+    "bro.HTMLImageElement": {
       "name": "HTMLImageElement",
       "methods": {},
       "properties": {},

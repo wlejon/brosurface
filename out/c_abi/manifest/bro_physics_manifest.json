@@ -552,6 +552,64 @@
         "symbol": "bro_PhysicsWorldHandle_destroy"
       }
     },
+    "bro.PhysicsWorldHandle": {
+      "name": "PhysicsWorldHandle",
+      "methods": {
+        "destroy": {
+          "symbol": "bro_PhysicsWorldHandle_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "step": {
+          "symbol": "bro_PhysicsWorldHandle_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsWorldHandle_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsWorldHandle_destroy"
+      }
+    },
+    "Physics.PhysicsWorldHandle": {
+      "name": "PhysicsWorldHandle",
+      "methods": {
+        "destroy": {
+          "symbol": "bro_PhysicsWorldHandle_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "step": {
+          "symbol": "bro_PhysicsWorldHandle_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsWorldHandle_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsWorldHandle_destroy"
+      }
+    },
     "bro.physics.PhysicsCharacter": {
       "name": "PhysicsCharacter",
       "methods": {
@@ -611,6 +669,122 @@
       }
     },
     "PhysicsCharacter": {
+      "name": "PhysicsCharacter",
+      "methods": {
+        "setPosition": {
+          "symbol": "bro_PhysicsCharacter_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setLinearVelocity": {
+          "symbol": "bro_PhysicsCharacter_setLinearVelocity",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "getPosition": {
+          "symbol": "bro_PhysicsCharacter_getPosition",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "getLinearVelocity": {
+          "symbol": "bro_PhysicsCharacter_getLinearVelocity",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "update": {
+          "symbol": "bro_PhysicsCharacter_update",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsCharacter_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsCharacter_destroy"
+      }
+    },
+    "bro.PhysicsCharacter": {
+      "name": "PhysicsCharacter",
+      "methods": {
+        "setPosition": {
+          "symbol": "bro_PhysicsCharacter_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setLinearVelocity": {
+          "symbol": "bro_PhysicsCharacter_setLinearVelocity",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "getPosition": {
+          "symbol": "bro_PhysicsCharacter_getPosition",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "getLinearVelocity": {
+          "symbol": "bro_PhysicsCharacter_getLinearVelocity",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "update": {
+          "symbol": "bro_PhysicsCharacter_update",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsCharacter_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsCharacter_destroy"
+      }
+    },
+    "Physics.PhysicsCharacter": {
       "name": "PhysicsCharacter",
       "methods": {
         "setPosition": {
@@ -734,6 +908,72 @@
         "symbol": "bro_PhysicsVehicle_destroy"
       }
     },
+    "bro.PhysicsVehicle": {
+      "name": "PhysicsVehicle",
+      "methods": {
+        "setDriverInput": {
+          "symbol": "bro_PhysicsVehicle_setDriverInput",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "getTransform": {
+          "symbol": "bro_PhysicsVehicle_getTransform",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsVehicle_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsVehicle_destroy"
+      }
+    },
+    "Physics.PhysicsVehicle": {
+      "name": "PhysicsVehicle",
+      "methods": {
+        "setDriverInput": {
+          "symbol": "bro_PhysicsVehicle_setDriverInput",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "getTransform": {
+          "symbol": "bro_PhysicsVehicle_getTransform",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsVehicle_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsVehicle_destroy"
+      }
+    },
     "bro.physics.PhysicsRagdoll": {
       "name": "PhysicsRagdoll",
       "methods": {
@@ -796,6 +1036,68 @@
         "symbol": "bro_PhysicsRagdoll_destroy"
       }
     },
+    "bro.PhysicsRagdoll": {
+      "name": "PhysicsRagdoll",
+      "methods": {
+        "driveToPose": {
+          "symbol": "bro_PhysicsRagdoll_driveToPose",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64"
+          ]
+        },
+        "getPose": {
+          "symbol": "bro_PhysicsRagdoll_getPose",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsRagdoll_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsRagdoll_destroy"
+      }
+    },
+    "Physics.PhysicsRagdoll": {
+      "name": "PhysicsRagdoll",
+      "methods": {
+        "driveToPose": {
+          "symbol": "bro_PhysicsRagdoll_driveToPose",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64"
+          ]
+        },
+        "getPose": {
+          "symbol": "bro_PhysicsRagdoll_getPose",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsRagdoll_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsRagdoll_destroy"
+      }
+    },
     "bro.physics.PhysicsSoftBody": {
       "name": "PhysicsSoftBody",
       "methods": {
@@ -819,6 +1121,50 @@
       }
     },
     "PhysicsSoftBody": {
+      "name": "PhysicsSoftBody",
+      "methods": {
+        "getBounds": {
+          "symbol": "bro_PhysicsSoftBody_getBounds",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsSoftBody_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsSoftBody_destroy"
+      }
+    },
+    "bro.PhysicsSoftBody": {
+      "name": "PhysicsSoftBody",
+      "methods": {
+        "getBounds": {
+          "symbol": "bro_PhysicsSoftBody_getBounds",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PhysicsSoftBody_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PhysicsSoftBody_destroy"
+      }
+    },
+    "Physics.PhysicsSoftBody": {
       "name": "PhysicsSoftBody",
       "methods": {
         "getBounds": {

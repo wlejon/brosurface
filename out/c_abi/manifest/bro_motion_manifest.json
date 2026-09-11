@@ -81,6 +81,36 @@
       "destructor": {
         "symbol": "bro_ArdyMotionPipeline_destroy"
       }
+    },
+    "bro.ArdyMotionPipeline": {
+      "name": "ArdyMotionPipeline",
+      "methods": {
+        "generate": {
+          "symbol": "bro_ArdyMotionPipeline_generate",
+          "returnType": "dynamic",
+          "returnClass": "MotionClip",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_ArdyMotionPipeline_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ArdyMotionPipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ArdyMotionPipeline_destroy"
+      }
     }
   },
   "symbols": [

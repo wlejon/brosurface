@@ -152,6 +152,71 @@
       "destructor": {
         "symbol": "bro_Rave_destroy"
       }
+    },
+    "bro.Rave": {
+      "name": "Rave",
+      "methods": {
+        "encode": {
+          "symbol": "bro_Rave_encode",
+          "returnType": "dynamic",
+          "returnClass": "RaveLatent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_Rave_decode",
+          "returnType": "dynamic",
+          "returnClass": "RaveAudioBuffer",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "loaded": {
+          "getter": "bro_Rave_get_loaded",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "sampleRate": {
+          "getter": "bro_Rave_get_sampleRate",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nLatent": {
+          "getter": "bro_Rave_get_nLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "fullLatent": {
+          "getter": "bro_Rave_get_fullLatent",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "nBand": {
+          "getter": "bro_Rave_get_nBand",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "totalRatio": {
+          "getter": "bro_Rave_get_totalRatio",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Rave_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Rave_destroy"
+      }
     }
   },
   "symbols": [

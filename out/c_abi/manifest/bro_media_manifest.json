@@ -185,6 +185,82 @@
         "symbol": "bro_VideoEncoder_destroy"
       }
     },
+    "bro.VideoEncoder": {
+      "name": "VideoEncoder",
+      "methods": {
+        "addFrameRGBA": {
+          "symbol": "bro_VideoEncoder_addFrameRGBA",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "addCanvasFrame": {
+          "symbol": "bro_VideoEncoder_addCanvasFrame",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addViewportFrame": {
+          "symbol": "bro_VideoEncoder_addViewportFrame",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "addAudioFramesPCM": {
+          "symbol": "bro_VideoEncoder_addAudioFramesPCM",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "finish": {
+          "symbol": "bro_VideoEncoder_finish",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "width": {
+          "getter": "bro_VideoEncoder_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_VideoEncoder_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "framesWritten": {
+          "getter": "bro_VideoEncoder_get_framesWritten",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "lastError": {
+          "getter": "bro_VideoEncoder_get_lastError",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_VideoEncoder_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_VideoEncoder_destroy"
+      }
+    },
     "bro.media.GifEncoder": {
       "name": "GifEncoder",
       "methods": {
@@ -262,6 +338,82 @@
       }
     },
     "GifEncoder": {
+      "name": "GifEncoder",
+      "methods": {
+        "addFrameRGBA": {
+          "symbol": "bro_GifEncoder_addFrameRGBA",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "addCanvasFrame": {
+          "symbol": "bro_GifEncoder_addCanvasFrame",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addViewportFrame": {
+          "symbol": "bro_GifEncoder_addViewportFrame",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "setNextFrameDelayCs": {
+          "symbol": "bro_GifEncoder_setNextFrameDelayCs",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "finish": {
+          "symbol": "bro_GifEncoder_finish",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "width": {
+          "getter": "bro_GifEncoder_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_GifEncoder_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "framesWritten": {
+          "getter": "bro_GifEncoder_get_framesWritten",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "lastError": {
+          "getter": "bro_GifEncoder_get_lastError",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GifEncoder_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_GifEncoder_destroy"
+      }
+    },
+    "bro.GifEncoder": {
       "name": "GifEncoder",
       "methods": {
         "addFrameRGBA": {

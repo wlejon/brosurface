@@ -198,6 +198,177 @@
         "symbol": "bro_AIAgent_destroy"
       }
     },
+    "bro.ai.game.AIAgent": {
+      "name": "AIAgent",
+      "methods": {
+        "setPosition": {
+          "symbol": "bro_AIAgent_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setVelocity": {
+          "symbol": "bro_AIAgent_setVelocity",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setGoal": {
+          "symbol": "bro_AIAgent_setGoal",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_AIAgent_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "getter": "bro_AIAgent_get_id",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AIAgent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIAgent_destroy"
+      }
+    },
+    "bro.game.AIAgent": {
+      "name": "AIAgent",
+      "methods": {
+        "setPosition": {
+          "symbol": "bro_AIAgent_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setVelocity": {
+          "symbol": "bro_AIAgent_setVelocity",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setGoal": {
+          "symbol": "bro_AIAgent_setGoal",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_AIAgent_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "getter": "bro_AIAgent_get_id",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AIAgent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIAgent_destroy"
+      }
+    },
+    "game.AIAgent": {
+      "name": "AIAgent",
+      "methods": {
+        "setPosition": {
+          "symbol": "bro_AIAgent_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setVelocity": {
+          "symbol": "bro_AIAgent_setVelocity",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setGoal": {
+          "symbol": "bro_AIAgent_setGoal",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_AIAgent_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "getter": "bro_AIAgent_get_id",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AIAgent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIAgent_destroy"
+      }
+    },
     "bro.ai.AIWorld": {
       "name": "AIWorld",
       "methods": {
@@ -238,6 +409,123 @@
       }
     },
     "AIWorld": {
+      "name": "AIWorld",
+      "methods": {
+        "step": {
+          "symbol": "bro_AIWorld_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "createAgent": {
+          "symbol": "bro_AIWorld_createAgent",
+          "returnType": "dynamic",
+          "returnClass": "AIAgent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "destroyAgent": {
+          "symbol": "bro_AIWorld_destroyAgent",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIWorld_destroy"
+      }
+    },
+    "bro.ai.game.AIWorld": {
+      "name": "AIWorld",
+      "methods": {
+        "step": {
+          "symbol": "bro_AIWorld_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "createAgent": {
+          "symbol": "bro_AIWorld_createAgent",
+          "returnType": "dynamic",
+          "returnClass": "AIAgent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "destroyAgent": {
+          "symbol": "bro_AIWorld_destroyAgent",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIWorld_destroy"
+      }
+    },
+    "bro.game.AIWorld": {
+      "name": "AIWorld",
+      "methods": {
+        "step": {
+          "symbol": "bro_AIWorld_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "createAgent": {
+          "symbol": "bro_AIWorld_createAgent",
+          "returnType": "dynamic",
+          "returnClass": "AIAgent",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "destroyAgent": {
+          "symbol": "bro_AIWorld_destroyAgent",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIWorld_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIWorld_destroy"
+      }
+    },
+    "game.AIWorld": {
       "name": "AIWorld",
       "methods": {
         "step": {
@@ -366,6 +654,141 @@
         "symbol": "bro_AINavGrid_destroy"
       }
     },
+    "bro.ai.game.AINavGrid": {
+      "name": "AINavGrid",
+      "methods": {
+        "isWalkable": {
+          "symbol": "bro_AINavGrid_isWalkable",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "setWalkable": {
+          "symbol": "bro_AINavGrid_setWalkable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "bool"
+          ]
+        },
+        "findPath": {
+          "symbol": "bro_AINavGrid_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavGrid_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavGrid_destroy"
+      }
+    },
+    "bro.game.AINavGrid": {
+      "name": "AINavGrid",
+      "methods": {
+        "isWalkable": {
+          "symbol": "bro_AINavGrid_isWalkable",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "setWalkable": {
+          "symbol": "bro_AINavGrid_setWalkable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "bool"
+          ]
+        },
+        "findPath": {
+          "symbol": "bro_AINavGrid_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavGrid_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavGrid_destroy"
+      }
+    },
+    "game.AINavGrid": {
+      "name": "AINavGrid",
+      "methods": {
+        "isWalkable": {
+          "symbol": "bro_AINavGrid_isWalkable",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "setWalkable": {
+          "symbol": "bro_AINavGrid_setWalkable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "bool"
+          ]
+        },
+        "findPath": {
+          "symbol": "bro_AINavGrid_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavGrid_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavGrid_destroy"
+      }
+    },
     "bro.ai.AINavMesh": {
       "name": "AINavMesh",
       "methods": {
@@ -395,6 +818,90 @@
       }
     },
     "AINavMesh": {
+      "name": "AINavMesh",
+      "methods": {
+        "findPath": {
+          "symbol": "bro_AINavMesh_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavMesh_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavMesh_destroy"
+      }
+    },
+    "bro.ai.game.AINavMesh": {
+      "name": "AINavMesh",
+      "methods": {
+        "findPath": {
+          "symbol": "bro_AINavMesh_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavMesh_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavMesh_destroy"
+      }
+    },
+    "bro.game.AINavMesh": {
+      "name": "AINavMesh",
+      "methods": {
+        "findPath": {
+          "symbol": "bro_AINavMesh_findPath",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AINavMesh_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AINavMesh_destroy"
+      }
+    },
+    "game.AINavMesh": {
       "name": "AINavMesh",
       "methods": {
         "findPath": {
@@ -470,6 +977,78 @@
         "symbol": "bro_AIMcts_destroy"
       }
     },
+    "bro.ai.game.AIMcts": {
+      "name": "AIMcts",
+      "methods": {
+        "search": {
+          "symbol": "bro_AIMcts_search",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIMcts_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIMcts_destroy"
+      }
+    },
+    "bro.game.AIMcts": {
+      "name": "AIMcts",
+      "methods": {
+        "search": {
+          "symbol": "bro_AIMcts_search",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIMcts_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIMcts_destroy"
+      }
+    },
+    "game.AIMcts": {
+      "name": "AIMcts",
+      "methods": {
+        "search": {
+          "symbol": "bro_AIMcts_search",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AIMcts_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AIMcts_destroy"
+      }
+    },
     "bro.ai.CombatAction": {
       "name": "CombatAction",
       "methods": {},
@@ -500,6 +1079,93 @@
       }
     },
     "CombatAction": {
+      "name": "CombatAction",
+      "methods": {},
+      "properties": {
+        "targetX": {
+          "getter": "bro_CombatAction_get_targetX",
+          "setter": "bro_CombatAction_set_targetX",
+          "returnType": "f64"
+        },
+        "targetZ": {
+          "getter": "bro_CombatAction_get_targetZ",
+          "setter": "bro_CombatAction_set_targetZ",
+          "returnType": "f64"
+        },
+        "actionType": {
+          "getter": "bro_CombatAction_get_actionType",
+          "setter": "bro_CombatAction_set_actionType",
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_CombatAction_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CombatAction_destroy"
+      }
+    },
+    "bro.ai.game.CombatAction": {
+      "name": "CombatAction",
+      "methods": {},
+      "properties": {
+        "targetX": {
+          "getter": "bro_CombatAction_get_targetX",
+          "setter": "bro_CombatAction_set_targetX",
+          "returnType": "f64"
+        },
+        "targetZ": {
+          "getter": "bro_CombatAction_get_targetZ",
+          "setter": "bro_CombatAction_set_targetZ",
+          "returnType": "f64"
+        },
+        "actionType": {
+          "getter": "bro_CombatAction_get_actionType",
+          "setter": "bro_CombatAction_set_actionType",
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_CombatAction_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CombatAction_destroy"
+      }
+    },
+    "bro.game.CombatAction": {
+      "name": "CombatAction",
+      "methods": {},
+      "properties": {
+        "targetX": {
+          "getter": "bro_CombatAction_get_targetX",
+          "setter": "bro_CombatAction_set_targetX",
+          "returnType": "f64"
+        },
+        "targetZ": {
+          "getter": "bro_CombatAction_get_targetZ",
+          "setter": "bro_CombatAction_set_targetZ",
+          "returnType": "f64"
+        },
+        "actionType": {
+          "getter": "bro_CombatAction_get_actionType",
+          "setter": "bro_CombatAction_set_actionType",
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_CombatAction_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CombatAction_destroy"
+      }
+    },
+    "game.CombatAction": {
       "name": "CombatAction",
       "methods": {},
       "properties": {
@@ -608,6 +1274,126 @@
         "symbol": "bro_Formation_destroy"
       }
     },
+    "bro.ai.game.Formation": {
+      "name": "Formation",
+      "methods": {
+        "setLeader": {
+          "symbol": "bro_Formation_setLeader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addFollower": {
+          "symbol": "bro_Formation_addFollower",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "update": {
+          "symbol": "bro_Formation_update",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Formation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Formation_destroy"
+      }
+    },
+    "bro.game.Formation": {
+      "name": "Formation",
+      "methods": {
+        "setLeader": {
+          "symbol": "bro_Formation_setLeader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addFollower": {
+          "symbol": "bro_Formation_addFollower",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "update": {
+          "symbol": "bro_Formation_update",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Formation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Formation_destroy"
+      }
+    },
+    "game.Formation": {
+      "name": "Formation",
+      "methods": {
+        "setLeader": {
+          "symbol": "bro_Formation_setLeader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "addFollower": {
+          "symbol": "bro_Formation_addFollower",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "update": {
+          "symbol": "bro_Formation_update",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Formation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Formation_destroy"
+      }
+    },
     "bro.ai.VecSim": {
       "name": "VecSim",
       "methods": {
@@ -631,6 +1417,72 @@
       }
     },
     "VecSim": {
+      "name": "VecSim",
+      "methods": {
+        "step": {
+          "symbol": "bro_VecSim_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VecSim_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_VecSim_destroy"
+      }
+    },
+    "bro.ai.game.VecSim": {
+      "name": "VecSim",
+      "methods": {
+        "step": {
+          "symbol": "bro_VecSim_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VecSim_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_VecSim_destroy"
+      }
+    },
+    "bro.game.VecSim": {
+      "name": "VecSim",
+      "methods": {
+        "step": {
+          "symbol": "bro_VecSim_step",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VecSim_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_VecSim_destroy"
+      }
+    },
+    "game.VecSim": {
       "name": "VecSim",
       "methods": {
         "step": {

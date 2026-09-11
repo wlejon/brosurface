@@ -1,0 +1,339 @@
+{
+  "version": "1.0.0",
+  "subsystem": "custom_elements",
+  "namespaces": {},
+  "classes": {
+    "bro.custom_elements.CustomElementRegistry": {
+      "name": "CustomElementRegistry",
+      "methods": {
+        "define": {
+          "symbol": "bro_CustomElementRegistry_define",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "get": {
+          "symbol": "bro_CustomElementRegistry_get",
+          "returnType": "dynamic",
+          "returnClass": "Function",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "whenDefined": {
+          "symbol": "bro_CustomElementRegistry_whenDefined",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "upgrade": {
+          "symbol": "bro_CustomElementRegistry_upgrade",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_CustomElementRegistry_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomElementRegistry_destroy"
+      }
+    },
+    "CustomElementRegistry": {
+      "name": "CustomElementRegistry",
+      "methods": {
+        "define": {
+          "symbol": "bro_CustomElementRegistry_define",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "get": {
+          "symbol": "bro_CustomElementRegistry_get",
+          "returnType": "dynamic",
+          "returnClass": "Function",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "whenDefined": {
+          "symbol": "bro_CustomElementRegistry_whenDefined",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "upgrade": {
+          "symbol": "bro_CustomElementRegistry_upgrade",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_CustomElementRegistry_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomElementRegistry_destroy"
+      }
+    },
+    "window.CustomElementRegistry": {
+      "name": "CustomElementRegistry",
+      "methods": {
+        "define": {
+          "symbol": "bro_CustomElementRegistry_define",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "get": {
+          "symbol": "bro_CustomElementRegistry_get",
+          "returnType": "dynamic",
+          "returnClass": "Function",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "whenDefined": {
+          "symbol": "bro_CustomElementRegistry_whenDefined",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "upgrade": {
+          "symbol": "bro_CustomElementRegistry_upgrade",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_CustomElementRegistry_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomElementRegistry_destroy"
+      }
+    },
+    "document.CustomElementRegistry": {
+      "name": "CustomElementRegistry",
+      "methods": {
+        "define": {
+          "symbol": "bro_CustomElementRegistry_define",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "get": {
+          "symbol": "bro_CustomElementRegistry_get",
+          "returnType": "dynamic",
+          "returnClass": "Function",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "whenDefined": {
+          "symbol": "bro_CustomElementRegistry_whenDefined",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "upgrade": {
+          "symbol": "bro_CustomElementRegistry_upgrade",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_CustomElementRegistry_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomElementRegistry_destroy"
+      }
+    },
+    "bro.custom_elements.HTMLElement": {
+      "name": "HTMLElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLElement_destroy"
+      }
+    },
+    "HTMLElement": {
+      "name": "HTMLElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLElement_destroy"
+      }
+    },
+    "window.HTMLElement": {
+      "name": "HTMLElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLElement_destroy"
+      }
+    },
+    "document.HTMLElement": {
+      "name": "HTMLElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLElement_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "customElements",
+      "symbol": "bro_customElements",
+      "returnType": "dynamic",
+      "returnClass": "CustomElementRegistry",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "window.customElements",
+      "symbol": "bro_customElements",
+      "returnType": "dynamic",
+      "returnClass": "CustomElementRegistry",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "document.customElements",
+      "symbol": "bro_customElements",
+      "returnType": "dynamic",
+      "returnClass": "CustomElementRegistry",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.custom_elements.CustomElementRegistry",
+      "name": "define",
+      "symbol": "bro_CustomElementRegistry_define",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.custom_elements.CustomElementRegistry",
+      "name": "get",
+      "symbol": "bro_CustomElementRegistry_get",
+      "returnType": "dynamic",
+      "returnClass": "Function",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.custom_elements.CustomElementRegistry",
+      "name": "whenDefined",
+      "symbol": "bro_CustomElementRegistry_whenDefined",
+      "returnType": "dynamic",
+      "returnClass": "Promise",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.custom_elements.CustomElementRegistry",
+      "name": "upgrade",
+      "symbol": "bro_CustomElementRegistry_upgrade",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

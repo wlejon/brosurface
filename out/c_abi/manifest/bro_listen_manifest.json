@@ -261,6 +261,109 @@
       "destructor": {
         "symbol": "bro_ListenStream_destroy"
       }
+    },
+    "bro.ListenStream": {
+      "name": "ListenStream",
+      "methods": {
+        "retain": {
+          "symbol": "bro_ListenStream_retain",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "audio": {
+          "symbol": "bro_ListenStream_audio",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "frame": {
+          "symbol": "bro_ListenStream_frame",
+          "returnType": "dynamic",
+          "returnClass": "long long",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "info": {
+          "symbol": "bro_ListenStream_info",
+          "returnType": "dynamic",
+          "returnClass": "ListenRetentionInfo",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_ListenStream_feed",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "close": {
+          "symbol": "bro_ListenStream_close",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "getter": "bro_ListenStream_get_id",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "kind": {
+          "getter": "bro_ListenStream_get_kind",
+          "setter": null,
+          "returnType": "str"
+        },
+        "valid": {
+          "getter": "bro_ListenStream_get_valid",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "wake": {
+          "getter": "bro_ListenStream_get_wake",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "WakeStreamView"
+        },
+        "kws": {
+          "getter": "bro_ListenStream_get_kws",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "KwsStreamView"
+        },
+        "sense": {
+          "getter": "bro_ListenStream_get_sense",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "SenseStreamView"
+        },
+        "gesture": {
+          "getter": "bro_ListenStream_get_gesture",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "GestureStreamView"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ListenStream_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ListenStream_destroy"
+      }
     }
   },
   "symbols": [

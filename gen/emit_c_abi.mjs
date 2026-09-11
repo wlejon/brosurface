@@ -273,6 +273,14 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
       };
       manifest.classes[shortName] = manifest.classes[clsName];
 
+      if (Array.isArray(config.aliases)) {
+        for (const alias of config.aliases) {
+          if (alias) {
+            manifest.classes[`${alias}.${def.name}`] = manifest.classes[clsName];
+          }
+        }
+      }
+
       headerLines.push(`// --- Interface ${clsName} ---`);
 
       // Constructor
@@ -314,6 +322,20 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
           returnClass: def.name,
           paramTypes: ['dynamic']
         });
+
+        if (Array.isArray(config.aliases)) {
+          for (const alias of config.aliases) {
+            const aliasPath = alias ? `${alias}.${gVarAttr}` : gVarAttr;
+            manifest.symbols.push({
+              kind: 'function',
+              jsPath: aliasPath,
+              symbol: fnSym,
+              returnType: 'dynamic',
+              returnClass: def.name,
+              paramTypes: ['dynamic']
+            });
+          }
+        }
       }
 
       // Methods and attributes
@@ -414,10 +436,11 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
 
       if (Array.isArray(config.extraMethods)) {
         for (const em of config.extraMethods) {
+          const rec = em.receiver || clsName;
+          if (rec !== clsName) continue;
           if (em.declaration) {
             headerLines.push(em.declaration);
           }
-          const rec = em.receiver || clsName;
           if (manifest.classes[rec]) {
             manifest.classes[rec].methods[em.name] = {
               symbol: em.symbol,

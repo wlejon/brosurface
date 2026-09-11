@@ -169,6 +169,89 @@
         "symbol": "bro_AudioParam_destroy"
       }
     },
+    "bro.AudioParam": {
+      "name": "AudioParam",
+      "methods": {
+        "setValueAtTime": {
+          "symbol": "bro_AudioParam_setValueAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "linearRampToValueAtTime": {
+          "symbol": "bro_AudioParam_linearRampToValueAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "exponentialRampToValueAtTime": {
+          "symbol": "bro_AudioParam_exponentialRampToValueAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "setTargetAtTime": {
+          "symbol": "bro_AudioParam_setTargetAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setValueCurveAtTime": {
+          "symbol": "bro_AudioParam_setValueCurveAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "cancelScheduledValues": {
+          "symbol": "bro_AudioParam_cancelScheduledValues",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "cancelAndHoldAtTime": {
+          "symbol": "bro_AudioParam_cancelAndHoldAtTime",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        }
+      },
+      "properties": {
+        "value": {
+          "getter": "bro_AudioParam_get_value",
+          "setter": "bro_AudioParam_set_value",
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AudioParam_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AudioParam_destroy"
+      }
+    },
     "bro.audio.OscillatorNode": {
       "name": "OscillatorNode",
       "methods": {
@@ -233,6 +316,69 @@
       }
     },
     "OscillatorNode": {
+      "name": "OscillatorNode",
+      "methods": {
+        "start": {
+          "symbol": "bro_OscillatorNode_start",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_OscillatorNode_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "connect": {
+          "symbol": "bro_OscillatorNode_connect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "disconnect": {
+          "symbol": "bro_OscillatorNode_disconnect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_OscillatorNode_get_type",
+          "setter": "bro_OscillatorNode_set_type",
+          "returnType": "str"
+        },
+        "frequency": {
+          "getter": "bro_OscillatorNode_get_frequency",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        },
+        "detune": {
+          "getter": "bro_OscillatorNode_get_detune",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_OscillatorNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_OscillatorNode_destroy"
+      }
+    },
+    "bro.OscillatorNode": {
       "name": "OscillatorNode",
       "methods": {
         "start": {
@@ -367,6 +513,42 @@
         "symbol": "bro_GainNode_destroy"
       }
     },
+    "bro.GainNode": {
+      "name": "GainNode",
+      "methods": {
+        "connect": {
+          "symbol": "bro_GainNode_connect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "disconnect": {
+          "symbol": "bro_GainNode_disconnect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "gain": {
+          "getter": "bro_GainNode_get_gain",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GainNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GainNode_destroy"
+      }
+    },
     "bro.audio.BiquadFilterNode": {
       "name": "BiquadFilterNode",
       "methods": {
@@ -437,6 +619,75 @@
       }
     },
     "BiquadFilterNode": {
+      "name": "BiquadFilterNode",
+      "methods": {
+        "connect": {
+          "symbol": "bro_BiquadFilterNode_connect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "disconnect": {
+          "symbol": "bro_BiquadFilterNode_disconnect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "getFrequencyResponse": {
+          "symbol": "bro_BiquadFilterNode_getFrequencyResponse",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_BiquadFilterNode_get_type",
+          "setter": "bro_BiquadFilterNode_set_type",
+          "returnType": "str"
+        },
+        "frequency": {
+          "getter": "bro_BiquadFilterNode_get_frequency",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        },
+        "detune": {
+          "getter": "bro_BiquadFilterNode_get_detune",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        },
+        "Q": {
+          "getter": "bro_BiquadFilterNode_get_Q",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        },
+        "gain": {
+          "getter": "bro_BiquadFilterNode_get_gain",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioParam"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_BiquadFilterNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_BiquadFilterNode_destroy"
+      }
+    },
+    "bro.BiquadFilterNode": {
       "name": "BiquadFilterNode",
       "methods": {
         "connect": {
@@ -679,6 +930,93 @@
         "symbol": "bro_AnalyserNode_destroy"
       }
     },
+    "bro.AnalyserNode": {
+      "name": "AnalyserNode",
+      "methods": {
+        "getFloatFrequencyData": {
+          "symbol": "bro_AnalyserNode_getFloatFrequencyData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "getByteFrequencyData": {
+          "symbol": "bro_AnalyserNode_getByteFrequencyData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "getFloatTimeDomainData": {
+          "symbol": "bro_AnalyserNode_getFloatTimeDomainData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "getByteTimeDomainData": {
+          "symbol": "bro_AnalyserNode_getByteTimeDomainData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "connect": {
+          "symbol": "bro_AnalyserNode_connect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "disconnect": {
+          "symbol": "bro_AnalyserNode_disconnect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "fftSize": {
+          "getter": "bro_AnalyserNode_get_fftSize",
+          "setter": "bro_AnalyserNode_set_fftSize",
+          "returnType": "i32"
+        },
+        "frequencyBinCount": {
+          "getter": "bro_AnalyserNode_get_frequencyBinCount",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "minDecibels": {
+          "getter": "bro_AnalyserNode_get_minDecibels",
+          "setter": "bro_AnalyserNode_set_minDecibels",
+          "returnType": "f64"
+        },
+        "maxDecibels": {
+          "getter": "bro_AnalyserNode_get_maxDecibels",
+          "setter": "bro_AnalyserNode_set_maxDecibels",
+          "returnType": "f64"
+        },
+        "smoothingTimeConstant": {
+          "getter": "bro_AnalyserNode_get_smoothingTimeConstant",
+          "setter": "bro_AnalyserNode_set_smoothingTimeConstant",
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AnalyserNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AnalyserNode_destroy"
+      }
+    },
     "bro.audio.MediaStream": {
       "name": "MediaStream",
       "methods": {},
@@ -699,6 +1037,25 @@
       }
     },
     "MediaStream": {
+      "name": "MediaStream",
+      "methods": {},
+      "properties": {
+        "active": {
+          "getter": "bro_MediaStream_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_MediaStream_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MediaStream_destroy"
+      }
+    },
+    "bro.MediaStream": {
       "name": "MediaStream",
       "methods": {},
       "properties": {
@@ -775,6 +1132,35 @@
         "symbol": "bro_MediaStreamAudioSourceNode_destroy"
       }
     },
+    "bro.MediaStreamAudioSourceNode": {
+      "name": "MediaStreamAudioSourceNode",
+      "methods": {
+        "connect": {
+          "symbol": "bro_MediaStreamAudioSourceNode_connect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "disconnect": {
+          "symbol": "bro_MediaStreamAudioSourceNode_disconnect",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_MediaStreamAudioSourceNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MediaStreamAudioSourceNode_destroy"
+      }
+    },
     "bro.audio.AudioDestinationNode": {
       "name": "AudioDestinationNode",
       "methods": {},
@@ -795,6 +1181,25 @@
       }
     },
     "AudioDestinationNode": {
+      "name": "AudioDestinationNode",
+      "methods": {},
+      "properties": {
+        "maxChannelCount": {
+          "getter": "bro_AudioDestinationNode_get_maxChannelCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AudioDestinationNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AudioDestinationNode_destroy"
+      }
+    },
+    "bro.AudioDestinationNode": {
       "name": "AudioDestinationNode",
       "methods": {},
       "properties": {
@@ -903,6 +1308,51 @@
         "symbol": "bro_VoiceAllocator_destroy"
       }
     },
+    "bro.VoiceAllocator": {
+      "name": "VoiceAllocator",
+      "methods": {
+        "noteOn": {
+          "symbol": "bro_VoiceAllocator_noteOn",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64"
+          ]
+        },
+        "noteOff": {
+          "symbol": "bro_VoiceAllocator_noteOff",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "allNotesOff": {
+          "symbol": "bro_VoiceAllocator_allNotesOff",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "voiceCount": {
+          "symbol": "bro_VoiceAllocator_voiceCount",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_VoiceAllocator_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_VoiceAllocator_destroy"
+      }
+    },
     "bro.audio.ModMatrix": {
       "name": "ModMatrix",
       "methods": {
@@ -944,6 +1394,46 @@
       }
     },
     "ModMatrix": {
+      "name": "ModMatrix",
+      "methods": {
+        "setRouting": {
+          "symbol": "bro_ModMatrix_setRouting",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str",
+            "f64"
+          ]
+        },
+        "getRouting": {
+          "symbol": "bro_ModMatrix_getRouting",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_ModMatrix_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ModMatrix_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ModMatrix_destroy"
+      }
+    },
+    "bro.ModMatrix": {
       "name": "ModMatrix",
       "methods": {
         "setRouting": {
@@ -1073,6 +1563,51 @@
         "symbol": "bro_MidiInput_destroy"
       }
     },
+    "bro.MidiInput": {
+      "name": "MidiInput",
+      "methods": {
+        "listPorts": {
+          "symbol": "bro_MidiInput_listPorts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "openPort": {
+          "symbol": "bro_MidiInput_openPort",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "closePort": {
+          "symbol": "bro_MidiInput_closePort",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "pollEvents": {
+          "symbol": "bro_MidiInput_pollEvents",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_MidiInput_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MidiInput_destroy"
+      }
+    },
     "bro.audio.Sequence": {
       "name": "Sequence",
       "methods": {
@@ -1130,6 +1665,62 @@
       }
     },
     "Sequence": {
+      "name": "Sequence",
+      "methods": {
+        "addNote": {
+          "symbol": "bro_Sequence_addNote",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "i32",
+            "f64",
+            "f64"
+          ]
+        },
+        "clearNotes": {
+          "symbol": "bro_Sequence_clearNotes",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "getNotes": {
+          "symbol": "bro_Sequence_getNotes",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "tempo": {
+          "getter": "bro_Sequence_get_tempo",
+          "setter": "bro_Sequence_set_tempo",
+          "returnType": "f64"
+        },
+        "length": {
+          "getter": "bro_Sequence_get_length",
+          "setter": "bro_Sequence_set_length",
+          "returnType": "f64"
+        },
+        "loop": {
+          "getter": "bro_Sequence_get_loop",
+          "setter": "bro_Sequence_set_loop",
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Sequence_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Sequence_destroy"
+      }
+    },
+    "bro.Sequence": {
       "name": "Sequence",
       "methods": {
         "addNote": {
@@ -1572,6 +2163,392 @@
       }
     },
     "AudioContext": {
+      "name": "AudioContext",
+      "methods": {
+        "createOscillator": {
+          "symbol": "bro_AudioContext_createOscillator",
+          "returnType": "dynamic",
+          "returnClass": "OscillatorNode",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createGain": {
+          "symbol": "bro_AudioContext_createGain",
+          "returnType": "dynamic",
+          "returnClass": "GainNode",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createBiquadFilter": {
+          "symbol": "bro_AudioContext_createBiquadFilter",
+          "returnType": "dynamic",
+          "returnClass": "BiquadFilterNode",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createAnalyser": {
+          "symbol": "bro_AudioContext_createAnalyser",
+          "returnType": "dynamic",
+          "returnClass": "AnalyserNode",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createMediaStreamSource": {
+          "symbol": "bro_AudioContext_createMediaStreamSource",
+          "returnType": "dynamic",
+          "returnClass": "MediaStreamAudioSourceNode",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createVoiceAllocator": {
+          "symbol": "bro_AudioContext_createVoiceAllocator",
+          "returnType": "dynamic",
+          "returnClass": "VoiceAllocator",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createModMatrix": {
+          "symbol": "bro_AudioContext_createModMatrix",
+          "returnType": "dynamic",
+          "returnClass": "ModMatrix",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createMidiInput": {
+          "symbol": "bro_AudioContext_createMidiInput",
+          "returnType": "dynamic",
+          "returnClass": "MidiInput",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createSequence": {
+          "symbol": "bro_AudioContext_createSequence",
+          "returnType": "dynamic",
+          "returnClass": "Sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "suspend": {
+          "symbol": "bro_AudioContext_suspend",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_AudioContext_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "close": {
+          "symbol": "bro_AudioContext_close",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "startRecording": {
+          "symbol": "bro_AudioContext_startRecording",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stopRecording": {
+          "symbol": "bro_AudioContext_stopRecording",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "createClipFromFile": {
+          "symbol": "bro_AudioContext_createClipFromFile",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "createClipFromFileAsync": {
+          "symbol": "bro_AudioContext_createClipFromFileAsync",
+          "returnType": "dynamic",
+          "returnClass": "AsyncHandle",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "decodeAudioData": {
+          "symbol": "bro_AudioContext_decodeAudioData",
+          "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "decodeAudioFile": {
+          "symbol": "bro_AudioContext_decodeAudioFile",
+          "returnType": "dynamic",
+          "returnClass": "AudioDecodedBuffer",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "exportRecordingToWav": {
+          "symbol": "bro_AudioContext_exportRecordingToWav",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "saveWav": {
+          "symbol": "bro_AudioContext_saveWav",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "createClip": {
+          "symbol": "bro_AudioContext_createClip",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "deleteClip": {
+          "symbol": "bro_AudioContext_deleteClip",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "getClipSampleCount": {
+          "symbol": "bro_AudioContext_getClipSampleCount",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "getClipChannels": {
+          "symbol": "bro_AudioContext_getClipChannels",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "getClipWaveform": {
+          "symbol": "bro_AudioContext_getClipWaveform",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "playClip": {
+          "symbol": "bro_AudioContext_playClip",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64",
+            "bool",
+            "f64"
+          ]
+        },
+        "createStream": {
+          "symbol": "bro_AudioContext_createStream",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "pushStreamSamples": {
+          "symbol": "bro_AudioContext_pushStreamSamples",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "closeStream": {
+          "symbol": "bro_AudioContext_closeStream",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createStreamFromFile": {
+          "symbol": "bro_AudioContext_createStreamFromFile",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "getStreamStats": {
+          "symbol": "bro_AudioContext_getStreamStats",
+          "returnType": "dynamic",
+          "returnClass": "StreamStats",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "stopPlayback": {
+          "symbol": "bro_AudioContext_stopPlayback",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "setPlaybackGain": {
+          "symbol": "bro_AudioContext_setPlaybackGain",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64"
+          ]
+        },
+        "setPlaybackLoop": {
+          "symbol": "bro_AudioContext_setPlaybackLoop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "bool"
+          ]
+        },
+        "setPlaybackPlaying": {
+          "symbol": "bro_AudioContext_setPlaybackPlaying",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "bool"
+          ]
+        },
+        "setPlaybackRegion": {
+          "symbol": "bro_AudioContext_setPlaybackRegion",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "setPlaybackRate": {
+          "symbol": "bro_AudioContext_setPlaybackRate",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64"
+          ]
+        },
+        "setPlaybackPan": {
+          "symbol": "bro_AudioContext_setPlaybackPan",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64"
+          ]
+        },
+        "getPlaybackPosition": {
+          "symbol": "bro_AudioContext_getPlaybackPosition",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "getPlaybackPositionSeconds": {
+          "symbol": "bro_AudioContext_getPlaybackPositionSeconds",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "seekPlayback": {
+          "symbol": "bro_AudioContext_seekPlayback",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "f64"
+          ]
+        }
+      },
+      "properties": {
+        "currentTime": {
+          "getter": "bro_AudioContext_get_currentTime",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "sampleRate": {
+          "getter": "bro_AudioContext_get_sampleRate",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "state": {
+          "getter": "bro_AudioContext_get_state",
+          "setter": null,
+          "returnType": "str"
+        },
+        "destination": {
+          "getter": "bro_AudioContext_get_destination",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "AudioDestinationNode"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_AudioContext_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AudioContext_destroy"
+      }
+    },
+    "bro.AudioContext": {
       "name": "AudioContext",
       "methods": {
         "createOscillator": {

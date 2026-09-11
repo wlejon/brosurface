@@ -271,6 +271,104 @@
       "destructor": {
         "symbol": "bro_GestureStreamView_destroy"
       }
+    },
+    "bro.GestureStreamView": {
+      "name": "GestureStreamView",
+      "methods": {
+        "enrollFromAudio": {
+          "symbol": "bro_GestureStreamView_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_GestureStreamView_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_GestureStreamView_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "templates": {
+          "symbol": "bro_GestureStreamView_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_GestureStreamView_inspect",
+          "returnType": "dynamic",
+          "returnClass": "GestureInspection",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_GestureStreamView_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "listen": {
+          "symbol": "bro_GestureStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_GestureStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_GestureStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_GestureStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_GestureStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GestureStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GestureStreamView_destroy"
+      }
     }
   },
   "symbols": [

@@ -232,6 +232,90 @@
       "destructor": {
         "symbol": "bro_SenseStreamView_destroy"
       }
+    },
+    "bro.SenseStreamView": {
+      "name": "SenseStreamView",
+      "methods": {
+        "start": {
+          "symbol": "bro_SenseStreamView_start",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_SenseStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_SenseStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "snapshot": {
+          "symbol": "bro_SenseStreamView_snapshot",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_SenseStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_SenseStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "SenseStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_SenseStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "analyze": {
+          "symbol": "bro_SenseStreamView_analyze",
+          "returnType": "dynamic",
+          "returnClass": "SenseAnalysis",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_SenseStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SenseStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SenseStreamView_destroy"
+      }
     }
   },
   "symbols": [

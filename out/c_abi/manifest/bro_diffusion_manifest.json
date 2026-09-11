@@ -72,6 +72,19 @@
         "symbol": "bro_Pipeline_destroy"
       }
     },
+    "bro.Pipeline": {
+      "name": "Pipeline",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Pipeline_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Pipeline_destroy"
+      }
+    },
     "bro.diffusion.PipelineState": {
       "name": "PipelineState",
       "methods": {},
@@ -86,6 +99,19 @@
       }
     },
     "PipelineState": {
+      "name": "PipelineState",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PipelineState_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PipelineState_destroy"
+      }
+    },
+    "bro.PipelineState": {
       "name": "PipelineState",
       "methods": {},
       "properties": {},

@@ -137,6 +137,48 @@
         "symbol": "bro_Sortformer_destroy"
       }
     },
+    "bro.Sortformer": {
+      "name": "Sortformer",
+      "methods": {
+        "diarize": {
+          "symbol": "bro_Sortformer_diarize",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createSession": {
+          "symbol": "bro_Sortformer_createSession",
+          "returnType": "dynamic",
+          "returnClass": "SortformerSession",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Sortformer_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "busy": {
+          "getter": "bro_Sortformer_get_busy",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Sortformer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Sortformer_destroy"
+      }
+    },
     "bro.diar.SortformerSession": {
       "name": "SortformerSession",
       "methods": {
@@ -221,6 +263,48 @@
         "symbol": "bro_SortformerSession_destroy"
       }
     },
+    "bro.SortformerSession": {
+      "name": "SortformerSession",
+      "methods": {
+        "feed": {
+          "symbol": "bro_SortformerSession_feed",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "bool"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_SortformerSession_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_SortformerSession_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "busy": {
+          "getter": "bro_SortformerSession_get_busy",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SortformerSession_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SortformerSession_destroy"
+      }
+    },
     "bro.diar.ClusterDiarizer": {
       "name": "ClusterDiarizer",
       "methods": {
@@ -257,6 +341,41 @@
       }
     },
     "ClusterDiarizer": {
+      "name": "ClusterDiarizer",
+      "methods": {
+        "diarize": {
+          "symbol": "bro_ClusterDiarizer_diarize",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_ClusterDiarizer_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "busy": {
+          "getter": "bro_ClusterDiarizer_get_busy",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ClusterDiarizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ClusterDiarizer_destroy"
+      }
+    },
+    "bro.ClusterDiarizer": {
       "name": "ClusterDiarizer",
       "methods": {
         "diarize": {

@@ -1581,6 +1581,114 @@
       "destructor": {
         "symbol": "bro_GpuTensor_destroy"
       }
+    },
+    "bro.GpuTensor": {
+      "name": "GpuTensor",
+      "methods": {
+        "zero": {
+          "symbol": "bro_GpuTensor_zero",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resize": {
+          "symbol": "bro_GpuTensor_resize",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "dtype": {
+          "symbol": "bro_GpuTensor_dtype",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "clone": {
+          "symbol": "bro_GpuTensor_clone",
+          "returnType": "dynamic",
+          "returnClass": "GpuTensor",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "upload": {
+          "symbol": "bro_GpuTensor_upload",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "download": {
+          "symbol": "bro_GpuTensor_download",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "uploadFp16": {
+          "symbol": "bro_GpuTensor_uploadFp16",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "downloadFp16": {
+          "symbol": "bro_GpuTensor_downloadFp16",
+          "returnType": "dynamic",
+          "returnClass": "Uint16Array",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "uploadInt8": {
+          "symbol": "bro_GpuTensor_uploadInt8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "rows": {
+          "getter": "bro_GpuTensor_get_rows",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "cols": {
+          "getter": "bro_GpuTensor_get_cols",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "size": {
+          "getter": "bro_GpuTensor_get_size",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "bytes": {
+          "getter": "bro_GpuTensor_get_bytes",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GpuTensor_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GpuTensor_destroy"
+      }
     }
   },
   "symbols": [

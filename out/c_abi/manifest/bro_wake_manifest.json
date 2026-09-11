@@ -295,6 +295,109 @@
       "destructor": {
         "symbol": "bro_WakeStreamView_destroy"
       }
+    },
+    "bro.WakeStreamView": {
+      "name": "WakeStreamView",
+      "methods": {
+        "listen": {
+          "symbol": "bro_WakeStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_WakeStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "suspend": {
+          "symbol": "bro_WakeStreamView_suspend",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_WakeStreamView_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "lastScore": {
+          "symbol": "bro_WakeStreamView_lastScore",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_WakeStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isSuspended": {
+          "symbol": "bro_WakeStreamView_isSuspended",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isLoaded": {
+          "symbol": "bro_WakeStreamView_isLoaded",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "setThreshold": {
+          "symbol": "bro_WakeStreamView_setThreshold",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_WakeStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "WakeStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_WakeStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "any",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_WakeStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WakeStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WakeStreamView_destroy"
+      }
     }
   },
   "symbols": [

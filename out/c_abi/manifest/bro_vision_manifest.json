@@ -182,6 +182,36 @@
         "symbol": "bro_DepthEstimator_destroy"
       }
     },
+    "bro.DepthEstimator": {
+      "name": "DepthEstimator",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_DepthEstimator_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_DepthEstimator_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_DepthEstimator_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_DepthEstimator_destroy"
+      }
+    },
     "bro.vision.Sam": {
       "name": "Sam",
       "methods": {
@@ -237,6 +267,60 @@
       }
     },
     "Sam": {
+      "name": "Sam",
+      "methods": {
+        "setImage": {
+          "symbol": "bro_Sam_setImage",
+          "returnType": "dynamic",
+          "returnClass": "any",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "segment": {
+          "symbol": "bro_Sam_segment",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "segmentEverything": {
+          "symbol": "bro_Sam_segmentEverything",
+          "returnType": "dynamic",
+          "returnClass": "any",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Sam_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "hasImage": {
+          "getter": "bro_Sam_get_hasImage",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Sam_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Sam_destroy"
+      }
+    },
+    "bro.Sam": {
       "name": "Sam",
       "methods": {
         "setImage": {
@@ -350,6 +434,36 @@
         "symbol": "bro_NormalEstimator_destroy"
       }
     },
+    "bro.NormalEstimator": {
+      "name": "NormalEstimator",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_NormalEstimator_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_NormalEstimator_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_NormalEstimator_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_NormalEstimator_destroy"
+      }
+    },
     "bro.vision.Hed": {
       "name": "Hed",
       "methods": {
@@ -381,6 +495,36 @@
       }
     },
     "Hed": {
+      "name": "Hed",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Hed_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Hed_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Hed_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Hed_destroy"
+      }
+    },
+    "bro.Hed": {
       "name": "Hed",
       "methods": {
         "estimate": {
@@ -470,6 +614,36 @@
         "symbol": "bro_Lineart_destroy"
       }
     },
+    "bro.Lineart": {
+      "name": "Lineart",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Lineart_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Lineart_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Lineart_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Lineart_destroy"
+      }
+    },
     "bro.vision.Mlsd": {
       "name": "Mlsd",
       "methods": {
@@ -501,6 +675,36 @@
       }
     },
     "Mlsd": {
+      "name": "Mlsd",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Mlsd_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Mlsd_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Mlsd_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Mlsd_destroy"
+      }
+    },
+    "bro.Mlsd": {
       "name": "Mlsd",
       "methods": {
         "estimate": {
@@ -590,6 +794,36 @@
         "symbol": "bro_Openpose_destroy"
       }
     },
+    "bro.Openpose": {
+      "name": "Openpose",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Openpose_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Openpose_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Openpose_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Openpose_destroy"
+      }
+    },
     "bro.vision.Segformer": {
       "name": "Segformer",
       "methods": {
@@ -650,6 +884,36 @@
         "symbol": "bro_Segformer_destroy"
       }
     },
+    "bro.Segformer": {
+      "name": "Segformer",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Segformer_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Segformer_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Segformer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Segformer_destroy"
+      }
+    },
     "bro.vision.Birefnet": {
       "name": "Birefnet",
       "methods": {
@@ -681,6 +945,36 @@
       }
     },
     "Birefnet": {
+      "name": "Birefnet",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Birefnet_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Birefnet_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Birefnet_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Birefnet_destroy"
+      }
+    },
+    "bro.Birefnet": {
       "name": "Birefnet",
       "methods": {
         "estimate": {
@@ -820,6 +1114,61 @@
         "symbol": "bro_StyleGAN3_destroy"
       }
     },
+    "bro.StyleGAN3": {
+      "name": "StyleGAN3",
+      "methods": {
+        "generate": {
+          "symbol": "bro_StyleGAN3_generate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_StyleGAN3_get_device",
+          "setter": null,
+          "returnType": "str"
+        },
+        "zDim": {
+          "getter": "bro_StyleGAN3_get_zDim",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "cDim": {
+          "getter": "bro_StyleGAN3_get_cDim",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "wDim": {
+          "getter": "bro_StyleGAN3_get_wDim",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "imgResolution": {
+          "getter": "bro_StyleGAN3_get_imgResolution",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "imgChannels": {
+          "getter": "bro_StyleGAN3_get_imgChannels",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_StyleGAN3_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_StyleGAN3_destroy"
+      }
+    },
     "bro.vision.Dinov2": {
       "name": "Dinov2",
       "methods": {
@@ -880,6 +1229,36 @@
         "symbol": "bro_Dinov2_destroy"
       }
     },
+    "bro.Dinov2": {
+      "name": "Dinov2",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Dinov2_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Dinov2_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Dinov2_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Dinov2_destroy"
+      }
+    },
     "bro.vision.Dinov3": {
       "name": "Dinov3",
       "methods": {
@@ -911,6 +1290,36 @@
       }
     },
     "Dinov3": {
+      "name": "Dinov3",
+      "methods": {
+        "estimate": {
+          "symbol": "bro_Dinov3_estimate",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "device": {
+          "getter": "bro_Dinov3_get_device",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Dinov3_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Dinov3_destroy"
+      }
+    },
+    "bro.Dinov3": {
       "name": "Dinov3",
       "methods": {
         "estimate": {

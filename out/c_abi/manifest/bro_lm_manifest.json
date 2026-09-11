@@ -144,6 +144,27 @@
         "symbol": "bro_AsyncHandle_destroy"
       }
     },
+    "bro.AsyncHandle": {
+      "name": "AsyncHandle",
+      "methods": {
+        "cancel": {
+          "symbol": "bro_AsyncHandle_cancel",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AsyncHandle_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AsyncHandle_destroy"
+      }
+    },
     "bro.lm.QwenTokenizer": {
       "name": "QwenTokenizer",
       "methods": {
@@ -196,6 +217,57 @@
       }
     },
     "QwenTokenizer": {
+      "name": "QwenTokenizer",
+      "methods": {
+        "encode": {
+          "symbol": "bro_QwenTokenizer_encode",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_QwenTokenizer_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "applyChatTemplate": {
+          "symbol": "bro_QwenTokenizer_applyChatTemplate",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "bool"
+          ]
+        }
+      },
+      "properties": {
+        "imEndId": {
+          "getter": "bro_QwenTokenizer_get_imEndId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "imStartId": {
+          "getter": "bro_QwenTokenizer_get_imStartId",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_QwenTokenizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_QwenTokenizer_destroy"
+      }
+    },
+    "bro.QwenTokenizer": {
       "name": "QwenTokenizer",
       "methods": {
         "encode": {
@@ -360,6 +432,63 @@
         "symbol": "bro_MistralTokenizer_destroy"
       }
     },
+    "bro.MistralTokenizer": {
+      "name": "MistralTokenizer",
+      "methods": {
+        "encode": {
+          "symbol": "bro_MistralTokenizer_encode",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_MistralTokenizer_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "applyChatTemplate": {
+          "symbol": "bro_MistralTokenizer_applyChatTemplate",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "bool"
+          ]
+        }
+      },
+      "properties": {
+        "eosId": {
+          "getter": "bro_MistralTokenizer_get_eosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "bosId": {
+          "getter": "bro_MistralTokenizer_get_bosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "vocabCount": {
+          "getter": "bro_MistralTokenizer_get_vocabCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_MistralTokenizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MistralTokenizer_destroy"
+      }
+    },
     "bro.lm.GemmaTokenizer": {
       "name": "GemmaTokenizer",
       "methods": {
@@ -419,6 +548,64 @@
       }
     },
     "GemmaTokenizer": {
+      "name": "GemmaTokenizer",
+      "methods": {
+        "encode": {
+          "symbol": "bro_GemmaTokenizer_encode",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_GemmaTokenizer_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "eosId": {
+          "getter": "bro_GemmaTokenizer_get_eosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "bosId": {
+          "getter": "bro_GemmaTokenizer_get_bosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "padId": {
+          "getter": "bro_GemmaTokenizer_get_padId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "unkId": {
+          "getter": "bro_GemmaTokenizer_get_unkId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "vocabCount": {
+          "getter": "bro_GemmaTokenizer_get_vocabCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GemmaTokenizer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GemmaTokenizer_destroy"
+      }
+    },
+    "bro.GemmaTokenizer": {
       "name": "GemmaTokenizer",
       "methods": {
         "encode": {
@@ -638,6 +825,87 @@
         "symbol": "bro_LMModel_destroy"
       }
     },
+    "bro.LMModel": {
+      "name": "LMModel",
+      "methods": {
+        "allocateCache": {
+          "symbol": "bro_LMModel_allocateCache",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "resetCache": {
+          "symbol": "bro_LMModel_resetCache",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "generate": {
+          "symbol": "bro_LMModel_generate",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "generateStream": {
+          "symbol": "bro_LMModel_generateStream",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "family": {
+          "getter": "bro_LMModel_get_family",
+          "setter": null,
+          "returnType": "str"
+        },
+        "vocabSize": {
+          "getter": "bro_LMModel_get_vocabSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "hiddenSize": {
+          "getter": "bro_LMModel_get_hiddenSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "numLayers": {
+          "getter": "bro_LMModel_get_numLayers",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxSeqLen": {
+          "getter": "bro_LMModel_get_maxSeqLen",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "cacheLen": {
+          "getter": "bro_LMModel_get_cacheLen",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_LMModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_LMModel_destroy"
+      }
+    },
     "bro.lm.Qwen35Model": {
       "name": "Qwen35Model",
       "methods": {
@@ -722,6 +990,89 @@
       }
     },
     "Qwen35Model": {
+      "name": "Qwen35Model",
+      "methods": {
+        "encode": {
+          "symbol": "bro_Qwen35Model_encode",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_Qwen35Model_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "generate": {
+          "symbol": "bro_Qwen35Model_generate",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "family": {
+          "getter": "bro_Qwen35Model_get_family",
+          "setter": null,
+          "returnType": "str"
+        },
+        "vocabSize": {
+          "getter": "bro_Qwen35Model_get_vocabSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "hiddenSize": {
+          "getter": "bro_Qwen35Model_get_hiddenSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "numLayers": {
+          "getter": "bro_Qwen35Model_get_numLayers",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxSeqLen": {
+          "getter": "bro_Qwen35Model_get_maxSeqLen",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "eosId": {
+          "getter": "bro_Qwen35Model_get_eosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "imEndId": {
+          "getter": "bro_Qwen35Model_get_imEndId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "endoftextId": {
+          "getter": "bro_Qwen35Model_get_endoftextId",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Qwen35Model_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Qwen35Model_destroy"
+      }
+    },
+    "bro.Qwen35Model": {
       "name": "Qwen35Model",
       "methods": {
         "encode": {
@@ -970,6 +1321,89 @@
         "symbol": "bro_Qwen3VLModel_destroy"
       }
     },
+    "bro.Qwen3VLModel": {
+      "name": "Qwen3VLModel",
+      "methods": {
+        "encode": {
+          "symbol": "bro_Qwen3VLModel_encode",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool"
+          ]
+        },
+        "decode": {
+          "symbol": "bro_Qwen3VLModel_decode",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "generate": {
+          "symbol": "bro_Qwen3VLModel_generate",
+          "returnType": "dynamic",
+          "returnClass": "Int32Array",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "family": {
+          "getter": "bro_Qwen3VLModel_get_family",
+          "setter": null,
+          "returnType": "str"
+        },
+        "vocabSize": {
+          "getter": "bro_Qwen3VLModel_get_vocabSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "hiddenSize": {
+          "getter": "bro_Qwen3VLModel_get_hiddenSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "numLayers": {
+          "getter": "bro_Qwen3VLModel_get_numLayers",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxSeqLen": {
+          "getter": "bro_Qwen3VLModel_get_maxSeqLen",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "eosId": {
+          "getter": "bro_Qwen3VLModel_get_eosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "imEndId": {
+          "getter": "bro_Qwen3VLModel_get_imEndId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "endoftextId": {
+          "getter": "bro_Qwen3VLModel_get_endoftextId",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Qwen3VLModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Qwen3VLModel_destroy"
+      }
+    },
     "bro.lm.NllbModel": {
       "name": "NllbModel",
       "methods": {
@@ -1036,6 +1470,71 @@
       }
     },
     "NllbModel": {
+      "name": "NllbModel",
+      "methods": {
+        "hasLanguage": {
+          "symbol": "bro_NllbModel_hasLanguage",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "translate": {
+          "symbol": "bro_NllbModel_translate",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "family": {
+          "getter": "bro_NllbModel_get_family",
+          "setter": null,
+          "returnType": "str"
+        },
+        "vocabSize": {
+          "getter": "bro_NllbModel_get_vocabSize",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "dModel": {
+          "getter": "bro_NllbModel_get_dModel",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "encoderLayers": {
+          "getter": "bro_NllbModel_get_encoderLayers",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "decoderLayers": {
+          "getter": "bro_NllbModel_get_decoderLayers",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "languageCount": {
+          "getter": "bro_NllbModel_get_languageCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_NllbModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_NllbModel_destroy"
+      }
+    },
+    "bro.NllbModel": {
       "name": "NllbModel",
       "methods": {
         "hasLanguage": {
@@ -1196,6 +1695,54 @@
         "symbol": "bro_ClipModel_destroy"
       }
     },
+    "bro.ClipModel": {
+      "name": "ClipModel",
+      "methods": {
+        "encodeText": {
+          "symbol": "bro_ClipModel_encodeText",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "encodeImage": {
+          "symbol": "bro_ClipModel_encodeImage",
+          "returnType": "dynamic",
+          "returnClass": "Float32Array",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "score": {
+          "symbol": "bro_ClipModel_score",
+          "returnType": "dynamic",
+          "returnClass": "union",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "projectionDim": {
+          "getter": "bro_ClipModel_get_projectionDim",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ClipModel_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ClipModel_destroy"
+      }
+    },
     "bro.lm.T5Model": {
       "name": "T5Model",
       "methods": {
@@ -1247,6 +1794,56 @@
       }
     },
     "T5Model": {
+      "name": "T5Model",
+      "methods": {
+        "encode": {
+          "symbol": "bro_T5Model_encode",
+          "returnType": "dynamic",
+          "returnClass": "T5EncodeResult",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "dModel": {
+          "getter": "bro_T5Model_get_dModel",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "maxLength": {
+          "getter": "bro_T5Model_get_maxLength",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "padId": {
+          "getter": "bro_T5Model_get_padId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "eosId": {
+          "getter": "bro_T5Model_get_eosId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "vocabCount": {
+          "getter": "bro_T5Model_get_vocabCount",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_T5Model_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_T5Model_destroy"
+      }
+    },
+    "bro.T5Model": {
       "name": "T5Model",
       "methods": {
         "encode": {

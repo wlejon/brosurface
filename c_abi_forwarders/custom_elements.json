@@ -1,0 +1,19 @@
+{
+  "aliases": [
+    "window",
+    "document"
+  ],
+  "extraMethods": [
+    {
+      "receiver": "bro.custom_elements.CustomElementRegistry",
+      "name": "upgrade",
+      "symbol": "bro_CustomElementRegistry_upgrade",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ],
+      "declaration": "void bro_CustomElementRegistry_upgrade(void* self, void* root);"
+    }
+  ]
+}
