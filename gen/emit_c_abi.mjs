@@ -168,7 +168,8 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
   // Process definitions
   for (const def of fileAst.definitions) {
     if (def.type === 'Namespace') {
-      const nsName = `bro.${def.name}`;
+      const aliasAttr = def.attributes?.find(a => a.name === 'js_alias')?.value;
+      const nsName = aliasAttr || `bro.${def.name}`;
       manifest.namespaces[nsName] = { functions: {}, properties: {} };
 
       headerLines.push(`// --- Namespace ${nsName} ---`);
@@ -293,6 +294,20 @@ export function generateCAbiForSubsystem(fileAst, subsystem, config = {}) {
       manifest.classes[clsName].destructor = {
         symbol: dtorSym
       };
+
+      const gVarAttr = def.attributes?.find(a => a.name === 'global_var' || a.name === 'js_global')?.value;
+      if (gVarAttr && typeof gVarAttr === 'string') {
+        const fnSym = `bro_${gVarAttr}`;
+        headerLines.push(`void* ${fnSym}(void* source);`);
+        manifest.symbols.push({
+          kind: 'function',
+          jsPath: gVarAttr,
+          symbol: fnSym,
+          returnType: 'dynamic',
+          returnClass: def.name,
+          paramTypes: ['dynamic']
+        });
+      }
 
       // Methods and attributes
       for (const m of def.members) {

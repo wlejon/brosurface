@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "subsystem": "gpu",
+  "namespaces": {
+    "bro.gpu": {
+      "functions": {
+        "deviceCount": {
+          "symbol": "bro_gpu_deviceCount",
+          "returnType": "i32",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "memoryInfo": {
+          "symbol": "bro_gpu_memoryInfo",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "deviceName": {
+          "symbol": "bro_gpu_deviceName",
+          "returnType": "str",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "trim": {
+          "symbol": "bro_gpu_trim",
+          "returnType": "bool",
+          "paramTypes": [
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "available": {
+          "getter": "bro_gpu_get_available",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "backend": {
+          "getter": "bro_gpu_get_backend",
+          "setter": null,
+          "returnType": "str"
+        },
+        "devices": {
+          "getter": "bro_gpu_get_devices",
+          "setter": null,
+          "returnType": "dynamic"
+        },
+        "compiledBackends": {
+          "getter": "bro_gpu_get_compiledBackends",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.gpu.available",
+      "getter": "bro_gpu_get_available",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.available",
+      "getter": "bro_gpu_get_available",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.gpu.backend",
+      "getter": "bro_gpu_get_backend",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.backend",
+      "getter": "bro_gpu_get_backend",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.gpu.devices",
+      "getter": "bro_gpu_get_devices",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.devices",
+      "getter": "bro_gpu_get_devices",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gpu.deviceCount",
+      "symbol": "bro_gpu_deviceCount",
+      "returnType": "i32",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.deviceCount",
+      "symbol": "bro_gpu_deviceCount",
+      "returnType": "i32",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.gpu.compiledBackends",
+      "getter": "bro_gpu_get_compiledBackends",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.compiledBackends",
+      "getter": "bro_gpu_get_compiledBackends",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gpu.memoryInfo",
+      "symbol": "bro_gpu_memoryInfo",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.memoryInfo",
+      "symbol": "bro_gpu_memoryInfo",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gpu.deviceName",
+      "symbol": "bro_gpu_deviceName",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.deviceName",
+      "symbol": "bro_gpu_deviceName",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gpu.trim",
+      "symbol": "bro_gpu_trim",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.trim",
+      "symbol": "bro_gpu_trim",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    }
+  ]
+}

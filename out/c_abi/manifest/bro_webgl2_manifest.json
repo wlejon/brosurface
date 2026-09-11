@@ -1,0 +1,1244 @@
+{
+  "version": "1.0.0",
+  "subsystem": "webgl2",
+  "namespaces": {},
+  "classes": {
+    "bro.webgl2.WebGLBuffer": {
+      "name": "WebGLBuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLBuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLBuffer_destroy"
+      }
+    },
+    "WebGLBuffer": {
+      "name": "WebGLBuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLBuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLBuffer_destroy"
+      }
+    },
+    "bro.webgl2.WebGLTexture": {
+      "name": "WebGLTexture",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLTexture_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLTexture_destroy"
+      }
+    },
+    "WebGLTexture": {
+      "name": "WebGLTexture",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLTexture_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLTexture_destroy"
+      }
+    },
+    "bro.webgl2.WebGLProgram": {
+      "name": "WebGLProgram",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLProgram_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLProgram_destroy"
+      }
+    },
+    "WebGLProgram": {
+      "name": "WebGLProgram",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLProgram_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLProgram_destroy"
+      }
+    },
+    "bro.webgl2.WebGLShader": {
+      "name": "WebGLShader",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLShader_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLShader_destroy"
+      }
+    },
+    "WebGLShader": {
+      "name": "WebGLShader",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLShader_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLShader_destroy"
+      }
+    },
+    "bro.webgl2.WebGLFramebuffer": {
+      "name": "WebGLFramebuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLFramebuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLFramebuffer_destroy"
+      }
+    },
+    "WebGLFramebuffer": {
+      "name": "WebGLFramebuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLFramebuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLFramebuffer_destroy"
+      }
+    },
+    "bro.webgl2.WebGLRenderbuffer": {
+      "name": "WebGLRenderbuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLRenderbuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLRenderbuffer_destroy"
+      }
+    },
+    "WebGLRenderbuffer": {
+      "name": "WebGLRenderbuffer",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLRenderbuffer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLRenderbuffer_destroy"
+      }
+    },
+    "bro.webgl2.WebGLVertexArrayObject": {
+      "name": "WebGLVertexArrayObject",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLVertexArrayObject_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLVertexArrayObject_destroy"
+      }
+    },
+    "WebGLVertexArrayObject": {
+      "name": "WebGLVertexArrayObject",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLVertexArrayObject_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLVertexArrayObject_destroy"
+      }
+    },
+    "bro.webgl2.WebGLUniformLocation": {
+      "name": "WebGLUniformLocation",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLUniformLocation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLUniformLocation_destroy"
+      }
+    },
+    "WebGLUniformLocation": {
+      "name": "WebGLUniformLocation",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLUniformLocation_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLUniformLocation_destroy"
+      }
+    },
+    "bro.webgl2.WebGLSampler": {
+      "name": "WebGLSampler",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLSampler_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLSampler_destroy"
+      }
+    },
+    "WebGLSampler": {
+      "name": "WebGLSampler",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLSampler_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLSampler_destroy"
+      }
+    },
+    "bro.webgl2.WebGLQuery": {
+      "name": "WebGLQuery",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLQuery_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLQuery_destroy"
+      }
+    },
+    "WebGLQuery": {
+      "name": "WebGLQuery",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLQuery_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLQuery_destroy"
+      }
+    },
+    "bro.webgl2.WebGLSync": {
+      "name": "WebGLSync",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLSync_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLSync_destroy"
+      }
+    },
+    "WebGLSync": {
+      "name": "WebGLSync",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLSync_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLSync_destroy"
+      }
+    },
+    "bro.webgl2.WebGLTransformFeedback": {
+      "name": "WebGLTransformFeedback",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLTransformFeedback_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLTransformFeedback_destroy"
+      }
+    },
+    "WebGLTransformFeedback": {
+      "name": "WebGLTransformFeedback",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_WebGLTransformFeedback_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGLTransformFeedback_destroy"
+      }
+    },
+    "bro.webgl2.WebGL2RenderingContext": {
+      "name": "WebGL2RenderingContext",
+      "methods": {
+        "clearColor": {
+          "symbol": "bro_WebGL2RenderingContext_clearColor",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_WebGL2RenderingContext_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "viewport": {
+          "symbol": "bro_WebGL2RenderingContext_viewport",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "enable": {
+          "symbol": "bro_WebGL2RenderingContext_enable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "disable": {
+          "symbol": "bro_WebGL2RenderingContext_disable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "blendFunc": {
+          "symbol": "bro_WebGL2RenderingContext_blendFunc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "depthFunc": {
+          "symbol": "bro_WebGL2RenderingContext_depthFunc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_createBuffer",
+          "returnType": "dynamic",
+          "returnClass": "WebGLBuffer",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_deleteBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_bindBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "bufferData": {
+          "symbol": "bro_WebGL2RenderingContext_bufferData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createTexture": {
+          "symbol": "bro_WebGL2RenderingContext_createTexture",
+          "returnType": "dynamic",
+          "returnClass": "WebGLTexture",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteTexture": {
+          "symbol": "bro_WebGL2RenderingContext_deleteTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindTexture": {
+          "symbol": "bro_WebGL2RenderingContext_bindTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "activeTexture": {
+          "symbol": "bro_WebGL2RenderingContext_activeTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createProgram": {
+          "symbol": "bro_WebGL2RenderingContext_createProgram",
+          "returnType": "dynamic",
+          "returnClass": "WebGLProgram",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteProgram": {
+          "symbol": "bro_WebGL2RenderingContext_deleteProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "linkProgram": {
+          "symbol": "bro_WebGL2RenderingContext_linkProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "useProgram": {
+          "symbol": "bro_WebGL2RenderingContext_useProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createShader": {
+          "symbol": "bro_WebGL2RenderingContext_createShader",
+          "returnType": "dynamic",
+          "returnClass": "WebGLShader",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "deleteShader": {
+          "symbol": "bro_WebGL2RenderingContext_deleteShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "shaderSource": {
+          "symbol": "bro_WebGL2RenderingContext_shaderSource",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "compileShader": {
+          "symbol": "bro_WebGL2RenderingContext_compileShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "attachShader": {
+          "symbol": "bro_WebGL2RenderingContext_attachShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_createVertexArray",
+          "returnType": "dynamic",
+          "returnClass": "WebGLVertexArrayObject",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_deleteVertexArray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_bindVertexArray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "getUniformLocation": {
+          "symbol": "bro_WebGL2RenderingContext_getUniformLocation",
+          "returnType": "dynamic",
+          "returnClass": "WebGLUniformLocation",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "drawArrays": {
+          "symbol": "bro_WebGL2RenderingContext_drawArrays",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "drawElements": {
+          "symbol": "bro_WebGL2RenderingContext_drawElements",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "canvasWidth": {
+          "getter": "bro_WebGL2RenderingContext_get_canvasWidth",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "canvasHeight": {
+          "getter": "bro_WebGL2RenderingContext_get_canvasHeight",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WebGL2RenderingContext_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGL2RenderingContext_destroy"
+      }
+    },
+    "WebGL2RenderingContext": {
+      "name": "WebGL2RenderingContext",
+      "methods": {
+        "clearColor": {
+          "symbol": "bro_WebGL2RenderingContext_clearColor",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_WebGL2RenderingContext_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "viewport": {
+          "symbol": "bro_WebGL2RenderingContext_viewport",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "enable": {
+          "symbol": "bro_WebGL2RenderingContext_enable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "disable": {
+          "symbol": "bro_WebGL2RenderingContext_disable",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "blendFunc": {
+          "symbol": "bro_WebGL2RenderingContext_blendFunc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "depthFunc": {
+          "symbol": "bro_WebGL2RenderingContext_depthFunc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_createBuffer",
+          "returnType": "dynamic",
+          "returnClass": "WebGLBuffer",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_deleteBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindBuffer": {
+          "symbol": "bro_WebGL2RenderingContext_bindBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "bufferData": {
+          "symbol": "bro_WebGL2RenderingContext_bufferData",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createTexture": {
+          "symbol": "bro_WebGL2RenderingContext_createTexture",
+          "returnType": "dynamic",
+          "returnClass": "WebGLTexture",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteTexture": {
+          "symbol": "bro_WebGL2RenderingContext_deleteTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindTexture": {
+          "symbol": "bro_WebGL2RenderingContext_bindTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "dynamic"
+          ]
+        },
+        "activeTexture": {
+          "symbol": "bro_WebGL2RenderingContext_activeTexture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "createProgram": {
+          "symbol": "bro_WebGL2RenderingContext_createProgram",
+          "returnType": "dynamic",
+          "returnClass": "WebGLProgram",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteProgram": {
+          "symbol": "bro_WebGL2RenderingContext_deleteProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "linkProgram": {
+          "symbol": "bro_WebGL2RenderingContext_linkProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "useProgram": {
+          "symbol": "bro_WebGL2RenderingContext_useProgram",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createShader": {
+          "symbol": "bro_WebGL2RenderingContext_createShader",
+          "returnType": "dynamic",
+          "returnClass": "WebGLShader",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "deleteShader": {
+          "symbol": "bro_WebGL2RenderingContext_deleteShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "shaderSource": {
+          "symbol": "bro_WebGL2RenderingContext_shaderSource",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "compileShader": {
+          "symbol": "bro_WebGL2RenderingContext_compileShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "attachShader": {
+          "symbol": "bro_WebGL2RenderingContext_attachShader",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "createVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_createVertexArray",
+          "returnType": "dynamic",
+          "returnClass": "WebGLVertexArrayObject",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "deleteVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_deleteVertexArray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "bindVertexArray": {
+          "symbol": "bro_WebGL2RenderingContext_bindVertexArray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "getUniformLocation": {
+          "symbol": "bro_WebGL2RenderingContext_getUniformLocation",
+          "returnType": "dynamic",
+          "returnClass": "WebGLUniformLocation",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "drawArrays": {
+          "symbol": "bro_WebGL2RenderingContext_drawArrays",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "drawElements": {
+          "symbol": "bro_WebGL2RenderingContext_drawElements",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "canvasWidth": {
+          "getter": "bro_WebGL2RenderingContext_get_canvasWidth",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "canvasHeight": {
+          "getter": "bro_WebGL2RenderingContext_get_canvasHeight",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_WebGL2RenderingContext_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_WebGL2RenderingContext_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "clearColor",
+      "symbol": "bro_WebGL2RenderingContext_clearColor",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "clear",
+      "symbol": "bro_WebGL2RenderingContext_clear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "viewport",
+      "symbol": "bro_WebGL2RenderingContext_viewport",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "enable",
+      "symbol": "bro_WebGL2RenderingContext_enable",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "disable",
+      "symbol": "bro_WebGL2RenderingContext_disable",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "blendFunc",
+      "symbol": "bro_WebGL2RenderingContext_blendFunc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "depthFunc",
+      "symbol": "bro_WebGL2RenderingContext_depthFunc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "createBuffer",
+      "symbol": "bro_WebGL2RenderingContext_createBuffer",
+      "returnType": "dynamic",
+      "returnClass": "WebGLBuffer",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "deleteBuffer",
+      "symbol": "bro_WebGL2RenderingContext_deleteBuffer",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "bindBuffer",
+      "symbol": "bro_WebGL2RenderingContext_bindBuffer",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "bufferData",
+      "symbol": "bro_WebGL2RenderingContext_bufferData",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "createTexture",
+      "symbol": "bro_WebGL2RenderingContext_createTexture",
+      "returnType": "dynamic",
+      "returnClass": "WebGLTexture",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "deleteTexture",
+      "symbol": "bro_WebGL2RenderingContext_deleteTexture",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "bindTexture",
+      "symbol": "bro_WebGL2RenderingContext_bindTexture",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "activeTexture",
+      "symbol": "bro_WebGL2RenderingContext_activeTexture",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "createProgram",
+      "symbol": "bro_WebGL2RenderingContext_createProgram",
+      "returnType": "dynamic",
+      "returnClass": "WebGLProgram",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "deleteProgram",
+      "symbol": "bro_WebGL2RenderingContext_deleteProgram",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "linkProgram",
+      "symbol": "bro_WebGL2RenderingContext_linkProgram",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "useProgram",
+      "symbol": "bro_WebGL2RenderingContext_useProgram",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "createShader",
+      "symbol": "bro_WebGL2RenderingContext_createShader",
+      "returnType": "dynamic",
+      "returnClass": "WebGLShader",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "deleteShader",
+      "symbol": "bro_WebGL2RenderingContext_deleteShader",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "shaderSource",
+      "symbol": "bro_WebGL2RenderingContext_shaderSource",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "compileShader",
+      "symbol": "bro_WebGL2RenderingContext_compileShader",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "attachShader",
+      "symbol": "bro_WebGL2RenderingContext_attachShader",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "createVertexArray",
+      "symbol": "bro_WebGL2RenderingContext_createVertexArray",
+      "returnType": "dynamic",
+      "returnClass": "WebGLVertexArrayObject",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "deleteVertexArray",
+      "symbol": "bro_WebGL2RenderingContext_deleteVertexArray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "bindVertexArray",
+      "symbol": "bro_WebGL2RenderingContext_bindVertexArray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "getUniformLocation",
+      "symbol": "bro_WebGL2RenderingContext_getUniformLocation",
+      "returnType": "dynamic",
+      "returnClass": "WebGLUniformLocation",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "drawArrays",
+      "symbol": "bro_WebGL2RenderingContext_drawArrays",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.webgl2.WebGL2RenderingContext",
+      "name": "drawElements",
+      "symbol": "bro_WebGL2RenderingContext_drawElements",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    }
+  ]
+}

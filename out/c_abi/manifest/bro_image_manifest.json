@@ -1,0 +1,2110 @@
+{
+  "version": "1.0.0",
+  "subsystem": "image",
+  "namespaces": {
+    "bro.image": {
+      "functions": {
+        "reduce": {
+          "symbol": "bro_image_reduce",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "map": {
+          "symbol": "bro_image_map",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "combine": {
+          "symbol": "bro_image_combine",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "lookup": {
+          "symbol": "bro_image_lookup",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stencil": {
+          "symbol": "bro_image_stencil",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resample": {
+          "symbol": "bro_image_resample",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "gradient": {
+          "symbol": "bro_image_gradient",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "alloc": {
+          "symbol": "bro_image_alloc",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "i32",
+            "i32",
+            "i32",
+            "str"
+          ]
+        },
+        "decodeU16": {
+          "symbol": "bro_image_decodeU16",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "decodeF32": {
+          "symbol": "bro_image_decodeF32",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "decodeOriented": {
+          "symbol": "bro_image_decodeOriented",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "probeDimensions": {
+          "symbol": "bro_image_probeDimensions",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "transcodeKTX2": {
+          "symbol": "bro_image_transcodeKTX2",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "readExifOrientation": {
+          "symbol": "bro_image_readExifOrientation",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "applyExifOrientation": {
+          "symbol": "bro_image_applyExifOrientation",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "encodePngFile": {
+          "symbol": "bro_image_encodePngFile",
+          "returnType": "bool",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "encodePng": {
+          "symbol": "bro_image_encodePng",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "encodeJpegFile": {
+          "symbol": "bro_image_encodeJpegFile",
+          "returnType": "bool",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "encodeJpeg": {
+          "symbol": "bro_image_encodeJpeg",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "i32",
+            "i32"
+          ]
+        },
+        "resizeU8": {
+          "symbol": "bro_image_resizeU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resizeF32": {
+          "symbol": "bro_image_resizeF32",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resizeChwF32": {
+          "symbol": "bro_image_resizeChwF32",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "letterboxU8": {
+          "symbol": "bro_image_letterboxU8",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "padU8": {
+          "symbol": "bro_image_padU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "cropU8": {
+          "symbol": "bro_image_cropU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "centerCropU8": {
+          "symbol": "bro_image_centerCropU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "flipHorizontalU8": {
+          "symbol": "bro_image_flipHorizontalU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "flipVerticalU8": {
+          "symbol": "bro_image_flipVerticalU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rotate90U8": {
+          "symbol": "bro_image_rotate90U8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "premultiplyAlpha": {
+          "symbol": "bro_image_premultiplyAlpha",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "unpremultiplyAlpha": {
+          "symbol": "bro_image_unpremultiplyAlpha",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resizeRgba8Alpha": {
+          "symbol": "bro_image_resizeRgba8Alpha",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "letterboxRgba8Alpha": {
+          "symbol": "bro_image_letterboxRgba8Alpha",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rgbaToRgb": {
+          "symbol": "bro_image_rgbaToRgb",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rgbToRgba": {
+          "symbol": "bro_image_rgbToRgba",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "rgbaToGray": {
+          "symbol": "bro_image_rgbaToGray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rgbToGray": {
+          "symbol": "bro_image_rgbToGray",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "hwcToChw": {
+          "symbol": "bro_image_hwcToChw",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "chwToHwc": {
+          "symbol": "bro_image_chwToHwc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "applyGamma": {
+          "symbol": "bro_image_applyGamma",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64"
+          ]
+        },
+        "srgbToLinear": {
+          "symbol": "bro_image_srgbToLinear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "linearToSrgb": {
+          "symbol": "bro_image_linearToSrgb",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "srgbToLinearU8ToF32": {
+          "symbol": "bro_image_srgbToLinearU8ToF32",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "linearF32ToSrgbU8": {
+          "symbol": "bro_image_linearF32ToSrgbU8",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rgbToHsv": {
+          "symbol": "bro_image_rgbToHsv",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "hsvToRgb": {
+          "symbol": "bro_image_hsvToRgb",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "rgbToHsl": {
+          "symbol": "bro_image_rgbToHsl",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "hslToRgb": {
+          "symbol": "bro_image_hslToRgb",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "applyColorMatrix3x3": {
+          "symbol": "bro_image_applyColorMatrix3x3",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "applyColorMatrix3x4": {
+          "symbol": "bro_image_applyColorMatrix3x4",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "u8NhwcToF32Nchw": {
+          "symbol": "bro_image_u8NhwcToF32Nchw",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "nhwcToNchwF32": {
+          "symbol": "bro_image_nhwcToNchwF32",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "nchwToNhwcF32": {
+          "symbol": "bro_image_nchwToNhwcF32",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "f32NchwToU8Nhwc": {
+          "symbol": "bro_image_f32NchwToU8Nhwc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "normalizeNchw": {
+          "symbol": "bro_image_normalizeNchw",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stencilHwc": {
+          "symbol": "bro_image_stencilHwc",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "featherWindow": {
+          "symbol": "bro_image_featherWindow",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "accumulateTile": {
+          "symbol": "bro_image_accumulateTile",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "normalizeAccumulator": {
+          "symbol": "bro_image_normalizeAccumulator",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "presets": {
+          "getter": "bro_image_get_presets",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      }
+    },
+    "bro.image.gpu": {
+      "functions": {
+        "colormap": {
+          "symbol": "bro_image_gpu_colormap",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "fbm2D": {
+          "symbol": "bro_image_gpu_fbm2D",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.image.Image": {
+      "name": "Image",
+      "methods": {
+        "addEventListener": {
+          "symbol": "bro_Image_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_Image_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "src": {
+          "getter": "bro_Image_get_src",
+          "setter": "bro_Image_set_src",
+          "returnType": "str"
+        },
+        "width": {
+          "getter": "bro_Image_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_Image_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalWidth": {
+          "getter": "bro_Image_get_naturalWidth",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalHeight": {
+          "getter": "bro_Image_get_naturalHeight",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "complete": {
+          "getter": "bro_Image_get_complete",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "onload": {
+          "getter": "bro_Image_get_onload",
+          "setter": "bro_Image_set_onload",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        },
+        "onerror": {
+          "getter": "bro_Image_get_onerror",
+          "setter": "bro_Image_set_onerror",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Image_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Image_destroy"
+      }
+    },
+    "Image": {
+      "name": "Image",
+      "methods": {
+        "addEventListener": {
+          "symbol": "bro_Image_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_Image_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "src": {
+          "getter": "bro_Image_get_src",
+          "setter": "bro_Image_set_src",
+          "returnType": "str"
+        },
+        "width": {
+          "getter": "bro_Image_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_Image_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalWidth": {
+          "getter": "bro_Image_get_naturalWidth",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "naturalHeight": {
+          "getter": "bro_Image_get_naturalHeight",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "complete": {
+          "getter": "bro_Image_get_complete",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "onload": {
+          "getter": "bro_Image_get_onload",
+          "setter": "bro_Image_set_onload",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        },
+        "onerror": {
+          "getter": "bro_Image_get_onerror",
+          "setter": "bro_Image_set_onerror",
+          "returnType": "dynamic",
+          "returnClass": "Function"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Image_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Image_destroy"
+      }
+    },
+    "bro.image.HTMLImageElement": {
+      "name": "HTMLImageElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLImageElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLImageElement_destroy"
+      }
+    },
+    "HTMLImageElement": {
+      "name": "HTMLImageElement",
+      "methods": {},
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HTMLImageElement_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HTMLImageElement_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.image.Image",
+      "name": "addEventListener",
+      "symbol": "bro_Image_addEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.image.Image",
+      "name": "removeEventListener",
+      "symbol": "bro_Image_removeEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.reduce",
+      "symbol": "bro_image_reduce",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.reduce",
+      "symbol": "bro_image_reduce",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.map",
+      "symbol": "bro_image_map",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.map",
+      "symbol": "bro_image_map",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.combine",
+      "symbol": "bro_image_combine",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.combine",
+      "symbol": "bro_image_combine",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.lookup",
+      "symbol": "bro_image_lookup",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.lookup",
+      "symbol": "bro_image_lookup",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.stencil",
+      "symbol": "bro_image_stencil",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stencil",
+      "symbol": "bro_image_stencil",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.resample",
+      "symbol": "bro_image_resample",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resample",
+      "symbol": "bro_image_resample",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.gradient",
+      "symbol": "bro_image_gradient",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gradient",
+      "symbol": "bro_image_gradient",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.alloc",
+      "symbol": "bro_image_alloc",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "i32",
+        "i32",
+        "i32",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.alloc",
+      "symbol": "bro_image_alloc",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "i32",
+        "i32",
+        "i32",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.decodeU16",
+      "symbol": "bro_image_decodeU16",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.decodeU16",
+      "symbol": "bro_image_decodeU16",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.decodeF32",
+      "symbol": "bro_image_decodeF32",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.decodeF32",
+      "symbol": "bro_image_decodeF32",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.decodeOriented",
+      "symbol": "bro_image_decodeOriented",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.decodeOriented",
+      "symbol": "bro_image_decodeOriented",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.probeDimensions",
+      "symbol": "bro_image_probeDimensions",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.probeDimensions",
+      "symbol": "bro_image_probeDimensions",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.transcodeKTX2",
+      "symbol": "bro_image_transcodeKTX2",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.transcodeKTX2",
+      "symbol": "bro_image_transcodeKTX2",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.readExifOrientation",
+      "symbol": "bro_image_readExifOrientation",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.readExifOrientation",
+      "symbol": "bro_image_readExifOrientation",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.applyExifOrientation",
+      "symbol": "bro_image_applyExifOrientation",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.applyExifOrientation",
+      "symbol": "bro_image_applyExifOrientation",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.encodePngFile",
+      "symbol": "bro_image_encodePngFile",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.encodePngFile",
+      "symbol": "bro_image_encodePngFile",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.encodePng",
+      "symbol": "bro_image_encodePng",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.encodePng",
+      "symbol": "bro_image_encodePng",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.encodeJpegFile",
+      "symbol": "bro_image_encodeJpegFile",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.encodeJpegFile",
+      "symbol": "bro_image_encodeJpegFile",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.encodeJpeg",
+      "symbol": "bro_image_encodeJpeg",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.encodeJpeg",
+      "symbol": "bro_image_encodeJpeg",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.resizeU8",
+      "symbol": "bro_image_resizeU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resizeU8",
+      "symbol": "bro_image_resizeU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.resizeF32",
+      "symbol": "bro_image_resizeF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resizeF32",
+      "symbol": "bro_image_resizeF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.resizeChwF32",
+      "symbol": "bro_image_resizeChwF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resizeChwF32",
+      "symbol": "bro_image_resizeChwF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.letterboxU8",
+      "symbol": "bro_image_letterboxU8",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.letterboxU8",
+      "symbol": "bro_image_letterboxU8",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.padU8",
+      "symbol": "bro_image_padU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.padU8",
+      "symbol": "bro_image_padU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.cropU8",
+      "symbol": "bro_image_cropU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.cropU8",
+      "symbol": "bro_image_cropU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.centerCropU8",
+      "symbol": "bro_image_centerCropU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.centerCropU8",
+      "symbol": "bro_image_centerCropU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.flipHorizontalU8",
+      "symbol": "bro_image_flipHorizontalU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flipHorizontalU8",
+      "symbol": "bro_image_flipHorizontalU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.flipVerticalU8",
+      "symbol": "bro_image_flipVerticalU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.flipVerticalU8",
+      "symbol": "bro_image_flipVerticalU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rotate90U8",
+      "symbol": "bro_image_rotate90U8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rotate90U8",
+      "symbol": "bro_image_rotate90U8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.premultiplyAlpha",
+      "symbol": "bro_image_premultiplyAlpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.premultiplyAlpha",
+      "symbol": "bro_image_premultiplyAlpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.unpremultiplyAlpha",
+      "symbol": "bro_image_unpremultiplyAlpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.unpremultiplyAlpha",
+      "symbol": "bro_image_unpremultiplyAlpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.resizeRgba8Alpha",
+      "symbol": "bro_image_resizeRgba8Alpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resizeRgba8Alpha",
+      "symbol": "bro_image_resizeRgba8Alpha",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.letterboxRgba8Alpha",
+      "symbol": "bro_image_letterboxRgba8Alpha",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.letterboxRgba8Alpha",
+      "symbol": "bro_image_letterboxRgba8Alpha",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbaToRgb",
+      "symbol": "bro_image_rgbaToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbaToRgb",
+      "symbol": "bro_image_rgbaToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbToRgba",
+      "symbol": "bro_image_rgbToRgba",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbToRgba",
+      "symbol": "bro_image_rgbToRgba",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbaToGray",
+      "symbol": "bro_image_rgbaToGray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbaToGray",
+      "symbol": "bro_image_rgbaToGray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbToGray",
+      "symbol": "bro_image_rgbToGray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbToGray",
+      "symbol": "bro_image_rgbToGray",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.hwcToChw",
+      "symbol": "bro_image_hwcToChw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.hwcToChw",
+      "symbol": "bro_image_hwcToChw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.chwToHwc",
+      "symbol": "bro_image_chwToHwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.chwToHwc",
+      "symbol": "bro_image_chwToHwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.applyGamma",
+      "symbol": "bro_image_applyGamma",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.applyGamma",
+      "symbol": "bro_image_applyGamma",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.srgbToLinear",
+      "symbol": "bro_image_srgbToLinear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.srgbToLinear",
+      "symbol": "bro_image_srgbToLinear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.linearToSrgb",
+      "symbol": "bro_image_linearToSrgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.linearToSrgb",
+      "symbol": "bro_image_linearToSrgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.srgbToLinearU8ToF32",
+      "symbol": "bro_image_srgbToLinearU8ToF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.srgbToLinearU8ToF32",
+      "symbol": "bro_image_srgbToLinearU8ToF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.linearF32ToSrgbU8",
+      "symbol": "bro_image_linearF32ToSrgbU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.linearF32ToSrgbU8",
+      "symbol": "bro_image_linearF32ToSrgbU8",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbToHsv",
+      "symbol": "bro_image_rgbToHsv",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbToHsv",
+      "symbol": "bro_image_rgbToHsv",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.hsvToRgb",
+      "symbol": "bro_image_hsvToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.hsvToRgb",
+      "symbol": "bro_image_hsvToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.rgbToHsl",
+      "symbol": "bro_image_rgbToHsl",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rgbToHsl",
+      "symbol": "bro_image_rgbToHsl",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.hslToRgb",
+      "symbol": "bro_image_hslToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.hslToRgb",
+      "symbol": "bro_image_hslToRgb",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.applyColorMatrix3x3",
+      "symbol": "bro_image_applyColorMatrix3x3",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.applyColorMatrix3x3",
+      "symbol": "bro_image_applyColorMatrix3x3",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.applyColorMatrix3x4",
+      "symbol": "bro_image_applyColorMatrix3x4",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.applyColorMatrix3x4",
+      "symbol": "bro_image_applyColorMatrix3x4",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.u8NhwcToF32Nchw",
+      "symbol": "bro_image_u8NhwcToF32Nchw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.u8NhwcToF32Nchw",
+      "symbol": "bro_image_u8NhwcToF32Nchw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.nhwcToNchwF32",
+      "symbol": "bro_image_nhwcToNchwF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.nhwcToNchwF32",
+      "symbol": "bro_image_nhwcToNchwF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.nchwToNhwcF32",
+      "symbol": "bro_image_nchwToNhwcF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.nchwToNhwcF32",
+      "symbol": "bro_image_nchwToNhwcF32",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.f32NchwToU8Nhwc",
+      "symbol": "bro_image_f32NchwToU8Nhwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.f32NchwToU8Nhwc",
+      "symbol": "bro_image_f32NchwToU8Nhwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.normalizeNchw",
+      "symbol": "bro_image_normalizeNchw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.normalizeNchw",
+      "symbol": "bro_image_normalizeNchw",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.image.presets",
+      "getter": "bro_image_get_presets",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.presets",
+      "getter": "bro_image_get_presets",
+      "setter": null,
+      "returnType": "dynamic"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.stencilHwc",
+      "symbol": "bro_image_stencilHwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stencilHwc",
+      "symbol": "bro_image_stencilHwc",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.featherWindow",
+      "symbol": "bro_image_featherWindow",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.featherWindow",
+      "symbol": "bro_image_featherWindow",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.accumulateTile",
+      "symbol": "bro_image_accumulateTile",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.accumulateTile",
+      "symbol": "bro_image_accumulateTile",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.normalizeAccumulator",
+      "symbol": "bro_image_normalizeAccumulator",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.normalizeAccumulator",
+      "symbol": "bro_image_normalizeAccumulator",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.gpu.colormap",
+      "symbol": "bro_image_gpu_colormap",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.colormap",
+      "symbol": "bro_image_gpu_colormap",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.image.gpu.fbm2D",
+      "symbol": "bro_image_gpu_fbm2D",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.fbm2D",
+      "symbol": "bro_image_gpu_fbm2D",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

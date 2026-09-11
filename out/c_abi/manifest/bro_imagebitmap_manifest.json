@@ -1,0 +1,159 @@
+{
+  "version": "1.0.0",
+  "subsystem": "imagebitmap",
+  "namespaces": {},
+  "classes": {
+    "bro.imagebitmap.ImageBitmap": {
+      "name": "ImageBitmap",
+      "methods": {
+        "close": {
+          "symbol": "bro_ImageBitmap_close",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "width": {
+          "getter": "bro_ImageBitmap_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_ImageBitmap_get_height",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ImageBitmap_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ImageBitmap_destroy"
+      }
+    },
+    "ImageBitmap": {
+      "name": "ImageBitmap",
+      "methods": {
+        "close": {
+          "symbol": "bro_ImageBitmap_close",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "width": {
+          "getter": "bro_ImageBitmap_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_ImageBitmap_get_height",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ImageBitmap_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ImageBitmap_destroy"
+      }
+    },
+    "bro.imagebitmap.ImageData": {
+      "name": "ImageData",
+      "methods": {},
+      "properties": {
+        "width": {
+          "getter": "bro_ImageData_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_ImageData_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "data": {
+          "getter": "bro_ImageData_get_data",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "Uint8ClampedArray"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ImageData_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "i32",
+          "i32"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_ImageData_destroy"
+      }
+    },
+    "ImageData": {
+      "name": "ImageData",
+      "methods": {},
+      "properties": {
+        "width": {
+          "getter": "bro_ImageData_get_width",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "height": {
+          "getter": "bro_ImageData_get_height",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "data": {
+          "getter": "bro_ImageData_get_data",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "Uint8ClampedArray"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ImageData_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "i32",
+          "i32"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_ImageData_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "createImageBitmap",
+      "symbol": "bro_createImageBitmap",
+      "returnType": "dynamic",
+      "returnClass": "ImageBitmap",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.imagebitmap.ImageBitmap",
+      "name": "close",
+      "symbol": "bro_ImageBitmap_close",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}
