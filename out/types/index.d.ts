@@ -2905,51 +2905,6 @@ declare class HTMLElement {
   constructor();
 }
 
-/**
- * Native modal dialogs and file system pickers interface.
- */
-declare class Dialogs {
-  /**
-   * Displays a modal alert dialog with an optional message.
-   * @param message Text to display
-   */
-  static alert(message?: any): void;
-  /**
-   * Displays a modal confirmation dialog with OK and Cancel buttons.
-   * @param message Prompt message to display
-   * @returns True if OK was clicked, false if cancelled
-   */
-  static confirm(message?: any): boolean;
-  /**
-   * Displays a modal dialog with a text prompt and default value.
-   * @param message Prompt message to display
-   * @param defaultText Default input value
-   * @returns String response or null if cancelled
-   */
-  static prompt(message?: any, defaultText?: string): string | null;
-  /**
-   * Opens a native modal file picker dialog.
-   * @param filter Filter pattern string (e.g. "Images|png;jpg")
-   * @param allowMultiple Whether to allow multiple file selection
-   * @returns Array of selected absolute file paths
-   */
-  static showOpenFileDialog(filter?: string, allowMultiple?: boolean): string[];
-  /**
-   * Opens a native modal directory picker dialog.
-   * @param defaultLocation Starting directory path
-   * @param allowMultiple Whether to allow multiple folder selection
-   * @returns Array of selected absolute folder paths
-   */
-  static showOpenFolderDialog(defaultLocation?: string, allowMultiple?: boolean): string[];
-  /**
-   * Opens a native modal file save dialog.
-   * @param filter Filter pattern string (e.g. "JSON|json")
-   * @param defaultName Default location or file path
-   * @returns Selected file path string or null if cancelled
-   */
-  static showSaveFileDialog(filter?: string, defaultName?: string): string | null;
-}
-
 declare class Sortformer {
   /**
    * Active execution device ('CPU', 'CUDA', or 'Metal').
@@ -4507,7 +4462,7 @@ declare class SpatialHash3D {
   /**
    * Find nearest point ID within maxDist.
    */
-  nearest(x: number, y: number, z: number, maxDist: number): object | null;
+  nearest(x: number, y: number, z: number, maxDist: number): number;
   /**
    * Clear all index buckets.
    */
@@ -5205,6 +5160,8 @@ declare class SceneNode {
   readonly children: SceneNode[];
   add(child: SceneNode): SceneNode;
   remove(child: SceneNode): void;
+  addChild(child: SceneNode): SceneNode;
+  removeChild(child: SceneNode): void;
   destroy(): void;
   setPosition(x: number, y: number, z: number): SceneNode;
   setRotation(x: number, y: number, z: number, w?: number): SceneNode;
@@ -5299,6 +5256,7 @@ declare class SceneGraph {
   setEnvironment(opts?: EnvironmentConfig): void;
   setFrustumCulling(enabled: boolean): void;
   cullStats(): SceneCullStats;
+  clear(): void;
   syncPhysics(): void;
   raycast(origin: number[], direction: number[]): SceneRaycastResult | null;
   unprojectLocal(node: SceneNode, screenPoint: number[]): number[];
@@ -5442,6 +5400,7 @@ declare class Terrain {
    *  World-space origin offset [x, y, z] of this terrain manager.
    */
   readonly origin: number[] | null;
+  readonly layers: number;
   /**
    * Stream and generate terrain chunks around camera position (x, y, z) in world space.
    *
@@ -5504,6 +5463,10 @@ declare class Terrain {
    * @param fn Height source callback or null to restore procedural generator
    */
   setHeightSource(fn: Function | null): void;
+  heightAt(x: number, z: number): number;
+  normalAt(x: number, z: number): number[];
+  elevation(x: number, z: number): number;
+  splat(x: number, z: number, radius: number, layer: number): void;
   /**
    * Release all terrain meshes, destroy chunk structures, and detach from scene graph.
    */
@@ -5515,8 +5478,11 @@ declare class TileWorld {
   readonly width: number;
   readonly height: number;
   readonly chunkCount: number;
+  readonly chunks: number;
+  paging: boolean;
   readonly vertexCount: number;
   readonly triangleCount: number;
+  update(camX?: number, camY?: number, camZ?: number): number;
   setTile(layer: number, x: number, y: number, tileId: number): void;
   getTile(layer: number, x: number, y: number): number;
   fillRect(layer: number, x: number, y: number, w: number, h: number, tileId: number): void;
@@ -5883,6 +5849,7 @@ declare namespace Physics {
   function getBodyProperties(tag: number): object | null;
   function setAreaOverride(tag: number, config: object): void;
   function setTimeStep(dt: number): void;
+  function step(dt: number): void;
   function setInterpolation(enabled: boolean): void;
   function getInterpolation(): boolean;
   function isActive(tag: number): boolean;
@@ -5910,11 +5877,21 @@ declare namespace bro {
    */
   const appDir: string;
   /**
+   * Absolute native filesystem path for user data / save directory.
+   */
+  const userDataDir: string;
+  /**
    * Resolves a virtual mount path or relative application path to an absolute native filesystem path.
    * @param path Input path string
    * @returns Resolved absolute filesystem path
    */
   function resolvePath(path: string): string;
+  /**
+   * Resolves a path for writing.
+   * @param path Input path string
+   * @returns Resolved absolute filesystem path for write target
+   */
+  function resolveWritePath(path: string): string;
 
   namespace game {
     function createAgent(world: AIWorld, opts?: object): AIAgent;
@@ -5926,6 +5903,18 @@ declare namespace bro {
     function createFormation(opts?: object): Formation;
     function createVecSim(opts?: object): VecSim;
     function registerCapability(name: string, definition: object): void;
+  }
+
+  /**
+   * Native modal dialogs and file system pickers interface.
+   */
+  namespace dialogs {
+    function alert(message?: string): void;
+    function confirm(message?: string): boolean;
+    function prompt(message?: string, defaultText?: string): string;
+    function showSaveFileDialog(filter?: string, defaultName?: string): string;
+    function showOpenFileDialog(filter?: string, allowMultiple?: boolean): string;
+    function showOpenFolderDialog(defaultLocation?: string, allowMultiple?: boolean): string;
   }
 
   /**
@@ -6012,9 +6001,46 @@ declare namespace bro {
      * @return Mesh instance containing generated leaf vertices and indices.
      */
     function leafCluster(phyllotaxy: any, opts?: object): object;
+    function setWind(strength: number, dirX?: number, dirY?: number): void;
+    function wind(strength: number, dirX?: number, dirY?: number): void;
+    function setDensity(density: number): void;
+    function density(density: number): void;
+    function update(dt: number): void;
+    function clear(): void;
+    function placement(config: object): void;
+    function addPlacement(config: object): void;
+    function batches(): object;
+    function getBatches(): object;
+  }
+
+  /**
+   * Direct native gamepad querying and haptic actuation namespace.
+   */
+  namespace gamepad {
+    /**
+     *  Checks if a gamepad is connected at the specified slot index.
+     */
+    function isConnected(index: number): boolean;
+    /**
+     *  Queries an axis value [-1.0 to 1.0] for the specified gamepad and axis index.
+     */
+    function getAxis(index: number, axis: number): number;
+    /**
+     *  Queries a button value [0.0 to 1.0] for the specified gamepad and button index.
+     */
+    function getButton(index: number, button: number): number;
+    /**
+     *  Actuates dual-motor rumble haptics.
+     */
+    function rumble(index: number, strong: number, weak: number, duration: number): boolean;
+    /**
+     *  Actuates trigger rumble haptics.
+     */
+    function rumbleTriggers(index: number, left: number, right: number, duration: number): boolean;
   }
 
   namespace gesture {
+    function init(): void;
     function enrollFromAudio(name: string, samples: Float32Array, policy?: GesturePolicyOptions): number;
     function remove(name: string): boolean;
     function clear(): void;
@@ -6482,6 +6508,7 @@ declare namespace bro {
   }
 
   namespace kws {
+    function init(): void;
     function load(opts: KwsPolicyOptions): void;
     function unload(): void;
     function enroll(name: string, phonemeIds: Int32Array | number[], policy?: KwsPolicyOptions): number;
@@ -6857,6 +6884,7 @@ declare namespace bro {
   }
 
   namespace sense {
+    function init(): void;
     function start(opts?: SenseStartOptions): void;
     function stop(): void;
     function isActive(): boolean;
@@ -6893,6 +6921,11 @@ declare namespace bro {
   namespace settings {
     function load(): void;
     function save(): void;
+    function get(key: string): string;
+    function set(key: string, val: string): void;
+    function reset(category?: string): void;
+    function isActionPressed(action: string): boolean;
+    function getActionStrength(action: string): number;
   }
 
   /**
@@ -7243,6 +7276,7 @@ declare namespace bro {
   }
 
   namespace wake {
+    function init(): void;
     function load(opts: WakeLoadOptions): void;
     function unload(): void;
     function listen(opts: WakeListenOptions): void;
@@ -7290,41 +7324,19 @@ declare namespace bro {
      * Retrieves current desktop coordinate position of the window.
      */
     function getPosition(): WindowPosition;
-    /**
-     * Sets desktop coordinate position of the window.
-     * @param x Desktop X coordinate
-     * @param y Desktop Y coordinate
-     */
+    function getPositionX(): number;
+    function getPositionY(): number;
     function setPosition(x: number, y: number): void;
-    /**
-     * Retrieves minimum window resize bounds in pixels.
-     */
     function getMinSize(): WindowSize;
-    /**
-     * Sets minimum window resize bounds.
-     * @param width Minimum width in pixels (0 for unconstrained)
-     * @param height Minimum height in pixels (0 for unconstrained)
-     */
+    function getMinWidth(): number;
+    function getMinHeight(): number;
     function setMinSize(width: number, height: number): void;
-    /**
-     * Retrieves maximum window resize bounds in pixels.
-     */
     function getMaxSize(): WindowSize;
-    /**
-     * Sets maximum window resize bounds.
-     * @param width Maximum width in pixels (0 for unconstrained)
-     * @param height Maximum height in pixels (0 for unconstrained)
-     */
+    function getMaxWidth(): number;
+    function getMaxHeight(): number;
     function setMaxSize(width: number, height: number): void;
-    /**
-     * Enumerates all attached monitor displays.
-     */
     function getDisplays(): DisplayInfo[];
-    /**
-     * Moves and centers the window on a specific display.
-     * @param id Target display identifier
-     * @returns True if window was moved, false otherwise
-     */
+    function getDisplayCount(): number;
     function moveToDisplay(id: number): boolean;
   }
 

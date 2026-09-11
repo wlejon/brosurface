@@ -236,6 +236,17 @@ class SceneNode {
    */
   remove(child) {}
 
+  /**
+   * @param {SceneNode} child
+   * @returns {SceneNode}
+   */
+  addChild(child) {}
+
+  /**
+   * @param {SceneNode} child
+   */
+  removeChild(child) {}
+
   destroy() {}
 
   /**
@@ -750,6 +761,8 @@ class SceneGraph {
    * @returns {SceneCullStats}
    */
   cullStats() {}
+
+  clear() {}
 
   syncPhysics() {}
 

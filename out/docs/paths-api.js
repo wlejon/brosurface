@@ -30,10 +30,25 @@
 bro.paths.appDir;
 
 /**
+ * Absolute native filesystem path for user data / save directory.
+ * @readonly
+ * @type {string}
+ */
+bro.paths.userDataDir;
+
+/**
  * Resolves a virtual mount path or relative application path to an absolute native filesystem path.
  *
  * @param {string} path - Input path string
  * @returns {string} Resolved absolute filesystem path
  */
 bro.paths.resolvePath = function(path) {};
+
+/**
+ * Resolves a path for writing.
+ *
+ * @param {string} path - Input path string
+ * @returns {string} Resolved absolute filesystem path for write target
+ */
+bro.paths.resolveWritePath = function(path) {};
 

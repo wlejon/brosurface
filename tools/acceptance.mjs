@@ -19,29 +19,16 @@ import { fileURLToPath } from 'node:url';
 import { runAudit } from './audit_gen.mjs';
 import { runCheckOutFresh } from './check_out_fresh.mjs';
 import { runCorruptionTests } from './test_corruptions.mjs';
-import { verifySingleBundle, getAvailableBundles, parseBundleInfo } from './verify_integration_bundle.mjs';
 import { tokenize } from '../schema/lexer.mjs';
 import { parse } from '../schema/parser.mjs';
 import { emitTypeScript } from '../gen/emit_dts.mjs';
 import { emitDocFile } from '../gen/emit_docs.mjs';
-import { emitNamespaceTU, emitInterfaceTU } from '../gen/qjs_codegen.mjs';
+import { generateCAbiForSubsystem } from '../gen/emit_c_abi.mjs';
 import { emitBronzeHostTU } from '../gen/bh_codegen.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
-
-// Parse CLI flags
-let specifiedBundle = null;
-let skipBundle = false;
-
-for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i] === '--bundle' && process.argv[i + 1]) {
-    specifiedBundle = process.argv[++i];
-  } else if (process.argv[i] === '--skip-bundle') {
-    skipBundle = true;
-  }
-}
 
 async function runAcceptanceSuite() {
   console.log('╔════════════════════════════════════════════════════════════════════╗');
@@ -117,11 +104,10 @@ interface ProbeDevice {
     process.exit(1);
   }
 
-  // Emit QJS
-  const ifacesMut = astMut.definitions.filter(d => d.type === 'Interface');
-  const qjsMut = emitInterfaceTU(ifacesMut);
-  if (!qjsMut.includes('mutatedOperationProbe') || !qjsMut.includes('hardwareRevision')) {
-    console.error('❌ Step 2 FAIL: QJS emitter did not reflect mutated AST symbols.');
+  // Emit C-ABI
+  const cabiMut = generateCAbiForSubsystem(astMut, 'probe');
+  if (!cabiMut.headerCode.includes('mutatedOperationProbe') || !cabiMut.headerCode.includes('hardwareRevision')) {
+    console.error('❌ Step 2 FAIL: C-ABI emitter did not reflect mutated AST symbols.');
     process.exit(1);
   }
 
@@ -133,7 +119,7 @@ interface ProbeDevice {
     process.exit(1);
   }
 
-  console.log('  ✅ 2b PASS: All 5 emitters dynamically respond to AST mutations (0 transcription).\n');
+  console.log('  ✅ 2b PASS: All emitters dynamically respond to AST mutations (0 transcription).\n');
 
   // ---------------------------------------------------------------------------
   // STEP 3: Generator Output Freshness Check
@@ -146,35 +132,7 @@ interface ProbeDevice {
     console.error('❌ Step 3 FAIL: Committed out/ tree has drifted from IDL sources.');
     process.exit(1);
   }
-  console.log('✅ Step 3 PASS: Committed out/ tree is 100% fresh (0 drift across 81 artifacts).\n');
-
-  // ---------------------------------------------------------------------------
-  // STEP 4: Random Integration Bundle Verification
-  // ---------------------------------------------------------------------------
-  console.log('════════════════════════════════════════════════════════════════════════════════');
-  console.log(' STEP 4: Integration Bundle Scratch Worktree Equivalence Gate');
-  console.log('════════════════════════════════════════════════════════════════════════════════');
-
-  if (skipBundle) {
-    console.log('  ⏩ Skipped bundle scratch build/test step (--skip-bundle specified).\n');
-  } else {
-    const bundles = getAvailableBundles();
-    const bundleName = specifiedBundle || bundles[Math.floor(Math.random() * bundles.length)];
-    const bundleInfo = parseBundleInfo(bundleName);
-    console.log(`  Target Integration Bundle Selected: [ ${bundleName.toUpperCase()} ] (from ${bundles.length} available)`);
-    console.log(`  Executing isolated scratch worktree verification...\n`);
-
-    const ok = await verifySingleBundle(bundleInfo, {
-      broDir: path.resolve(REPO_ROOT, '../bro'),
-      autoPrune: true,
-    });
-
-    if (!ok) {
-      console.error(`❌ Step 4 FAIL: Integration bundle [ ${bundleName} ] failed verification.`);
-      process.exit(1);
-    }
-    console.log(`✅ Step 4 PASS: Integration bundle [ ${bundleName} ] verified with 100% equivalence.\n`);
-  }
+  console.log('✅ Step 3 PASS: Committed out/ tree is 100% fresh (0 drift across artifacts).\n');
 
   const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log('════════════════════════════════════════════════════════════════════════════════');

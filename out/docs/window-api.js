@@ -99,52 +99,76 @@ bro.window.restore = function() {};
 bro.window.getPosition = function() {};
 
 /**
- * Sets desktop coordinate position of the window.
- *
- * @param {number} x - Desktop X coordinate
- * @param {number} y - Desktop Y coordinate
+ * @returns {number}
+ */
+bro.window.getPositionX = function() {};
+
+/**
+ * @returns {number}
+ */
+bro.window.getPositionY = function() {};
+
+/**
+ * @param {number} x
+ * @param {number} y
  */
 bro.window.setPosition = function(x, y) {};
 
 /**
- * Retrieves minimum window resize bounds in pixels.
  * @returns {WindowSize}
  */
 bro.window.getMinSize = function() {};
 
 /**
- * Sets minimum window resize bounds.
- *
- * @param {number} width - Minimum width in pixels (0 for unconstrained)
- * @param {number} height - Minimum height in pixels (0 for unconstrained)
+ * @returns {number}
+ */
+bro.window.getMinWidth = function() {};
+
+/**
+ * @returns {number}
+ */
+bro.window.getMinHeight = function() {};
+
+/**
+ * @param {number} width
+ * @param {number} height
  */
 bro.window.setMinSize = function(width, height) {};
 
 /**
- * Retrieves maximum window resize bounds in pixels.
  * @returns {WindowSize}
  */
 bro.window.getMaxSize = function() {};
 
 /**
- * Sets maximum window resize bounds.
- *
- * @param {number} width - Maximum width in pixels (0 for unconstrained)
- * @param {number} height - Maximum height in pixels (0 for unconstrained)
+ * @returns {number}
+ */
+bro.window.getMaxWidth = function() {};
+
+/**
+ * @returns {number}
+ */
+bro.window.getMaxHeight = function() {};
+
+/**
+ * @param {number} width
+ * @param {number} height
  */
 bro.window.setMaxSize = function(width, height) {};
 
 /**
- * Enumerates all attached monitor displays.
  * @returns {Array<DisplayInfo>}
  */
 bro.window.getDisplays = function() {};
 
 /**
- * Moves and centers the window on a specific display.
- *
- * @param {number} id - Target display identifier
- * @returns {boolean} True if window was moved, false otherwise
+ * @returns {number}
+ */
+bro.window.getDisplayCount = function() {};
+
+/**
+ * @param {number} id
+ * @returns {boolean}
  */
 bro.window.moveToDisplay = function(id) {};
 

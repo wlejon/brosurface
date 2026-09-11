@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { runEmitDocs } from '../gen/emit_docs.mjs';
 import { runEmitDts } from '../gen/emit_dts.mjs';
-import { runEmitQjsbind } from '../gen/emit_qjsbind.mjs';
+import { runEmitCAbi } from '../gen/emit_c_abi.mjs';
 import { runEmitBronzeHost } from '../gen/emit_bronze_host.mjs';
 import { runEmitStubs } from '../gen/emit_stubs.mjs';
 
@@ -55,8 +55,8 @@ export function runCheckOutFresh() {
     // 2. TypeScript defs
     runEmitDts('idl/', path.join(tempDir, 'bro.d.ts'));
 
-    // 3. QuickJS TUs
-    runEmitQjsbind('idl/', path.join(tempDir, 'qjs/'));
+    // 3. C-ABI
+    runEmitCAbi('idl/', path.join(tempDir, 'c_abi/'));
 
     // 4. Bronze Host TUs & Manifest
     runEmitBronzeHost('idl/', path.join(tempDir, 'bronze_host/'));
@@ -90,7 +90,7 @@ export function runCheckOutFresh() {
     }
 
     // Also check for obsolete files in out/ under tracked artifact subdirectories
-    const monitoredSubdirs = ['docs', 'qjs', 'bronze_host', 'stubs'];
+    const monitoredSubdirs = ['docs', 'c_abi', 'bronze_host', 'stubs'];
     for (const subdir of monitoredSubdirs) {
       const outSubdir = path.join(OUT_DIR, subdir);
       if (fs.existsSync(outSubdir)) {
