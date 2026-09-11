@@ -168,6 +168,8 @@ interface SceneNode {
 
   SceneNode add(SceneNode child);
   void remove(SceneNode child);
+  SceneNode addChild(SceneNode child);
+  void removeChild(SceneNode child);
   void destroy();
 
   SceneNode setPosition(unrestricted double x, unrestricted double y, unrestricted double z);
@@ -288,6 +290,7 @@ interface SceneGraph {
   void setFrustumCulling(boolean enabled);
   SceneCullStats cullStats();
 
+  void clear();
   void syncPhysics();
   SceneRaycastResult? raycast(sequence<unrestricted double> origin, sequence<unrestricted double> direction);
   sequence<unrestricted double> unprojectLocal(SceneNode node, sequence<unrestricted double> screenPoint);

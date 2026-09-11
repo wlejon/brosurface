@@ -1,0 +1,688 @@
+{
+  "version": "1.0.0",
+  "subsystem": "lighting",
+  "namespaces": {},
+  "classes": {
+    "bro.lighting.LightNode": {
+      "name": "LightNode",
+      "methods": {},
+      "properties": {
+        "color": {
+          "getter": "bro_LightNode_get_color",
+          "setter": "bro_LightNode_set_color",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "intensity": {
+          "getter": "bro_LightNode_get_intensity",
+          "setter": "bro_LightNode_set_intensity",
+          "returnType": "f64"
+        },
+        "range": {
+          "getter": "bro_LightNode_get_range",
+          "setter": "bro_LightNode_set_range",
+          "returnType": "f64"
+        },
+        "innerCone": {
+          "getter": "bro_LightNode_get_innerCone",
+          "setter": "bro_LightNode_set_innerCone",
+          "returnType": "f64"
+        },
+        "outerCone": {
+          "getter": "bro_LightNode_get_outerCone",
+          "setter": "bro_LightNode_set_outerCone",
+          "returnType": "f64"
+        },
+        "castShadow": {
+          "getter": "bro_LightNode_get_castShadow",
+          "setter": "bro_LightNode_set_castShadow",
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_LightNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_LightNode_destroy"
+      }
+    },
+    "LightNode": {
+      "name": "LightNode",
+      "methods": {},
+      "properties": {
+        "color": {
+          "getter": "bro_LightNode_get_color",
+          "setter": "bro_LightNode_set_color",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "intensity": {
+          "getter": "bro_LightNode_get_intensity",
+          "setter": "bro_LightNode_set_intensity",
+          "returnType": "f64"
+        },
+        "range": {
+          "getter": "bro_LightNode_get_range",
+          "setter": "bro_LightNode_set_range",
+          "returnType": "f64"
+        },
+        "innerCone": {
+          "getter": "bro_LightNode_get_innerCone",
+          "setter": "bro_LightNode_set_innerCone",
+          "returnType": "f64"
+        },
+        "outerCone": {
+          "getter": "bro_LightNode_get_outerCone",
+          "setter": "bro_LightNode_set_outerCone",
+          "returnType": "f64"
+        },
+        "castShadow": {
+          "getter": "bro_LightNode_get_castShadow",
+          "setter": "bro_LightNode_set_castShadow",
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_LightNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_LightNode_destroy"
+      }
+    },
+    "bro.lighting.ShapeNode": {
+      "name": "ShapeNode",
+      "methods": {},
+      "properties": {
+        "shapeType": {
+          "getter": "bro_ShapeNode_get_shapeType",
+          "setter": "bro_ShapeNode_set_shapeType",
+          "returnType": "str"
+        },
+        "color": {
+          "getter": "bro_ShapeNode_get_color",
+          "setter": "bro_ShapeNode_set_color",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "size": {
+          "getter": "bro_ShapeNode_get_size",
+          "setter": "bro_ShapeNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ShapeNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ShapeNode_destroy"
+      }
+    },
+    "ShapeNode": {
+      "name": "ShapeNode",
+      "methods": {},
+      "properties": {
+        "shapeType": {
+          "getter": "bro_ShapeNode_get_shapeType",
+          "setter": "bro_ShapeNode_set_shapeType",
+          "returnType": "str"
+        },
+        "color": {
+          "getter": "bro_ShapeNode_get_color",
+          "setter": "bro_ShapeNode_set_color",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        },
+        "size": {
+          "getter": "bro_ShapeNode_get_size",
+          "setter": "bro_ShapeNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_ShapeNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ShapeNode_destroy"
+      }
+    },
+    "bro.lighting.SpriteNode": {
+      "name": "SpriteNode",
+      "methods": {
+        "addAnimation": {
+          "symbol": "bro_SpriteNode_addAnimation",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "play": {
+          "symbol": "bro_SpriteNode_play",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_SpriteNode_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "texture": {
+          "getter": "bro_SpriteNode_get_texture",
+          "setter": "bro_SpriteNode_set_texture",
+          "returnType": "str"
+        },
+        "size": {
+          "getter": "bro_SpriteNode_get_size",
+          "setter": "bro_SpriteNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SpriteNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SpriteNode_destroy"
+      }
+    },
+    "SpriteNode": {
+      "name": "SpriteNode",
+      "methods": {
+        "addAnimation": {
+          "symbol": "bro_SpriteNode_addAnimation",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "play": {
+          "symbol": "bro_SpriteNode_play",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_SpriteNode_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "texture": {
+          "getter": "bro_SpriteNode_get_texture",
+          "setter": "bro_SpriteNode_set_texture",
+          "returnType": "str"
+        },
+        "size": {
+          "getter": "bro_SpriteNode_get_size",
+          "setter": "bro_SpriteNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SpriteNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SpriteNode_destroy"
+      }
+    },
+    "bro.lighting.HtmlNode": {
+      "name": "HtmlNode",
+      "methods": {
+        "setHtml": {
+          "symbol": "bro_HtmlNode_setHtml",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "markHtmlDirty": {
+          "symbol": "bro_HtmlNode_markHtmlDirty",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HtmlNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HtmlNode_destroy"
+      }
+    },
+    "HtmlNode": {
+      "name": "HtmlNode",
+      "methods": {
+        "setHtml": {
+          "symbol": "bro_HtmlNode_setHtml",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "markHtmlDirty": {
+          "symbol": "bro_HtmlNode_markHtmlDirty",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_HtmlNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_HtmlNode_destroy"
+      }
+    },
+    "bro.lighting.ParticleNode": {
+      "name": "ParticleNode",
+      "methods": {
+        "burst": {
+          "symbol": "bro_ParticleNode_burst",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_ParticleNode_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ParticleNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ParticleNode_destroy"
+      }
+    },
+    "ParticleNode": {
+      "name": "ParticleNode",
+      "methods": {
+        "burst": {
+          "symbol": "bro_ParticleNode_burst",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_ParticleNode_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ParticleNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ParticleNode_destroy"
+      }
+    },
+    "bro.lighting.Particles3DNode": {
+      "name": "Particles3DNode",
+      "methods": {
+        "burst": {
+          "symbol": "bro_Particles3DNode_burst",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_Particles3DNode_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Particles3DNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Particles3DNode_destroy"
+      }
+    },
+    "Particles3DNode": {
+      "name": "Particles3DNode",
+      "methods": {
+        "burst": {
+          "symbol": "bro_Particles3DNode_burst",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_Particles3DNode_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Particles3DNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Particles3DNode_destroy"
+      }
+    },
+    "bro.lighting.GaussianSplatNode": {
+      "name": "GaussianSplatNode",
+      "methods": {
+        "savePly": {
+          "symbol": "bro_GaussianSplatNode_savePly",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_GaussianSplatNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GaussianSplatNode_destroy"
+      }
+    },
+    "GaussianSplatNode": {
+      "name": "GaussianSplatNode",
+      "methods": {
+        "savePly": {
+          "symbol": "bro_GaussianSplatNode_savePly",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_GaussianSplatNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GaussianSplatNode_destroy"
+      }
+    },
+    "bro.lighting.DecalNode": {
+      "name": "DecalNode",
+      "methods": {},
+      "properties": {
+        "texture": {
+          "getter": "bro_DecalNode_get_texture",
+          "setter": "bro_DecalNode_set_texture",
+          "returnType": "str"
+        },
+        "size": {
+          "getter": "bro_DecalNode_get_size",
+          "setter": "bro_DecalNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_DecalNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_DecalNode_destroy"
+      }
+    },
+    "DecalNode": {
+      "name": "DecalNode",
+      "methods": {},
+      "properties": {
+        "texture": {
+          "getter": "bro_DecalNode_get_texture",
+          "setter": "bro_DecalNode_set_texture",
+          "returnType": "str"
+        },
+        "size": {
+          "getter": "bro_DecalNode_get_size",
+          "setter": "bro_DecalNode_set_size",
+          "returnType": "dynamic",
+          "returnClass": "sequence"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_DecalNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_DecalNode_destroy"
+      }
+    },
+    "bro.lighting.ReflectionProbeNode": {
+      "name": "ReflectionProbeNode",
+      "methods": {
+        "probeCapture": {
+          "symbol": "bro_ReflectionProbeNode_probeCapture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ReflectionProbeNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ReflectionProbeNode_destroy"
+      }
+    },
+    "ReflectionProbeNode": {
+      "name": "ReflectionProbeNode",
+      "methods": {
+        "probeCapture": {
+          "symbol": "bro_ReflectionProbeNode_probeCapture",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ReflectionProbeNode_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_ReflectionProbeNode_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.SpriteNode",
+      "name": "addAnimation",
+      "symbol": "bro_SpriteNode_addAnimation",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.SpriteNode",
+      "name": "play",
+      "symbol": "bro_SpriteNode_play",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.SpriteNode",
+      "name": "stop",
+      "symbol": "bro_SpriteNode_stop",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.HtmlNode",
+      "name": "setHtml",
+      "symbol": "bro_HtmlNode_setHtml",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.HtmlNode",
+      "name": "markHtmlDirty",
+      "symbol": "bro_HtmlNode_markHtmlDirty",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.ParticleNode",
+      "name": "burst",
+      "symbol": "bro_ParticleNode_burst",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.ParticleNode",
+      "name": "clear",
+      "symbol": "bro_ParticleNode_clear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.Particles3DNode",
+      "name": "burst",
+      "symbol": "bro_Particles3DNode_burst",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.Particles3DNode",
+      "name": "clear",
+      "symbol": "bro_Particles3DNode_clear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.GaussianSplatNode",
+      "name": "savePly",
+      "symbol": "bro_GaussianSplatNode_savePly",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.lighting.ReflectionProbeNode",
+      "name": "probeCapture",
+      "symbol": "bro_ReflectionProbeNode_probeCapture",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

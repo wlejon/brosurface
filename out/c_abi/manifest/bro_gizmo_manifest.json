@@ -1,0 +1,294 @@
+{
+  "version": "1.0.0",
+  "subsystem": "gizmo",
+  "namespaces": {
+    "bro.gizmo": {
+      "functions": {
+        "show": {
+          "symbol": "bro_gizmo_show",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "hide": {
+          "symbol": "bro_gizmo_hide",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "setMode": {
+          "symbol": "bro_gizmo_setMode",
+          "returnType": "void",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "setSpace": {
+          "symbol": "bro_gizmo_setSpace",
+          "returnType": "void",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "setPosition": {
+          "symbol": "bro_gizmo_setPosition",
+          "returnType": "void",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "setOrientation": {
+          "symbol": "bro_gizmo_setOrientation",
+          "returnType": "void",
+          "paramTypes": [
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "configure": {
+          "symbol": "bro_gizmo_configure",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "attach": {
+          "symbol": "bro_gizmo_attach",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "detach": {
+          "symbol": "bro_gizmo_detach",
+          "returnType": "void",
+          "paramTypes": []
+        }
+      },
+      "properties": {
+        "visible": {
+          "getter": "bro_gizmo_get_visible",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "dragging": {
+          "getter": "bro_gizmo_get_dragging",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "hovered": {
+          "getter": "bro_gizmo_get_hovered",
+          "setter": null,
+          "returnType": "str"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.gizmo.visible",
+      "getter": "bro_gizmo_get_visible",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.visible",
+      "getter": "bro_gizmo_get_visible",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.gizmo.dragging",
+      "getter": "bro_gizmo_get_dragging",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.dragging",
+      "getter": "bro_gizmo_get_dragging",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.gizmo.hovered",
+      "getter": "bro_gizmo_get_hovered",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.hovered",
+      "getter": "bro_gizmo_get_hovered",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.show",
+      "symbol": "bro_gizmo_show",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.show",
+      "symbol": "bro_gizmo_show",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.hide",
+      "symbol": "bro_gizmo_hide",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.hide",
+      "symbol": "bro_gizmo_hide",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.setMode",
+      "symbol": "bro_gizmo_setMode",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setMode",
+      "symbol": "bro_gizmo_setMode",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.setSpace",
+      "symbol": "bro_gizmo_setSpace",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setSpace",
+      "symbol": "bro_gizmo_setSpace",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.setPosition",
+      "symbol": "bro_gizmo_setPosition",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setPosition",
+      "symbol": "bro_gizmo_setPosition",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.setOrientation",
+      "symbol": "bro_gizmo_setOrientation",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.setOrientation",
+      "symbol": "bro_gizmo_setOrientation",
+      "returnType": "void",
+      "paramTypes": [
+        "f64",
+        "f64",
+        "f64",
+        "f64"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.configure",
+      "symbol": "bro_gizmo_configure",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.configure",
+      "symbol": "bro_gizmo_configure",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.attach",
+      "symbol": "bro_gizmo_attach",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.attach",
+      "symbol": "bro_gizmo_attach",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gizmo.detach",
+      "symbol": "bro_gizmo_detach",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.detach",
+      "symbol": "bro_gizmo_detach",
+      "returnType": "void",
+      "paramTypes": []
+    }
+  ]
+}

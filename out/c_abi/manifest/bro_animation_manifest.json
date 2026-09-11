@@ -1,0 +1,539 @@
+{
+  "version": "1.0.0",
+  "subsystem": "animation",
+  "namespaces": {},
+  "classes": {
+    "bro.animation.Tween": {
+      "name": "Tween",
+      "methods": {
+        "to": {
+          "symbol": "bro_Tween_to",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "parallel": {
+          "symbol": "bro_Tween_parallel",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "call": {
+          "symbol": "bro_Tween_call",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "loop": {
+          "symbol": "bro_Tween_loop",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "start": {
+          "symbol": "bro_Tween_start",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_Tween_stop",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "pause": {
+          "symbol": "bro_Tween_pause",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_Tween_resume",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_Tween_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Tween_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Tween_destroy"
+      }
+    },
+    "Tween": {
+      "name": "Tween",
+      "methods": {
+        "to": {
+          "symbol": "bro_Tween_to",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "parallel": {
+          "symbol": "bro_Tween_parallel",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "call": {
+          "symbol": "bro_Tween_call",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "loop": {
+          "symbol": "bro_Tween_loop",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        },
+        "start": {
+          "symbol": "bro_Tween_start",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_Tween_stop",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "pause": {
+          "symbol": "bro_Tween_pause",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_Tween_resume",
+          "returnType": "dynamic",
+          "returnClass": "Tween",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_Tween_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Tween_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Tween_destroy"
+      }
+    },
+    "bro.animation.AnimationPlayer": {
+      "name": "AnimationPlayer",
+      "methods": {
+        "addClip": {
+          "symbol": "bro_AnimationPlayer_addClip",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "clipDef": {
+          "symbol": "bro_AnimationPlayer_clipDef",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "play": {
+          "symbol": "bro_AnimationPlayer_play",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "pause": {
+          "symbol": "bro_AnimationPlayer_pause",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_AnimationPlayer_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_AnimationPlayer_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "seek": {
+          "symbol": "bro_AnimationPlayer_seek",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_AnimationPlayer_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AnimationPlayer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AnimationPlayer_destroy"
+      }
+    },
+    "AnimationPlayer": {
+      "name": "AnimationPlayer",
+      "methods": {
+        "addClip": {
+          "symbol": "bro_AnimationPlayer_addClip",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "clipDef": {
+          "symbol": "bro_AnimationPlayer_clipDef",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "play": {
+          "symbol": "bro_AnimationPlayer_play",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "pause": {
+          "symbol": "bro_AnimationPlayer_pause",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "resume": {
+          "symbol": "bro_AnimationPlayer_resume",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_AnimationPlayer_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "seek": {
+          "symbol": "bro_AnimationPlayer_seek",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "destroy": {
+          "symbol": "bro_AnimationPlayer_destroy",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_AnimationPlayer_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_AnimationPlayer_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "to",
+      "symbol": "bro_Tween_to",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "f64",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "parallel",
+      "symbol": "bro_Tween_parallel",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "call",
+      "symbol": "bro_Tween_call",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "loop",
+      "symbol": "bro_Tween_loop",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "start",
+      "symbol": "bro_Tween_start",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "stop",
+      "symbol": "bro_Tween_stop",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "pause",
+      "symbol": "bro_Tween_pause",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "resume",
+      "symbol": "bro_Tween_resume",
+      "returnType": "dynamic",
+      "returnClass": "Tween",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.Tween",
+      "name": "destroy",
+      "symbol": "bro_Tween_destroy",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "addClip",
+      "symbol": "bro_AnimationPlayer_addClip",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "clipDef",
+      "symbol": "bro_AnimationPlayer_clipDef",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "play",
+      "symbol": "bro_AnimationPlayer_play",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "pause",
+      "symbol": "bro_AnimationPlayer_pause",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "resume",
+      "symbol": "bro_AnimationPlayer_resume",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "stop",
+      "symbol": "bro_AnimationPlayer_stop",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "seek",
+      "symbol": "bro_AnimationPlayer_seek",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.animation.AnimationPlayer",
+      "name": "destroy",
+      "symbol": "bro_AnimationPlayer_destroy",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}
