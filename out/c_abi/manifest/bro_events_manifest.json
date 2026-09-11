@@ -1,0 +1,920 @@
+{
+  "version": "1.0.0",
+  "subsystem": "events",
+  "namespaces": {},
+  "classes": {
+    "bro.events.Event": {
+      "name": "Event",
+      "methods": {
+        "preventDefault": {
+          "symbol": "bro_Event_preventDefault",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stopPropagation": {
+          "symbol": "bro_Event_stopPropagation",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "initEvent": {
+          "symbol": "bro_Event_initEvent",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool",
+            "bool"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_Event_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "target": {
+          "getter": "bro_Event_get_target",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "currentTarget": {
+          "getter": "bro_Event_get_currentTarget",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "bubbles": {
+          "getter": "bro_Event_get_bubbles",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "cancelable": {
+          "getter": "bro_Event_get_cancelable",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "defaultPrevented": {
+          "getter": "bro_Event_get_defaultPrevented",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "timeStamp": {
+          "getter": "bro_Event_get_timeStamp",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Event_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Event_destroy"
+      }
+    },
+    "Event": {
+      "name": "Event",
+      "methods": {
+        "preventDefault": {
+          "symbol": "bro_Event_preventDefault",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stopPropagation": {
+          "symbol": "bro_Event_stopPropagation",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "initEvent": {
+          "symbol": "bro_Event_initEvent",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "bool",
+            "bool"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_Event_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "target": {
+          "getter": "bro_Event_get_target",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "currentTarget": {
+          "getter": "bro_Event_get_currentTarget",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "bubbles": {
+          "getter": "bro_Event_get_bubbles",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "cancelable": {
+          "getter": "bro_Event_get_cancelable",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "defaultPrevented": {
+          "getter": "bro_Event_get_defaultPrevented",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "timeStamp": {
+          "getter": "bro_Event_get_timeStamp",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Event_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Event_destroy"
+      }
+    },
+    "bro.events.CustomEvent": {
+      "name": "CustomEvent",
+      "methods": {},
+      "properties": {
+        "detail": {
+          "getter": "bro_CustomEvent_get_detail",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_CustomEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomEvent_destroy"
+      }
+    },
+    "CustomEvent": {
+      "name": "CustomEvent",
+      "methods": {},
+      "properties": {
+        "detail": {
+          "getter": "bro_CustomEvent_get_detail",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_CustomEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_CustomEvent_destroy"
+      }
+    },
+    "bro.events.UIEvent": {
+      "name": "UIEvent",
+      "methods": {},
+      "properties": {
+        "view": {
+          "getter": "bro_UIEvent_get_view",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        },
+        "detail": {
+          "getter": "bro_UIEvent_get_detail",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_UIEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_UIEvent_destroy"
+      }
+    },
+    "UIEvent": {
+      "name": "UIEvent",
+      "methods": {},
+      "properties": {
+        "view": {
+          "getter": "bro_UIEvent_get_view",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "any"
+        },
+        "detail": {
+          "getter": "bro_UIEvent_get_detail",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_UIEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_UIEvent_destroy"
+      }
+    },
+    "bro.events.MouseEvent": {
+      "name": "MouseEvent",
+      "methods": {},
+      "properties": {
+        "screenX": {
+          "getter": "bro_MouseEvent_get_screenX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "screenY": {
+          "getter": "bro_MouseEvent_get_screenY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_MouseEvent_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_MouseEvent_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "offsetX": {
+          "getter": "bro_MouseEvent_get_offsetX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "offsetY": {
+          "getter": "bro_MouseEvent_get_offsetY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageX": {
+          "getter": "bro_MouseEvent_get_pageX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageY": {
+          "getter": "bro_MouseEvent_get_pageY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "ctrlKey": {
+          "getter": "bro_MouseEvent_get_ctrlKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "shiftKey": {
+          "getter": "bro_MouseEvent_get_shiftKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "altKey": {
+          "getter": "bro_MouseEvent_get_altKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "metaKey": {
+          "getter": "bro_MouseEvent_get_metaKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "button": {
+          "getter": "bro_MouseEvent_get_button",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "buttons": {
+          "getter": "bro_MouseEvent_get_buttons",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "relatedTarget": {
+          "getter": "bro_MouseEvent_get_relatedTarget",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_MouseEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MouseEvent_destroy"
+      }
+    },
+    "MouseEvent": {
+      "name": "MouseEvent",
+      "methods": {},
+      "properties": {
+        "screenX": {
+          "getter": "bro_MouseEvent_get_screenX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "screenY": {
+          "getter": "bro_MouseEvent_get_screenY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_MouseEvent_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_MouseEvent_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "offsetX": {
+          "getter": "bro_MouseEvent_get_offsetX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "offsetY": {
+          "getter": "bro_MouseEvent_get_offsetY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageX": {
+          "getter": "bro_MouseEvent_get_pageX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageY": {
+          "getter": "bro_MouseEvent_get_pageY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "ctrlKey": {
+          "getter": "bro_MouseEvent_get_ctrlKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "shiftKey": {
+          "getter": "bro_MouseEvent_get_shiftKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "altKey": {
+          "getter": "bro_MouseEvent_get_altKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "metaKey": {
+          "getter": "bro_MouseEvent_get_metaKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "button": {
+          "getter": "bro_MouseEvent_get_button",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "buttons": {
+          "getter": "bro_MouseEvent_get_buttons",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "relatedTarget": {
+          "getter": "bro_MouseEvent_get_relatedTarget",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_MouseEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_MouseEvent_destroy"
+      }
+    },
+    "bro.events.PointerEvent": {
+      "name": "PointerEvent",
+      "methods": {},
+      "properties": {
+        "pointerId": {
+          "getter": "bro_PointerEvent_get_pointerId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "pointerType": {
+          "getter": "bro_PointerEvent_get_pointerType",
+          "setter": null,
+          "returnType": "str"
+        },
+        "isPrimary": {
+          "getter": "bro_PointerEvent_get_isPrimary",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "pressure": {
+          "getter": "bro_PointerEvent_get_pressure",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "width": {
+          "getter": "bro_PointerEvent_get_width",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "height": {
+          "getter": "bro_PointerEvent_get_height",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_PointerEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PointerEvent_destroy"
+      }
+    },
+    "PointerEvent": {
+      "name": "PointerEvent",
+      "methods": {},
+      "properties": {
+        "pointerId": {
+          "getter": "bro_PointerEvent_get_pointerId",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "pointerType": {
+          "getter": "bro_PointerEvent_get_pointerType",
+          "setter": null,
+          "returnType": "str"
+        },
+        "isPrimary": {
+          "getter": "bro_PointerEvent_get_isPrimary",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "pressure": {
+          "getter": "bro_PointerEvent_get_pressure",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "width": {
+          "getter": "bro_PointerEvent_get_width",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "height": {
+          "getter": "bro_PointerEvent_get_height",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_PointerEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_PointerEvent_destroy"
+      }
+    },
+    "bro.events.Touch": {
+      "name": "Touch",
+      "methods": {},
+      "properties": {
+        "identifier": {
+          "getter": "bro_Touch_get_identifier",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "target": {
+          "getter": "bro_Touch_get_target",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "screenX": {
+          "getter": "bro_Touch_get_screenX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "screenY": {
+          "getter": "bro_Touch_get_screenY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_Touch_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_Touch_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageX": {
+          "getter": "bro_Touch_get_pageX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageY": {
+          "getter": "bro_Touch_get_pageY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "force": {
+          "getter": "bro_Touch_get_force",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Touch_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Touch_destroy"
+      }
+    },
+    "Touch": {
+      "name": "Touch",
+      "methods": {},
+      "properties": {
+        "identifier": {
+          "getter": "bro_Touch_get_identifier",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "target": {
+          "getter": "bro_Touch_get_target",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "screenX": {
+          "getter": "bro_Touch_get_screenX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "screenY": {
+          "getter": "bro_Touch_get_screenY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_Touch_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_Touch_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageX": {
+          "getter": "bro_Touch_get_pageX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "pageY": {
+          "getter": "bro_Touch_get_pageY",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "force": {
+          "getter": "bro_Touch_get_force",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Touch_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Touch_destroy"
+      }
+    },
+    "bro.events.TouchList": {
+      "name": "TouchList",
+      "methods": {
+        "item": {
+          "symbol": "bro_TouchList_item",
+          "returnType": "dynamic",
+          "returnClass": "Touch",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "length": {
+          "getter": "bro_TouchList_get_length",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TouchList_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TouchList_destroy"
+      }
+    },
+    "TouchList": {
+      "name": "TouchList",
+      "methods": {
+        "item": {
+          "symbol": "bro_TouchList_item",
+          "returnType": "dynamic",
+          "returnClass": "Touch",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "length": {
+          "getter": "bro_TouchList_get_length",
+          "setter": null,
+          "returnType": "i32"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TouchList_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TouchList_destroy"
+      }
+    },
+    "bro.events.TouchEvent": {
+      "name": "TouchEvent",
+      "methods": {},
+      "properties": {
+        "touches": {
+          "getter": "bro_TouchEvent_get_touches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "targetTouches": {
+          "getter": "bro_TouchEvent_get_targetTouches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "changedTouches": {
+          "getter": "bro_TouchEvent_get_changedTouches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "ctrlKey": {
+          "getter": "bro_TouchEvent_get_ctrlKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "shiftKey": {
+          "getter": "bro_TouchEvent_get_shiftKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "altKey": {
+          "getter": "bro_TouchEvent_get_altKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "metaKey": {
+          "getter": "bro_TouchEvent_get_metaKey",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TouchEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TouchEvent_destroy"
+      }
+    },
+    "TouchEvent": {
+      "name": "TouchEvent",
+      "methods": {},
+      "properties": {
+        "touches": {
+          "getter": "bro_TouchEvent_get_touches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "targetTouches": {
+          "getter": "bro_TouchEvent_get_targetTouches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "changedTouches": {
+          "getter": "bro_TouchEvent_get_changedTouches",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "TouchList"
+        },
+        "ctrlKey": {
+          "getter": "bro_TouchEvent_get_ctrlKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "shiftKey": {
+          "getter": "bro_TouchEvent_get_shiftKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "altKey": {
+          "getter": "bro_TouchEvent_get_altKey",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "metaKey": {
+          "getter": "bro_TouchEvent_get_metaKey",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_TouchEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_TouchEvent_destroy"
+      }
+    },
+    "bro.events.GestureEvent": {
+      "name": "GestureEvent",
+      "methods": {},
+      "properties": {
+        "scale": {
+          "getter": "bro_GestureEvent_get_scale",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "rotation": {
+          "getter": "bro_GestureEvent_get_rotation",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_GestureEvent_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_GestureEvent_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GestureEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GestureEvent_destroy"
+      }
+    },
+    "GestureEvent": {
+      "name": "GestureEvent",
+      "methods": {},
+      "properties": {
+        "scale": {
+          "getter": "bro_GestureEvent_get_scale",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "rotation": {
+          "getter": "bro_GestureEvent_get_rotation",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientX": {
+          "getter": "bro_GestureEvent_get_clientX",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "clientY": {
+          "getter": "bro_GestureEvent_get_clientY",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GestureEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GestureEvent_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.events.Event",
+      "name": "preventDefault",
+      "symbol": "bro_Event_preventDefault",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.events.Event",
+      "name": "stopPropagation",
+      "symbol": "bro_Event_stopPropagation",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.events.Event",
+      "name": "initEvent",
+      "symbol": "bro_Event_initEvent",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "bool",
+        "bool"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.events.TouchList",
+      "name": "item",
+      "symbol": "bro_TouchList_item",
+      "returnType": "dynamic",
+      "returnClass": "Touch",
+      "paramTypes": [
+        "dynamic",
+        "i32"
+      ]
+    }
+  ]
+}

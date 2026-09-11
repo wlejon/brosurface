@@ -1,0 +1,1007 @@
+{
+  "version": "1.0.0",
+  "subsystem": "intl",
+  "namespaces": {
+    "bro.Intl": {
+      "functions": {
+        "getCanonicalLocales": {
+          "symbol": "bro_Intl_getCanonicalLocales",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.intl.NumberFormat": {
+      "name": "NumberFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_NumberFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_NumberFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_NumberFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_NumberFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_NumberFormat_destroy"
+      }
+    },
+    "NumberFormat": {
+      "name": "NumberFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_NumberFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_NumberFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_NumberFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_NumberFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_NumberFormat_destroy"
+      }
+    },
+    "bro.intl.DateTimeFormat": {
+      "name": "DateTimeFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_DateTimeFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_DateTimeFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_DateTimeFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DateTimeFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_DateTimeFormat_destroy"
+      }
+    },
+    "DateTimeFormat": {
+      "name": "DateTimeFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_DateTimeFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_DateTimeFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_DateTimeFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DateTimeFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_DateTimeFormat_destroy"
+      }
+    },
+    "bro.intl.PluralRules": {
+      "name": "PluralRules",
+      "methods": {
+        "select": {
+          "symbol": "bro_PluralRules_select",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_PluralRules_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PluralRules_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_PluralRules_destroy"
+      }
+    },
+    "PluralRules": {
+      "name": "PluralRules",
+      "methods": {
+        "select": {
+          "symbol": "bro_PluralRules_select",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_PluralRules_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_PluralRules_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_PluralRules_destroy"
+      }
+    },
+    "bro.intl.Collator": {
+      "name": "Collator",
+      "methods": {
+        "compare": {
+          "symbol": "bro_Collator_compare",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_Collator_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Collator_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Collator_destroy"
+      }
+    },
+    "Collator": {
+      "name": "Collator",
+      "methods": {
+        "compare": {
+          "symbol": "bro_Collator_compare",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_Collator_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Collator_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Collator_destroy"
+      }
+    },
+    "bro.intl.ListFormat": {
+      "name": "ListFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_ListFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_ListFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_ListFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ListFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_ListFormat_destroy"
+      }
+    },
+    "ListFormat": {
+      "name": "ListFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_ListFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_ListFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_ListFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_ListFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_ListFormat_destroy"
+      }
+    },
+    "bro.intl.RelativeTimeFormat": {
+      "name": "RelativeTimeFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_RelativeTimeFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_RelativeTimeFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_RelativeTimeFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_RelativeTimeFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_RelativeTimeFormat_destroy"
+      }
+    },
+    "RelativeTimeFormat": {
+      "name": "RelativeTimeFormat",
+      "methods": {
+        "format": {
+          "symbol": "bro_RelativeTimeFormat_format",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "formatToParts": {
+          "symbol": "bro_RelativeTimeFormat_formatToParts",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_RelativeTimeFormat_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_RelativeTimeFormat_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_RelativeTimeFormat_destroy"
+      }
+    },
+    "bro.intl.DisplayNames": {
+      "name": "DisplayNames",
+      "methods": {
+        "of": {
+          "symbol": "bro_DisplayNames_of",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_DisplayNames_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DisplayNames_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_DisplayNames_destroy"
+      }
+    },
+    "DisplayNames": {
+      "name": "DisplayNames",
+      "methods": {
+        "of": {
+          "symbol": "bro_DisplayNames_of",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "resolvedOptions": {
+          "symbol": "bro_DisplayNames_resolvedOptions",
+          "returnType": "dynamic",
+          "returnClass": "object",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DisplayNames_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_DisplayNames_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.intl.NumberFormat",
+      "name": "format",
+      "symbol": "bro_NumberFormat_format",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.NumberFormat",
+      "name": "formatToParts",
+      "symbol": "bro_NumberFormat_formatToParts",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.NumberFormat",
+      "name": "resolvedOptions",
+      "symbol": "bro_NumberFormat_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "NumberFormat.supportedLocalesOf",
+      "symbol": "bro_NumberFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.NumberFormat.supportedLocalesOf",
+      "symbol": "bro_NumberFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_NumberFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.DateTimeFormat",
+      "name": "format",
+      "symbol": "bro_DateTimeFormat_format",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.DateTimeFormat",
+      "name": "formatToParts",
+      "symbol": "bro_DateTimeFormat_formatToParts",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.DateTimeFormat",
+      "name": "resolvedOptions",
+      "symbol": "bro_DateTimeFormat_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "DateTimeFormat.supportedLocalesOf",
+      "symbol": "bro_DateTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.DateTimeFormat.supportedLocalesOf",
+      "symbol": "bro_DateTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_DateTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.PluralRules",
+      "name": "select",
+      "symbol": "bro_PluralRules_select",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.PluralRules",
+      "name": "resolvedOptions",
+      "symbol": "bro_PluralRules_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "PluralRules.supportedLocalesOf",
+      "symbol": "bro_PluralRules_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.PluralRules.supportedLocalesOf",
+      "symbol": "bro_PluralRules_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_PluralRules_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.Collator",
+      "name": "compare",
+      "symbol": "bro_Collator_compare",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.Collator",
+      "name": "resolvedOptions",
+      "symbol": "bro_Collator_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "Collator.supportedLocalesOf",
+      "symbol": "bro_Collator_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.Collator.supportedLocalesOf",
+      "symbol": "bro_Collator_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_Collator_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.ListFormat",
+      "name": "format",
+      "symbol": "bro_ListFormat_format",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.ListFormat",
+      "name": "formatToParts",
+      "symbol": "bro_ListFormat_formatToParts",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.ListFormat",
+      "name": "resolvedOptions",
+      "symbol": "bro_ListFormat_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "ListFormat.supportedLocalesOf",
+      "symbol": "bro_ListFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.ListFormat.supportedLocalesOf",
+      "symbol": "bro_ListFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_ListFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.RelativeTimeFormat",
+      "name": "format",
+      "symbol": "bro_RelativeTimeFormat_format",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.RelativeTimeFormat",
+      "name": "formatToParts",
+      "symbol": "bro_RelativeTimeFormat_formatToParts",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.RelativeTimeFormat",
+      "name": "resolvedOptions",
+      "symbol": "bro_RelativeTimeFormat_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "RelativeTimeFormat.supportedLocalesOf",
+      "symbol": "bro_RelativeTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.RelativeTimeFormat.supportedLocalesOf",
+      "symbol": "bro_RelativeTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_RelativeTimeFormat_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.DisplayNames",
+      "name": "of",
+      "symbol": "bro_DisplayNames_of",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.intl.DisplayNames",
+      "name": "resolvedOptions",
+      "symbol": "bro_DisplayNames_resolvedOptions",
+      "returnType": "dynamic",
+      "returnClass": "object",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "DisplayNames.supportedLocalesOf",
+      "symbol": "bro_DisplayNames_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.DisplayNames.supportedLocalesOf",
+      "symbol": "bro_DisplayNames_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.intl.supportedLocalesOf",
+      "symbol": "bro_DisplayNames_supportedLocalesOf",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.Intl.getCanonicalLocales",
+      "symbol": "bro_Intl_getCanonicalLocales",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    }
+  ]
+}

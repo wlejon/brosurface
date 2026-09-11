@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "subsystem": "domparser",
+  "namespaces": {},
+  "classes": {
+    "bro.domparser.DOMParser": {
+      "name": "DOMParser",
+      "methods": {
+        "parseFromString": {
+          "symbol": "bro_DOMParser_parseFromString",
+          "returnType": "dynamic",
+          "returnClass": "Document",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DOMParser_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_DOMParser_destroy"
+      }
+    },
+    "DOMParser": {
+      "name": "DOMParser",
+      "methods": {
+        "parseFromString": {
+          "symbol": "bro_DOMParser_parseFromString",
+          "returnType": "dynamic",
+          "returnClass": "Document",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_DOMParser_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_DOMParser_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.domparser.DOMParser",
+      "name": "parseFromString",
+      "symbol": "bro_DOMParser_parseFromString",
+      "returnType": "dynamic",
+      "returnClass": "Document",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "str"
+      ]
+    }
+  ]
+}

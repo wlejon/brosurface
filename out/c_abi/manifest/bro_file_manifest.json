@@ -1,0 +1,1093 @@
+{
+  "version": "1.0.0",
+  "subsystem": "file",
+  "namespaces": {},
+  "classes": {
+    "bro.file.Blob": {
+      "name": "Blob",
+      "methods": {
+        "slice": {
+          "symbol": "bro_Blob_slice",
+          "returnType": "dynamic",
+          "returnClass": "Blob",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "text": {
+          "symbol": "bro_Blob_text",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "arrayBuffer": {
+          "symbol": "bro_Blob_arrayBuffer",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "bytes": {
+          "symbol": "bro_Blob_bytes",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "size": {
+          "getter": "bro_Blob_get_size",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "unsigned long long"
+        },
+        "type": {
+          "getter": "bro_Blob_get_type",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Blob_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Blob_destroy"
+      }
+    },
+    "Blob": {
+      "name": "Blob",
+      "methods": {
+        "slice": {
+          "symbol": "bro_Blob_slice",
+          "returnType": "dynamic",
+          "returnClass": "Blob",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "text": {
+          "symbol": "bro_Blob_text",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "arrayBuffer": {
+          "symbol": "bro_Blob_arrayBuffer",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "bytes": {
+          "symbol": "bro_Blob_bytes",
+          "returnType": "dynamic",
+          "returnClass": "Promise",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "size": {
+          "getter": "bro_Blob_get_size",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "unsigned long long"
+        },
+        "type": {
+          "getter": "bro_Blob_get_type",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Blob_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Blob_destroy"
+      }
+    },
+    "bro.file.File": {
+      "name": "File",
+      "methods": {},
+      "properties": {
+        "name": {
+          "getter": "bro_File_get_name",
+          "setter": null,
+          "returnType": "str"
+        },
+        "lastModified": {
+          "getter": "bro_File_get_lastModified",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "long long"
+        },
+        "webkitRelativePath": {
+          "getter": "bro_File_get_webkitRelativePath",
+          "setter": null,
+          "returnType": "str"
+        },
+        "path": {
+          "getter": "bro_File_get_path",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_File_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "str",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_File_destroy"
+      }
+    },
+    "File": {
+      "name": "File",
+      "methods": {},
+      "properties": {
+        "name": {
+          "getter": "bro_File_get_name",
+          "setter": null,
+          "returnType": "str"
+        },
+        "lastModified": {
+          "getter": "bro_File_get_lastModified",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "long long"
+        },
+        "webkitRelativePath": {
+          "getter": "bro_File_get_webkitRelativePath",
+          "setter": null,
+          "returnType": "str"
+        },
+        "path": {
+          "getter": "bro_File_get_path",
+          "setter": null,
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_File_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic",
+          "str",
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_File_destroy"
+      }
+    },
+    "bro.file.FileReader": {
+      "name": "FileReader",
+      "methods": {
+        "readAsArrayBuffer": {
+          "symbol": "bro_FileReader_readAsArrayBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "readAsBinaryString": {
+          "symbol": "bro_FileReader_readAsBinaryString",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "readAsText": {
+          "symbol": "bro_FileReader_readAsText",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "readAsDataURL": {
+          "symbol": "bro_FileReader_readAsDataURL",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "abort": {
+          "symbol": "bro_FileReader_abort",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "addEventListener": {
+          "symbol": "bro_FileReader_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_FileReader_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "readyState": {
+          "getter": "bro_FileReader_get_readyState",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "result": {
+          "getter": "bro_FileReader_get_result",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "union"
+        },
+        "error": {
+          "getter": "bro_FileReader_get_error",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "onloadstart": {
+          "getter": "bro_FileReader_get_onloadstart",
+          "setter": "bro_FileReader_set_onloadstart",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onprogress": {
+          "getter": "bro_FileReader_get_onprogress",
+          "setter": "bro_FileReader_set_onprogress",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onload": {
+          "getter": "bro_FileReader_get_onload",
+          "setter": "bro_FileReader_set_onload",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onabort": {
+          "getter": "bro_FileReader_get_onabort",
+          "setter": "bro_FileReader_set_onabort",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onerror": {
+          "getter": "bro_FileReader_get_onerror",
+          "setter": "bro_FileReader_set_onerror",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onloadend": {
+          "getter": "bro_FileReader_get_onloadend",
+          "setter": "bro_FileReader_set_onloadend",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_FileReader_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_FileReader_destroy"
+      }
+    },
+    "FileReader": {
+      "name": "FileReader",
+      "methods": {
+        "readAsArrayBuffer": {
+          "symbol": "bro_FileReader_readAsArrayBuffer",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "readAsBinaryString": {
+          "symbol": "bro_FileReader_readAsBinaryString",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "readAsText": {
+          "symbol": "bro_FileReader_readAsText",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "str"
+          ]
+        },
+        "readAsDataURL": {
+          "symbol": "bro_FileReader_readAsDataURL",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "abort": {
+          "symbol": "bro_FileReader_abort",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "addEventListener": {
+          "symbol": "bro_FileReader_addEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeEventListener": {
+          "symbol": "bro_FileReader_removeEventListener",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "readyState": {
+          "getter": "bro_FileReader_get_readyState",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "result": {
+          "getter": "bro_FileReader_get_result",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "union"
+        },
+        "error": {
+          "getter": "bro_FileReader_get_error",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "object"
+        },
+        "onloadstart": {
+          "getter": "bro_FileReader_get_onloadstart",
+          "setter": "bro_FileReader_set_onloadstart",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onprogress": {
+          "getter": "bro_FileReader_get_onprogress",
+          "setter": "bro_FileReader_set_onprogress",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onload": {
+          "getter": "bro_FileReader_get_onload",
+          "setter": "bro_FileReader_set_onload",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onabort": {
+          "getter": "bro_FileReader_get_onabort",
+          "setter": "bro_FileReader_set_onabort",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onerror": {
+          "getter": "bro_FileReader_get_onerror",
+          "setter": "bro_FileReader_set_onerror",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        },
+        "onloadend": {
+          "getter": "bro_FileReader_get_onloadend",
+          "setter": "bro_FileReader_set_onloadend",
+          "returnType": "dynamic",
+          "returnClass": "EventHandler"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_FileReader_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_FileReader_destroy"
+      }
+    },
+    "bro.file.URLSearchParams": {
+      "name": "URLSearchParams",
+      "methods": {
+        "append": {
+          "symbol": "bro_URLSearchParams_append",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "delete": {
+          "symbol": "bro_URLSearchParams_delete",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "get": {
+          "symbol": "bro_URLSearchParams_get",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "getAll": {
+          "symbol": "bro_URLSearchParams_getAll",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "has": {
+          "symbol": "bro_URLSearchParams_has",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "set": {
+          "symbol": "bro_URLSearchParams_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "toString": {
+          "symbol": "bro_URLSearchParams_toString",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_URLSearchParams_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_URLSearchParams_destroy"
+      }
+    },
+    "URLSearchParams": {
+      "name": "URLSearchParams",
+      "methods": {
+        "append": {
+          "symbol": "bro_URLSearchParams_append",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "delete": {
+          "symbol": "bro_URLSearchParams_delete",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "get": {
+          "symbol": "bro_URLSearchParams_get",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "getAll": {
+          "symbol": "bro_URLSearchParams_getAll",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "has": {
+          "symbol": "bro_URLSearchParams_has",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "set": {
+          "symbol": "bro_URLSearchParams_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "str"
+          ]
+        },
+        "toString": {
+          "symbol": "bro_URLSearchParams_toString",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_URLSearchParams_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "dynamic"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_URLSearchParams_destroy"
+      }
+    },
+    "bro.file.URL": {
+      "name": "URL",
+      "methods": {
+        "toJSON": {
+          "symbol": "bro_URL_toJSON",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "toString": {
+          "symbol": "bro_URL_toString",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "href": {
+          "getter": "bro_URL_get_href",
+          "setter": "bro_URL_set_href",
+          "returnType": "str"
+        },
+        "origin": {
+          "getter": "bro_URL_get_origin",
+          "setter": null,
+          "returnType": "str"
+        },
+        "protocol": {
+          "getter": "bro_URL_get_protocol",
+          "setter": "bro_URL_set_protocol",
+          "returnType": "str"
+        },
+        "host": {
+          "getter": "bro_URL_get_host",
+          "setter": "bro_URL_set_host",
+          "returnType": "str"
+        },
+        "hostname": {
+          "getter": "bro_URL_get_hostname",
+          "setter": "bro_URL_set_hostname",
+          "returnType": "str"
+        },
+        "port": {
+          "getter": "bro_URL_get_port",
+          "setter": "bro_URL_set_port",
+          "returnType": "str"
+        },
+        "pathname": {
+          "getter": "bro_URL_get_pathname",
+          "setter": "bro_URL_set_pathname",
+          "returnType": "str"
+        },
+        "search": {
+          "getter": "bro_URL_get_search",
+          "setter": "bro_URL_set_search",
+          "returnType": "str"
+        },
+        "searchParams": {
+          "getter": "bro_URL_get_searchParams",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "URLSearchParams"
+        },
+        "hash": {
+          "getter": "bro_URL_get_hash",
+          "setter": "bro_URL_set_hash",
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_URL_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str",
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_URL_destroy"
+      }
+    },
+    "URL": {
+      "name": "URL",
+      "methods": {
+        "toJSON": {
+          "symbol": "bro_URL_toJSON",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "toString": {
+          "symbol": "bro_URL_toString",
+          "returnType": "str",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "href": {
+          "getter": "bro_URL_get_href",
+          "setter": "bro_URL_set_href",
+          "returnType": "str"
+        },
+        "origin": {
+          "getter": "bro_URL_get_origin",
+          "setter": null,
+          "returnType": "str"
+        },
+        "protocol": {
+          "getter": "bro_URL_get_protocol",
+          "setter": "bro_URL_set_protocol",
+          "returnType": "str"
+        },
+        "host": {
+          "getter": "bro_URL_get_host",
+          "setter": "bro_URL_set_host",
+          "returnType": "str"
+        },
+        "hostname": {
+          "getter": "bro_URL_get_hostname",
+          "setter": "bro_URL_set_hostname",
+          "returnType": "str"
+        },
+        "port": {
+          "getter": "bro_URL_get_port",
+          "setter": "bro_URL_set_port",
+          "returnType": "str"
+        },
+        "pathname": {
+          "getter": "bro_URL_get_pathname",
+          "setter": "bro_URL_set_pathname",
+          "returnType": "str"
+        },
+        "search": {
+          "getter": "bro_URL_get_search",
+          "setter": "bro_URL_set_search",
+          "returnType": "str"
+        },
+        "searchParams": {
+          "getter": "bro_URL_get_searchParams",
+          "setter": null,
+          "returnType": "dynamic",
+          "returnClass": "URLSearchParams"
+        },
+        "hash": {
+          "getter": "bro_URL_get_hash",
+          "setter": "bro_URL_set_hash",
+          "returnType": "str"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_URL_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str",
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_URL_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.file.Blob",
+      "name": "slice",
+      "symbol": "bro_Blob_slice",
+      "returnType": "dynamic",
+      "returnClass": "Blob",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.Blob",
+      "name": "text",
+      "symbol": "bro_Blob_text",
+      "returnType": "dynamic",
+      "returnClass": "Promise",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.Blob",
+      "name": "arrayBuffer",
+      "symbol": "bro_Blob_arrayBuffer",
+      "returnType": "dynamic",
+      "returnClass": "Promise",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.Blob",
+      "name": "bytes",
+      "symbol": "bro_Blob_bytes",
+      "returnType": "dynamic",
+      "returnClass": "Promise",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "readAsArrayBuffer",
+      "symbol": "bro_FileReader_readAsArrayBuffer",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "readAsBinaryString",
+      "symbol": "bro_FileReader_readAsBinaryString",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "readAsText",
+      "symbol": "bro_FileReader_readAsText",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "readAsDataURL",
+      "symbol": "bro_FileReader_readAsDataURL",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "abort",
+      "symbol": "bro_FileReader_abort",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "addEventListener",
+      "symbol": "bro_FileReader_addEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.FileReader",
+      "name": "removeEventListener",
+      "symbol": "bro_FileReader_removeEventListener",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "append",
+      "symbol": "bro_URLSearchParams_append",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "delete",
+      "symbol": "bro_URLSearchParams_delete",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "get",
+      "symbol": "bro_URLSearchParams_get",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "getAll",
+      "symbol": "bro_URLSearchParams_getAll",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "has",
+      "symbol": "bro_URLSearchParams_has",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "set",
+      "symbol": "bro_URLSearchParams_set",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URLSearchParams",
+      "name": "toString",
+      "symbol": "bro_URLSearchParams_toString",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URL",
+      "name": "toJSON",
+      "symbol": "bro_URL_toJSON",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.file.URL",
+      "name": "toString",
+      "symbol": "bro_URL_toString",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "URL.createObjectURL",
+      "symbol": "bro_URL_createObjectURL",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.URL.createObjectURL",
+      "symbol": "bro_URL_createObjectURL",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.createObjectURL",
+      "symbol": "bro_URL_createObjectURL",
+      "returnType": "str",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "URL.revokeObjectURL",
+      "symbol": "bro_URL_revokeObjectURL",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.URL.revokeObjectURL",
+      "symbol": "bro_URL_revokeObjectURL",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.revokeObjectURL",
+      "symbol": "bro_URL_revokeObjectURL",
+      "returnType": "void",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "URL.parse",
+      "symbol": "bro_URL_parse",
+      "returnType": "dynamic",
+      "returnClass": "URL",
+      "paramTypes": [
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.URL.parse",
+      "symbol": "bro_URL_parse",
+      "returnType": "dynamic",
+      "returnClass": "URL",
+      "paramTypes": [
+        "str",
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.file.parse",
+      "symbol": "bro_URL_parse",
+      "returnType": "dynamic",
+      "returnClass": "URL",
+      "paramTypes": [
+        "str",
+        "str"
+      ]
+    }
+  ]
+}
