@@ -1,0 +1,209 @@
+{
+  "version": "1.0.0",
+  "subsystem": "menu",
+  "namespaces": {
+    "bro.menu": {
+      "functions": {
+        "show": {
+          "symbol": "bro_menu_show",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "hide": {
+          "symbol": "bro_menu_hide",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "set": {
+          "symbol": "bro_menu_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "addItem": {
+          "symbol": "bro_menu_addItem",
+          "returnType": "bool",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "i32"
+          ]
+        },
+        "updateItem": {
+          "symbol": "bro_menu_updateItem",
+          "returnType": "bool",
+          "paramTypes": [
+            "str",
+            "dynamic"
+          ]
+        },
+        "removeItem": {
+          "symbol": "bro_menu_removeItem",
+          "returnType": "bool",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "on": {
+          "symbol": "bro_menu_on",
+          "returnType": "void",
+          "paramTypes": [
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "visible": {
+          "getter": "bro_menu_get_visible",
+          "setter": null,
+          "returnType": "bool"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.menu.visible",
+      "getter": "bro_menu_get_visible",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.visible",
+      "getter": "bro_menu_get_visible",
+      "setter": null,
+      "returnType": "bool"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.show",
+      "symbol": "bro_menu_show",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.show",
+      "symbol": "bro_menu_show",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.hide",
+      "symbol": "bro_menu_hide",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.hide",
+      "symbol": "bro_menu_hide",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.set",
+      "symbol": "bro_menu_set",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.set",
+      "symbol": "bro_menu_set",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.addItem",
+      "symbol": "bro_menu_addItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.addItem",
+      "symbol": "bro_menu_addItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.updateItem",
+      "symbol": "bro_menu_updateItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.updateItem",
+      "symbol": "bro_menu_updateItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.removeItem",
+      "symbol": "bro_menu_removeItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.removeItem",
+      "symbol": "bro_menu_removeItem",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.menu.on",
+      "symbol": "bro_menu_on",
+      "returnType": "void",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.on",
+      "symbol": "bro_menu_on",
+      "returnType": "void",
+      "paramTypes": [
+        "str",
+        "dynamic"
+      ]
+    }
+  ]
+}

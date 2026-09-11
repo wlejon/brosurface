@@ -1,0 +1,525 @@
+{
+  "version": "1.0.0",
+  "subsystem": "gamepad",
+  "namespaces": {
+    "bro.gamepad": {
+      "functions": {
+        "isConnected": {
+          "symbol": "bro_gamepad_isConnected",
+          "returnType": "bool",
+          "paramTypes": [
+            "i32"
+          ]
+        },
+        "getAxis": {
+          "symbol": "bro_gamepad_getAxis",
+          "returnType": "f64",
+          "paramTypes": [
+            "i32",
+            "i32"
+          ]
+        },
+        "getButton": {
+          "symbol": "bro_gamepad_getButton",
+          "returnType": "f64",
+          "paramTypes": [
+            "i32",
+            "i32"
+          ]
+        },
+        "rumble": {
+          "symbol": "bro_gamepad_rumble",
+          "returnType": "bool",
+          "paramTypes": [
+            "i32",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "rumbleTriggers": {
+          "symbol": "bro_gamepad_rumbleTriggers",
+          "returnType": "bool",
+          "paramTypes": [
+            "i32",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.gamepad.GamepadHapticActuator": {
+      "name": "GamepadHapticActuator",
+      "methods": {
+        "playEffect": {
+          "symbol": "bro_GamepadHapticActuator_playEffect",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_GamepadHapticActuator_reset",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_GamepadHapticActuator_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "effects": {
+          "getter": "bro_GamepadHapticActuator_get_effects",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadHapticActuator_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadHapticActuator_destroy"
+      }
+    },
+    "GamepadHapticActuator": {
+      "name": "GamepadHapticActuator",
+      "methods": {
+        "playEffect": {
+          "symbol": "bro_GamepadHapticActuator_playEffect",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_GamepadHapticActuator_reset",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "getter": "bro_GamepadHapticActuator_get_type",
+          "setter": null,
+          "returnType": "str"
+        },
+        "effects": {
+          "getter": "bro_GamepadHapticActuator_get_effects",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadHapticActuator_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadHapticActuator_destroy"
+      }
+    },
+    "bro.gamepad.GamepadButton": {
+      "name": "GamepadButton",
+      "methods": {},
+      "properties": {
+        "pressed": {
+          "getter": "bro_GamepadButton_get_pressed",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "touched": {
+          "getter": "bro_GamepadButton_get_touched",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "value": {
+          "getter": "bro_GamepadButton_get_value",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadButton_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadButton_destroy"
+      }
+    },
+    "GamepadButton": {
+      "name": "GamepadButton",
+      "methods": {},
+      "properties": {
+        "pressed": {
+          "getter": "bro_GamepadButton_get_pressed",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "touched": {
+          "getter": "bro_GamepadButton_get_touched",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "value": {
+          "getter": "bro_GamepadButton_get_value",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadButton_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadButton_destroy"
+      }
+    },
+    "bro.gamepad.Gamepad": {
+      "name": "Gamepad",
+      "methods": {},
+      "properties": {
+        "id": {
+          "getter": "bro_Gamepad_get_id",
+          "setter": null,
+          "returnType": "str"
+        },
+        "index": {
+          "getter": "bro_Gamepad_get_index",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "connected": {
+          "getter": "bro_Gamepad_get_connected",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "mapping": {
+          "getter": "bro_Gamepad_get_mapping",
+          "setter": null,
+          "returnType": "str"
+        },
+        "buttons": {
+          "getter": "bro_Gamepad_get_buttons",
+          "setter": null,
+          "returnType": "dynamic"
+        },
+        "axes": {
+          "getter": "bro_Gamepad_get_axes",
+          "setter": null,
+          "returnType": "dynamic"
+        },
+        "timestamp": {
+          "getter": "bro_Gamepad_get_timestamp",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "vibrationActuator": {
+          "getter": "bro_Gamepad_get_vibrationActuator",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Gamepad_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Gamepad_destroy"
+      }
+    },
+    "Gamepad": {
+      "name": "Gamepad",
+      "methods": {},
+      "properties": {
+        "id": {
+          "getter": "bro_Gamepad_get_id",
+          "setter": null,
+          "returnType": "str"
+        },
+        "index": {
+          "getter": "bro_Gamepad_get_index",
+          "setter": null,
+          "returnType": "i32"
+        },
+        "connected": {
+          "getter": "bro_Gamepad_get_connected",
+          "setter": null,
+          "returnType": "bool"
+        },
+        "mapping": {
+          "getter": "bro_Gamepad_get_mapping",
+          "setter": null,
+          "returnType": "str"
+        },
+        "buttons": {
+          "getter": "bro_Gamepad_get_buttons",
+          "setter": null,
+          "returnType": "dynamic"
+        },
+        "axes": {
+          "getter": "bro_Gamepad_get_axes",
+          "setter": null,
+          "returnType": "dynamic"
+        },
+        "timestamp": {
+          "getter": "bro_Gamepad_get_timestamp",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "vibrationActuator": {
+          "getter": "bro_Gamepad_get_vibrationActuator",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Gamepad_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_Gamepad_destroy"
+      }
+    },
+    "bro.gamepad.GamepadEvent": {
+      "name": "GamepadEvent",
+      "methods": {},
+      "properties": {
+        "gamepad": {
+          "getter": "bro_GamepadEvent_get_gamepad",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadEvent_destroy"
+      }
+    },
+    "GamepadEvent": {
+      "name": "GamepadEvent",
+      "methods": {},
+      "properties": {
+        "gamepad": {
+          "getter": "bro_GamepadEvent_get_gamepad",
+          "setter": null,
+          "returnType": "dynamic"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GamepadEvent_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GamepadEvent_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.gamepad.GamepadHapticActuator",
+      "name": "playEffect",
+      "symbol": "bro_GamepadHapticActuator_playEffect",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gamepad.GamepadHapticActuator",
+      "name": "reset",
+      "symbol": "bro_GamepadHapticActuator_reset",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gamepad.isConnected",
+      "symbol": "bro_gamepad_isConnected",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isConnected",
+      "symbol": "bro_gamepad_isConnected",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "navigator.isConnected",
+      "symbol": "bro_gamepad_isConnected",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gamepad.getAxis",
+      "symbol": "bro_gamepad_getAxis",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.getAxis",
+      "symbol": "bro_gamepad_getAxis",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "navigator.getAxis",
+      "symbol": "bro_gamepad_getAxis",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gamepad.getButton",
+      "symbol": "bro_gamepad_getButton",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.getButton",
+      "symbol": "bro_gamepad_getButton",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "navigator.getButton",
+      "symbol": "bro_gamepad_getButton",
+      "returnType": "f64",
+      "paramTypes": [
+        "i32",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gamepad.rumble",
+      "symbol": "bro_gamepad_rumble",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rumble",
+      "symbol": "bro_gamepad_rumble",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "navigator.rumble",
+      "symbol": "bro_gamepad_rumble",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gamepad.rumbleTriggers",
+      "symbol": "bro_gamepad_rumbleTriggers",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.rumbleTriggers",
+      "symbol": "bro_gamepad_rumbleTriggers",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "navigator.rumbleTriggers",
+      "symbol": "bro_gamepad_rumbleTriggers",
+      "returnType": "bool",
+      "paramTypes": [
+        "i32",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    }
+  ]
+}

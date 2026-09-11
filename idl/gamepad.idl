@@ -140,3 +140,19 @@ interface GamepadEvent {
   /** The gamepad snapshot associated with this event */
   readonly attribute Gamepad gamepad;
 };
+
+/**
+ * Direct native gamepad querying and haptic actuation namespace.
+ */
+namespace gamepad {
+  /** Checks if a gamepad is connected at the specified slot index. */
+  boolean isConnected(long index);
+  /** Queries an axis value [-1.0 to 1.0] for the specified gamepad and axis index. */
+  double getAxis(long index, long axis);
+  /** Queries a button value [0.0 to 1.0] for the specified gamepad and button index. */
+  double getButton(long index, long button);
+  /** Actuates dual-motor rumble haptics. */
+  boolean rumble(long index, float strong, float weak, long duration);
+  /** Actuates trigger rumble haptics. */
+  boolean rumbleTriggers(long index, float left, float right, long duration);
+};
