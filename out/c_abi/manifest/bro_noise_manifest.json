@@ -1,0 +1,797 @@
+{
+  "version": "1.0.0",
+  "subsystem": "noise",
+  "namespaces": {},
+  "classes": {
+    "bro.noise.FastNoise": {
+      "name": "FastNoise",
+      "methods": {
+        "set": {
+          "symbol": "bro_FastNoise_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "f64"
+          ]
+        },
+        "getMembers": {
+          "symbol": "bro_FastNoise_getMembers",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "genSingle2D": {
+          "symbol": "bro_FastNoise_genSingle2D",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genSingle3D": {
+          "symbol": "bro_FastNoise_genSingle3D",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid2D": {
+          "symbol": "bro_FastNoise_genUniformGrid2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid2DInto": {
+          "symbol": "bro_FastNoise_genUniformGrid2DInto",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid3D": {
+          "symbol": "bro_FastNoise_genUniformGrid3D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid3DInto": {
+          "symbol": "bro_FastNoise_genUniformGrid3DInto",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genPositionArray2D": {
+          "symbol": "bro_FastNoise_genPositionArray2D",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genPositionArray3D": {
+          "symbol": "bro_FastNoise_genPositionArray3D",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genTileable2D": {
+          "symbol": "bro_FastNoise_genTileable2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "set_node": {
+          "symbol": "bro_FastNoise_set_node",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_FastNoise_create_from_encoded",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_FastNoise_destroy"
+      }
+    },
+    "FastNoise": {
+      "name": "FastNoise",
+      "methods": {
+        "set": {
+          "symbol": "bro_FastNoise_set",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "f64"
+          ]
+        },
+        "getMembers": {
+          "symbol": "bro_FastNoise_getMembers",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "genSingle2D": {
+          "symbol": "bro_FastNoise_genSingle2D",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genSingle3D": {
+          "symbol": "bro_FastNoise_genSingle3D",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid2D": {
+          "symbol": "bro_FastNoise_genUniformGrid2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid2DInto": {
+          "symbol": "bro_FastNoise_genUniformGrid2DInto",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid3D": {
+          "symbol": "bro_FastNoise_genUniformGrid3D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genUniformGrid3DInto": {
+          "symbol": "bro_FastNoise_genUniformGrid3DInto",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "genPositionArray2D": {
+          "symbol": "bro_FastNoise_genPositionArray2D",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genPositionArray3D": {
+          "symbol": "bro_FastNoise_genPositionArray3D",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "i32"
+          ]
+        },
+        "genTileable2D": {
+          "symbol": "bro_FastNoise_genTileable2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32",
+            "f64",
+            "i32"
+          ]
+        },
+        "set_node": {
+          "symbol": "bro_FastNoise_set_node",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_FastNoise_create_from_encoded",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "str"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_FastNoise_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.create",
+      "symbol": "bro_FastNoise_create",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.create",
+      "symbol": "bro_FastNoise_create",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.create",
+      "symbol": "bro_FastNoise_create",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.types",
+      "symbol": "bro_FastNoise_types",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.types",
+      "symbol": "bro_FastNoise_types",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.types",
+      "symbol": "bro_FastNoise_types",
+      "returnType": "dynamic",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.Simplex",
+      "symbol": "bro_FastNoise_Simplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.Simplex",
+      "symbol": "bro_FastNoise_Simplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.Simplex",
+      "symbol": "bro_FastNoise_Simplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.SuperSimplex",
+      "symbol": "bro_FastNoise_SuperSimplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.SuperSimplex",
+      "symbol": "bro_FastNoise_SuperSimplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.SuperSimplex",
+      "symbol": "bro_FastNoise_SuperSimplex",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.Perlin",
+      "symbol": "bro_FastNoise_Perlin",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.Perlin",
+      "symbol": "bro_FastNoise_Perlin",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.Perlin",
+      "symbol": "bro_FastNoise_Perlin",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.Value",
+      "symbol": "bro_FastNoise_Value",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.Value",
+      "symbol": "bro_FastNoise_Value",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.Value",
+      "symbol": "bro_FastNoise_Value",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.CellularValue",
+      "symbol": "bro_FastNoise_CellularValue",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.CellularValue",
+      "symbol": "bro_FastNoise_CellularValue",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.CellularValue",
+      "symbol": "bro_FastNoise_CellularValue",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.CellularDistance",
+      "symbol": "bro_FastNoise_CellularDistance",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.CellularDistance",
+      "symbol": "bro_FastNoise_CellularDistance",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.CellularDistance",
+      "symbol": "bro_FastNoise_CellularDistance",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.CellularLookup",
+      "symbol": "bro_FastNoise_CellularLookup",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.CellularLookup",
+      "symbol": "bro_FastNoise_CellularLookup",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.CellularLookup",
+      "symbol": "bro_FastNoise_CellularLookup",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.FractalFBm",
+      "symbol": "bro_FastNoise_FractalFBm",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.FractalFBm",
+      "symbol": "bro_FastNoise_FractalFBm",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FractalFBm",
+      "symbol": "bro_FastNoise_FractalFBm",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.FractalRidged",
+      "symbol": "bro_FastNoise_FractalRidged",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.FractalRidged",
+      "symbol": "bro_FastNoise_FractalRidged",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FractalRidged",
+      "symbol": "bro_FastNoise_FractalRidged",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "FastNoise.DomainWarpGradient",
+      "symbol": "bro_FastNoise_DomainWarpGradient",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.FastNoise.DomainWarpGradient",
+      "symbol": "bro_FastNoise_DomainWarpGradient",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.noise.DomainWarpGradient",
+      "symbol": "bro_FastNoise_DomainWarpGradient",
+      "returnType": "dynamic",
+      "returnClass": "FastNoise",
+      "paramTypes": []
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "set",
+      "symbol": "bro_FastNoise_set",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "f64"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "getMembers",
+      "symbol": "bro_FastNoise_getMembers",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genSingle2D",
+      "symbol": "bro_FastNoise_genSingle2D",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genSingle3D",
+      "symbol": "bro_FastNoise_genSingle3D",
+      "returnType": "f64",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genUniformGrid2D",
+      "symbol": "bro_FastNoise_genUniformGrid2D",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "i32",
+        "i32",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genUniformGrid2DInto",
+      "symbol": "bro_FastNoise_genUniformGrid2DInto",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "f64",
+        "f64",
+        "i32",
+        "i32",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genUniformGrid3D",
+      "symbol": "bro_FastNoise_genUniformGrid3D",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32",
+        "i32",
+        "i32",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genUniformGrid3DInto",
+      "symbol": "bro_FastNoise_genUniformGrid3DInto",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32",
+        "i32",
+        "i32",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genPositionArray2D",
+      "symbol": "bro_FastNoise_genPositionArray2D",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genPositionArray3D",
+      "symbol": "bro_FastNoise_genPositionArray3D",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "dynamic",
+        "f64",
+        "f64",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "genTileable2D",
+      "symbol": "bro_FastNoise_genTileable2D",
+      "returnType": "dynamic",
+      "paramTypes": [
+        "dynamic",
+        "i32",
+        "i32",
+        "f64",
+        "i32"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.noise.FastNoise",
+      "name": "set_node",
+      "symbol": "bro_FastNoise_set_node",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic"
+      ]
+    }
+  ]
+}

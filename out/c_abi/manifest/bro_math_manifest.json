@@ -130,6 +130,7 @@
         "insert": {
           "symbol": "bro_SpatialHash3D_insert",
           "returnType": "dynamic",
+          "returnClass": "SpatialHash3D",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -187,6 +188,96 @@
         "clear": {
           "symbol": "bro_SpatialHash3D_clear",
           "returnType": "dynamic",
+          "returnClass": "SpatialHash3D",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "size": {
+          "getter": "bro_SpatialHash3D_get_size",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SpatialHash3D_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64",
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_SpatialHash3D_destroy"
+      }
+    },
+    "SpatialHash3D": {
+      "name": "SpatialHash3D",
+      "methods": {
+        "insert": {
+          "symbol": "bro_SpatialHash3D_insert",
+          "returnType": "dynamic",
+          "returnClass": "SpatialHash3D",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_SpatialHash3D_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "queryRadius": {
+          "symbol": "bro_SpatialHash3D_queryRadius",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "queryAABB": {
+          "symbol": "bro_SpatialHash3D_queryAABB",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "nearest": {
+          "symbol": "bro_SpatialHash3D_nearest",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64",
+            "f64",
+            "f64"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_SpatialHash3D_clear",
+          "returnType": "dynamic",
+          "returnClass": "SpatialHash3D",
           "paramTypes": [
             "dynamic"
           ]
@@ -217,6 +308,107 @@
         "reseed": {
           "symbol": "bro_Rng_reseed",
           "returnType": "dynamic",
+          "returnClass": "Rng",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "float01": {
+          "symbol": "bro_Rng_float01",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "signed": {
+          "symbol": "bro_Rng_signed",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "range": {
+          "symbol": "bro_Rng_range",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "int": {
+          "symbol": "bro_Rng_int",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "i32",
+            "i32"
+          ]
+        },
+        "uint32": {
+          "symbol": "bro_Rng_uint32",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "normal": {
+          "symbol": "bro_Rng_normal",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "gaussian2D": {
+          "symbol": "bro_Rng_gaussian2D",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "inUnitDisc": {
+          "symbol": "bro_Rng_inUnitDisc",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "inUnitSphere": {
+          "symbol": "bro_Rng_inUnitSphere",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "onUnitSphere": {
+          "symbol": "bro_Rng_onUnitSphere",
+          "returnType": "dynamic",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {},
+      "constructor": {
+        "symbol": "bro_Rng_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Rng_destroy"
+      }
+    },
+    "Rng": {
+      "name": "Rng",
+      "methods": {
+        "reseed": {
+          "symbol": "bro_Rng_reseed",
+          "returnType": "dynamic",
+          "returnClass": "Rng",
           "paramTypes": [
             "dynamic",
             "f64"
@@ -316,6 +508,7 @@
         "setTime": {
           "symbol": "bro_Smoother_setTime",
           "returnType": "dynamic",
+          "returnClass": "Smoother",
           "paramTypes": [
             "dynamic",
             "f64",
@@ -325,6 +518,7 @@
         "reset": {
           "symbol": "bro_Smoother_reset",
           "returnType": "dynamic",
+          "returnClass": "Smoother",
           "paramTypes": [
             "dynamic",
             "f64"
@@ -333,6 +527,83 @@
         "setTarget": {
           "symbol": "bro_Smoother_setTarget",
           "returnType": "dynamic",
+          "returnClass": "Smoother",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "tick": {
+          "symbol": "bro_Smoother_tick",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "tickN": {
+          "symbol": "bro_Smoother_tickN",
+          "returnType": "f64",
+          "paramTypes": [
+            "dynamic",
+            "i32"
+          ]
+        }
+      },
+      "properties": {
+        "current": {
+          "getter": "bro_Smoother_get_current",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "target": {
+          "getter": "bro_Smoother_get_target",
+          "setter": null,
+          "returnType": "f64"
+        },
+        "coeff": {
+          "getter": "bro_Smoother_get_coeff",
+          "setter": null,
+          "returnType": "f64"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_Smoother_create",
+        "returnType": "dynamic",
+        "paramTypes": [
+          "f64",
+          "f64"
+        ]
+      },
+      "destructor": {
+        "symbol": "bro_Smoother_destroy"
+      }
+    },
+    "Smoother": {
+      "name": "Smoother",
+      "methods": {
+        "setTime": {
+          "symbol": "bro_Smoother_setTime",
+          "returnType": "dynamic",
+          "returnClass": "Smoother",
+          "paramTypes": [
+            "dynamic",
+            "f64",
+            "f64"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_Smoother_reset",
+          "returnType": "dynamic",
+          "returnClass": "Smoother",
+          "paramTypes": [
+            "dynamic",
+            "f64"
+          ]
+        },
+        "setTarget": {
+          "symbol": "bro_Smoother_setTarget",
+          "returnType": "dynamic",
+          "returnClass": "Smoother",
           "paramTypes": [
             "dynamic",
             "f64"
@@ -535,6 +806,7 @@
       "name": "insert",
       "symbol": "bro_SpatialHash3D_insert",
       "returnType": "dynamic",
+      "returnClass": "SpatialHash3D",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -607,6 +879,7 @@
       "name": "clear",
       "symbol": "bro_SpatialHash3D_clear",
       "returnType": "dynamic",
+      "returnClass": "SpatialHash3D",
       "paramTypes": [
         "dynamic"
       ]
@@ -617,6 +890,7 @@
       "name": "reseed",
       "symbol": "bro_Rng_reseed",
       "returnType": "dynamic",
+      "returnClass": "Rng",
       "paramTypes": [
         "dynamic",
         "f64"
@@ -733,6 +1007,7 @@
       "name": "setTime",
       "symbol": "bro_Smoother_setTime",
       "returnType": "dynamic",
+      "returnClass": "Smoother",
       "paramTypes": [
         "dynamic",
         "f64",
@@ -745,6 +1020,7 @@
       "name": "reset",
       "symbol": "bro_Smoother_reset",
       "returnType": "dynamic",
+      "returnClass": "Smoother",
       "paramTypes": [
         "dynamic",
         "f64"
@@ -756,6 +1032,7 @@
       "name": "setTarget",
       "symbol": "bro_Smoother_setTarget",
       "returnType": "dynamic",
+      "returnClass": "Smoother",
       "paramTypes": [
         "dynamic",
         "f64"

@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "subsystem": "paths",
+  "namespaces": {
+    "bro.paths": {
+      "functions": {
+        "resolvePath": {
+          "symbol": "bro_paths_resolvePath",
+          "returnType": "str",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "resolveWritePath": {
+          "symbol": "bro_paths_resolveWritePath",
+          "returnType": "str",
+          "paramTypes": [
+            "str"
+          ]
+        }
+      },
+      "properties": {
+        "appDir": {
+          "getter": "bro_paths_get_appDir",
+          "setter": null,
+          "returnType": "str"
+        },
+        "userDataDir": {
+          "getter": "bro_paths_get_userDataDir",
+          "setter": null,
+          "returnType": "str"
+        }
+      }
+    },
+    "bro": {
+      "functions": {},
+      "properties": {
+        "appDir": {
+          "getter": "bro_paths_get_appDir",
+          "setter": null,
+          "returnType": "str"
+        },
+        "userDataDir": {
+          "getter": "bro_paths_get_userDataDir",
+          "setter": null,
+          "returnType": "str"
+        }
+      }
+    }
+  },
+  "classes": {},
+  "symbols": [
+    {
+      "kind": "property",
+      "jsPath": "bro.paths.appDir",
+      "getter": "bro_paths_get_appDir",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.appDir",
+      "getter": "bro_paths_get_appDir",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.paths.userDataDir",
+      "getter": "bro_paths_get_userDataDir",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "property",
+      "jsPath": "bro.userDataDir",
+      "getter": "bro_paths_get_userDataDir",
+      "setter": null,
+      "returnType": "str"
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.paths.resolvePath",
+      "symbol": "bro_paths_resolvePath",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resolvePath",
+      "symbol": "bro_paths_resolvePath",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.paths.resolveWritePath",
+      "symbol": "bro_paths_resolveWritePath",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.resolveWritePath",
+      "symbol": "bro_paths_resolveWritePath",
+      "returnType": "str",
+      "paramTypes": [
+        "str"
+      ]
+    }
+  ]
+}

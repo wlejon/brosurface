@@ -171,6 +171,13 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
     cppLines.push('#include <cstring>');
   } else if (subsystem === 'time') {
     cppLines.push('#include "bro/c_abi/bro_engine_c_abi.h"');
+  } else if (subsystem === 'paths') {
+    cppLines.push('#include "bro/c_abi/bro_engine_c_abi.h"');
+    cppLines.push('#include <string>');
+  } else if (subsystem === 'noise') {
+    cppLines.push('#include <FastNoise/FastNoise.h>');
+    cppLines.push('#include <FastNoise/Metadata.h>');
+    cppLines.push('#include <cstring>');
   }
   cppLines.push('');
   cppLines.push('extern "C" {');
@@ -212,6 +219,15 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
             returnType: retBronze,
             paramTypes: paramsBronze
           });
+          if (subsystem === 'paths') {
+            manifest.symbols.push({
+              kind: 'function',
+              jsPath: `bro.${fnName}`,
+              symbol: symName,
+              returnType: retBronze,
+              paramTypes: paramsBronze
+            });
+          }
         } else if (m.type === 'AttributeMember') {
           const propName = m.name;
           const getSym = `bro_${def.name}_get_${propName}`;
@@ -240,21 +256,43 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
             setter: setSym,
             returnType: retBronze
           });
+          if (subsystem === 'paths') {
+            if (!manifest.namespaces['bro']) {
+              manifest.namespaces['bro'] = { functions: {}, properties: {} };
+            }
+            if (!manifest.namespaces['bro'].properties) {
+              manifest.namespaces['bro'].properties = {};
+            }
+            manifest.namespaces['bro'].properties[propName] = {
+              getter: getSym,
+              setter: setSym,
+              returnType: retBronze
+            };
+            manifest.symbols.push({
+              kind: 'property',
+              jsPath: `bro.${propName}`,
+              getter: getSym,
+              setter: setSym,
+              returnType: retBronze
+            });
+          }
         }
       }
       headerLines.push('');
     } else if (def.type === 'Interface') {
       const clsName = `bro.${subsystem}.${def.name}`;
+      const shortName = def.name;
       manifest.classes[clsName] = {
         name: def.name,
         methods: {},
         properties: {}
       };
+      manifest.classes[shortName] = manifest.classes[clsName];
 
       headerLines.push(`// --- Interface ${clsName} ---`);
 
       // Constructor
-      const ctorSym = `bro_${def.name}_create`;
+      const ctorSym = (def.name === 'FastNoise') ? `bro_${def.name}_create_from_encoded` : `bro_${def.name}_create`;
       const dtorSym = `bro_${def.name}_destroy`;
       let ctorParamsC = [];
       let ctorParamsBronze = [];
@@ -283,33 +321,70 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
       // Methods and attributes
       for (const m of def.members) {
         if (m.type === 'OperationMember') {
+          const isStatic = Boolean(m.isStatic || m.special === 'static');
           const fnName = m.name === '_int' ? 'int' : m.name;
           const symName = `bro_${def.name}_${fnName}`;
           const retC = typeToC(m.returnType);
           const retBronze = typeToBronze(m.returnType);
-          const paramsC = ['void* self'];
-          const paramsBronze = ['dynamic'];
+          const returnClass = (m.returnType && (m.returnType.name === def.name || m.returnType.name === 'FastNoise')) ? def.name : undefined;
+          let paramsC = isStatic ? [] : ['void* self'];
+          let paramsBronze = isStatic ? [] : ['dynamic'];
 
-          for (const p of m.parameters) {
-            paramsC.push(`${typeToC(p.dataType)} ${p.name}`);
-            paramsBronze.push(typeToBronze(p.dataType));
+          if (def.name === 'FastNoise' && fnName === 'set') {
+            paramsC = ['void* self', 'const char* name', 'double val'];
+            paramsBronze = ['dynamic', 'str', 'f64'];
+          } else {
+            for (const p of m.parameters) {
+              paramsC.push(`${typeToC(p.dataType)} ${p.name}`);
+              paramsBronze.push(typeToBronze(p.dataType));
+            }
           }
 
-          headerLines.push(`${retC} ${symName}(${paramsC.join(', ')});`);
+          const paramDecl = paramsC.length > 0 ? paramsC.join(', ') : 'void';
+          headerLines.push(`${retC} ${symName}(${paramDecl});`);
 
-          manifest.classes[clsName].methods[fnName] = {
-            symbol: symName,
-            returnType: retBronze,
-            paramTypes: paramsBronze
-          };
-          manifest.symbols.push({
-            kind: 'method',
-            receiver: clsName,
-            name: fnName,
-            symbol: symName,
-            returnType: retBronze,
-            paramTypes: paramsBronze
-          });
+          if (isStatic) {
+            manifest.symbols.push({
+              kind: 'function',
+              jsPath: `${def.name}.${fnName}`,
+              symbol: symName,
+              returnType: retBronze,
+              returnClass: returnClass,
+              paramTypes: paramsBronze
+            });
+            manifest.symbols.push({
+              kind: 'function',
+              jsPath: `${clsName}.${fnName}`,
+              symbol: symName,
+              returnType: retBronze,
+              returnClass: returnClass,
+              paramTypes: paramsBronze
+            });
+            manifest.symbols.push({
+              kind: 'function',
+              jsPath: `bro.${subsystem}.${fnName}`,
+              symbol: symName,
+              returnType: retBronze,
+              returnClass: returnClass,
+              paramTypes: paramsBronze
+            });
+          } else {
+            manifest.classes[clsName].methods[fnName] = {
+              symbol: symName,
+              returnType: retBronze,
+              returnClass: returnClass,
+              paramTypes: paramsBronze
+            };
+            manifest.symbols.push({
+              kind: 'method',
+              receiver: clsName,
+              name: fnName,
+              symbol: symName,
+              returnType: retBronze,
+              returnClass: returnClass,
+              paramTypes: paramsBronze
+            });
+          }
         } else if (m.type === 'AttributeMember') {
           const propName = m.name;
           const getSym = `bro_${def.name}_get_${propName}`;
@@ -330,6 +405,24 @@ export function generateCAbiForSubsystem(fileAst, subsystem) {
             returnType: retBronze
           };
         }
+      }
+
+      if (def.name === 'FastNoise') {
+        const setNodeSym = 'bro_FastNoise_set_node';
+        headerLines.push(`void ${setNodeSym}(void* self, const char* name, void* node);`);
+        manifest.classes[clsName].methods['set_node'] = {
+          symbol: setNodeSym,
+          returnType: 'void',
+          paramTypes: ['dynamic', 'str', 'dynamic']
+        };
+        manifest.symbols.push({
+          kind: 'method',
+          receiver: clsName,
+          name: 'set_node',
+          symbol: setNodeSym,
+          returnType: 'void',
+          paramTypes: ['dynamic', 'str', 'dynamic']
+        });
       }
       headerLines.push('');
     }
@@ -588,6 +681,179 @@ double bro_time_get_now(void) {
     return (b && b->getTimeNowMs) ? b->getTimeNowMs() : 0.0;
 }
 `);
+  } else if (subsystem === 'paths') {
+    cppLines.push(`
+static std::string s_fallback_appDir = ".";
+static std::string s_fallback_userDataDir = ".";
+static std::string s_fallback_resolved;
+
+const char* bro_paths_get_appDir(void) {
+    const auto* b = bro_get_paths_bridge();
+    if (b && b->getAppDir) return b->getAppDir();
+    return s_fallback_appDir.c_str();
+}
+
+const char* bro_paths_get_userDataDir(void) {
+    const auto* b = bro_get_paths_bridge();
+    if (b && b->getUserDataDir) return b->getUserDataDir();
+    return s_fallback_userDataDir.c_str();
+}
+
+const char* bro_paths_resolvePath(const char* src) {
+    if (!src) return "";
+    const auto* b = bro_get_paths_bridge();
+    if (b && b->resolvePath) return b->resolvePath(src);
+    s_fallback_resolved = src;
+    return s_fallback_resolved.c_str();
+}
+
+const char* bro_paths_resolveWritePath(const char* src) {
+    if (!src) return "";
+    const auto* b = bro_get_paths_bridge();
+    if (b && b->resolveWritePath) return b->resolveWritePath(src);
+    s_fallback_resolved = src;
+    return s_fallback_resolved.c_str();
+}
+`);
+  } else if (subsystem === 'noise') {
+    cppLines.push(`
+struct FastNoiseHandle {
+    FastNoise::SmartNode<> node;
+};
+
+void* bro_FastNoise_create_from_encoded(const char* encodedNodeTree) {
+    if (!encodedNodeTree) return nullptr;
+    auto node = FastNoise::NewFromEncodedNodeTree(encodedNodeTree);
+    if (!node) return nullptr;
+    return new FastNoiseHandle{std::move(node)};
+}
+
+void* bro_FastNoise_create(const char* typeName) {
+    if (!typeName) return nullptr;
+    for (const auto* meta : FastNoise::Metadata::GetAll()) {
+        if (meta && strcmp(meta->name, typeName) == 0) {
+            auto node = meta->CreateNode();
+            if (!node) return nullptr;
+            return new FastNoiseHandle{std::move(node)};
+        }
+    }
+    return nullptr;
+}
+
+void* bro_FastNoise_Simplex(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::Simplex>()};
+}
+
+void* bro_FastNoise_SuperSimplex(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::SuperSimplex>()};
+}
+
+void* bro_FastNoise_Perlin(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::Perlin>()};
+}
+
+void* bro_FastNoise_Value(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::Value>()};
+}
+
+void* bro_FastNoise_CellularValue(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::CellularValue>()};
+}
+
+void* bro_FastNoise_CellularDistance(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::CellularDistance>()};
+}
+
+void* bro_FastNoise_CellularLookup(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::CellularLookup>()};
+}
+
+void* bro_FastNoise_FractalFBm(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::FractalFBm>()};
+}
+
+void* bro_FastNoise_FractalRidged(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::FractalRidged>()};
+}
+
+void* bro_FastNoise_DomainWarpGradient(void) {
+    return new FastNoiseHandle{FastNoise::New<FastNoise::DomainWarpGradient>()};
+}
+
+void bro_FastNoise_destroy(void* self) {
+    if (self) {
+        delete static_cast<FastNoiseHandle*>(self);
+    }
+}
+
+double bro_FastNoise_genSingle2D(void* self, double x, double y, int32_t seed) {
+    if (!self) return 0.0;
+    auto* h = static_cast<FastNoiseHandle*>(self);
+    if (!h->node) return 0.0;
+    return static_cast<double>(h->node->GenSingle2D(static_cast<float>(x), static_cast<float>(y), seed));
+}
+
+double bro_FastNoise_genSingle3D(void* self, double x, double y, double z, int32_t seed) {
+    if (!self) return 0.0;
+    auto* h = static_cast<FastNoiseHandle*>(self);
+    if (!h->node) return 0.0;
+    return static_cast<double>(h->node->GenSingle3D(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), seed));
+}
+
+static bool fnMemberMatches(const char* query, const FastNoise::Metadata::Member& m) {
+    if (m.dimensionIdx < 0) {
+        return strcmp(query, m.name) == 0;
+    }
+    size_t baseLen = strlen(m.name);
+    if (strncmp(query, m.name, baseLen) != 0) return false;
+    if (query[baseLen] != ' ') return false;
+    char dim = query[baseLen + 1];
+    if (query[baseLen + 2] != '\\0') return false;
+    int queryIdx = (dim == 'X') ? 0 : (dim == 'Y') ? 1 : (dim == 'Z') ? 2 : (dim == 'W') ? 3 : -1;
+    return queryIdx == m.dimensionIdx;
+}
+
+void bro_FastNoise_set(void* self, const char* name, double val) {
+    if (!self || !name) return;
+    auto* h = static_cast<FastNoiseHandle*>(self);
+    if (!h->node) return;
+    const auto& meta = h->node->GetMetadata();
+    for (const auto& mv : meta.memberVariables) {
+        if (!fnMemberMatches(name, mv)) continue;
+        if (mv.type == FastNoise::Metadata::MemberVariable::EFloat) {
+            mv.setFunc(h->node.get(), FastNoise::Metadata::MemberVariable::ValueUnion(static_cast<float>(val)));
+            return;
+        }
+        if (mv.type == FastNoise::Metadata::MemberVariable::EInt || mv.type == FastNoise::Metadata::MemberVariable::EEnum) {
+            mv.setFunc(h->node.get(), FastNoise::Metadata::MemberVariable::ValueUnion(static_cast<int>(val)));
+            return;
+        }
+    }
+    for (const auto& mh : meta.memberHybrids) {
+        if (!fnMemberMatches(name, mh)) continue;
+        mh.setValueFunc(h->node.get(), static_cast<float>(val));
+        return;
+    }
+}
+
+void bro_FastNoise_set_node(void* self, const char* name, void* node) {
+    if (!self || !name || !node) return;
+    auto* h = static_cast<FastNoiseHandle*>(self);
+    auto* srcH = static_cast<FastNoiseHandle*>(node);
+    if (!h->node || !srcH->node) return;
+    const auto& meta = h->node->GetMetadata();
+    for (const auto& mn : meta.memberNodeLookups) {
+        if (!fnMemberMatches(name, mn)) continue;
+        mn.setFunc(h->node.get(), srcH->node);
+        return;
+    }
+    for (const auto& mh : meta.memberHybrids) {
+        if (!fnMemberMatches(name, mh)) continue;
+        mh.setNodeFunc(h->node.get(), srcH->node);
+        return;
+    }
+}
+`);
   }
 
   cppLines.push('} // extern "C"');
@@ -624,7 +890,7 @@ export function runEmitCAbi(idlPath = 'idl/', outDir = 'out/c_abi/') {
   }
 
   const generatedFiles = [];
-  const supportedSubsystems = new Set(['math', 'time']);
+  const supportedSubsystems = new Set(['math', 'time', 'paths', 'noise']);
 
   for (const item of astList) {
     const baseName = path.basename(item.f, '.idl');
