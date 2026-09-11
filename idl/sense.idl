@@ -95,6 +95,7 @@ interface SenseStreamView {
   cpp_epilogue="void cleanupSenseBindings(JSContext* /*ctx*/) {\n    for (auto& kv : g_sense.tenants) stopSensing(kv.second.get());\n    g_sense.tenants.clear();\n    g_sense.audioEngine = nullptr;\n    g_sense.inference   = nullptr;\n    g_sense.ctx         = nullptr;\n}"
 ]
 namespace sense {
+  void init();
   void start(optional SenseStartOptions opts);
   void stop();
   boolean isActive();

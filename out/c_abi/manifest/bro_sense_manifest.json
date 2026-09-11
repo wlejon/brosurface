@@ -1,0 +1,475 @@
+{
+  "version": "1.0.0",
+  "subsystem": "sense",
+  "namespaces": {
+    "bro.sense": {
+      "functions": {
+        "init": {
+          "symbol": "bro_sense_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "start": {
+          "symbol": "bro_sense_start",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_sense_stop",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "isActive": {
+          "symbol": "bro_sense_isActive",
+          "returnType": "bool",
+          "paramTypes": []
+        },
+        "snapshot": {
+          "symbol": "bro_sense_snapshot",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": []
+        },
+        "sampleRate": {
+          "symbol": "bro_sense_sampleRate",
+          "returnType": "i32",
+          "paramTypes": []
+        },
+        "stats": {
+          "symbol": "bro_sense_stats",
+          "returnType": "dynamic",
+          "returnClass": "SenseStats",
+          "paramTypes": []
+        },
+        "feed": {
+          "symbol": "bro_sense_feed",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "analyze": {
+          "symbol": "bro_sense_analyze",
+          "returnType": "dynamic",
+          "returnClass": "SenseAnalysis",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.sense.SenseStreamView": {
+      "name": "SenseStreamView",
+      "methods": {
+        "start": {
+          "symbol": "bro_SenseStreamView_start",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_SenseStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_SenseStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "snapshot": {
+          "symbol": "bro_SenseStreamView_snapshot",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_SenseStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_SenseStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "SenseStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_SenseStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "analyze": {
+          "symbol": "bro_SenseStreamView_analyze",
+          "returnType": "dynamic",
+          "returnClass": "SenseAnalysis",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_SenseStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SenseStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SenseStreamView_destroy"
+      }
+    },
+    "SenseStreamView": {
+      "name": "SenseStreamView",
+      "methods": {
+        "start": {
+          "symbol": "bro_SenseStreamView_start",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_SenseStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_SenseStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "snapshot": {
+          "symbol": "bro_SenseStreamView_snapshot",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_SenseStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stats": {
+          "symbol": "bro_SenseStreamView_stats",
+          "returnType": "dynamic",
+          "returnClass": "SenseStats",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "feed": {
+          "symbol": "bro_SenseStreamView_feed",
+          "returnType": "dynamic",
+          "returnClass": "SenseSnapshot",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "analyze": {
+          "symbol": "bro_SenseStreamView_analyze",
+          "returnType": "dynamic",
+          "returnClass": "SenseAnalysis",
+          "paramTypes": [
+            "dynamic",
+            "dynamic",
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_SenseStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_SenseStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_SenseStreamView_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "start",
+      "symbol": "bro_SenseStreamView_start",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "stop",
+      "symbol": "bro_SenseStreamView_stop",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "isActive",
+      "symbol": "bro_SenseStreamView_isActive",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "snapshot",
+      "symbol": "bro_SenseStreamView_snapshot",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "sampleRate",
+      "symbol": "bro_SenseStreamView_sampleRate",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "stats",
+      "symbol": "bro_SenseStreamView_stats",
+      "returnType": "dynamic",
+      "returnClass": "SenseStats",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "feed",
+      "symbol": "bro_SenseStreamView_feed",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.sense.SenseStreamView",
+      "name": "analyze",
+      "symbol": "bro_SenseStreamView_analyze",
+      "returnType": "dynamic",
+      "returnClass": "SenseAnalysis",
+      "paramTypes": [
+        "dynamic",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.init",
+      "symbol": "bro_sense_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_sense_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.start",
+      "symbol": "bro_sense_start",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.start",
+      "symbol": "bro_sense_start",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.stop",
+      "symbol": "bro_sense_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stop",
+      "symbol": "bro_sense_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.isActive",
+      "symbol": "bro_sense_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isActive",
+      "symbol": "bro_sense_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.snapshot",
+      "symbol": "bro_sense_snapshot",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.snapshot",
+      "symbol": "bro_sense_snapshot",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.sampleRate",
+      "symbol": "bro_sense_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sampleRate",
+      "symbol": "bro_sense_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.stats",
+      "symbol": "bro_sense_stats",
+      "returnType": "dynamic",
+      "returnClass": "SenseStats",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stats",
+      "symbol": "bro_sense_stats",
+      "returnType": "dynamic",
+      "returnClass": "SenseStats",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.feed",
+      "symbol": "bro_sense_feed",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.feed",
+      "symbol": "bro_sense_feed",
+      "returnType": "dynamic",
+      "returnClass": "SenseSnapshot",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sense.analyze",
+      "symbol": "bro_sense_analyze",
+      "returnType": "dynamic",
+      "returnClass": "SenseAnalysis",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.analyze",
+      "symbol": "bro_sense_analyze",
+      "returnType": "dynamic",
+      "returnClass": "SenseAnalysis",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    }
+  ]
+}

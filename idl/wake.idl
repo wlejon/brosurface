@@ -66,6 +66,7 @@ interface WakeStreamView {
   cpp_epilogue="void tickWake(JSContext* ctx) {\n    for (auto it = g_wake.tenants.begin(); it != g_wake.tenants.end(); ) {\n        WakeTenant* t = it->second.get();\n        // Prune a tenant whose stream has closed. The stream's teardown removed\n        // its inference task (a barrier), so the onWake closure can no longer\n        // run \u2014 safe to drop. Default mic is never invalid.\n        if (!listenHostValid(t->streamId)) {\n            stopTenant(t);   // frees onFire (detach is a no-op \u2014 stream gone)\n            it = g_wake.tenants.erase(it);\n            continue;\n        }\n        drainTenant(ctx, t);\n        ++it;\n    }\n}\n\nvoid cleanupWakeBindings(JSContext* /*ctx*/) {\n    unloadAll();\n    g_wake.audioEngine = nullptr;\n    g_wake.inference   = nullptr;\n    g_wake.ctx         = nullptr;\n}"
 ]
 namespace wake {
+  void init();
   void load(WakeLoadOptions opts);
   void unload();
   void listen(WakeListenOptions opts);

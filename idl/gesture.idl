@@ -71,6 +71,7 @@ interface GestureStreamView {
   cpp_epilogue="void tickGesture(JSContext* ctx) {\n    for (auto it = g_gesture.tenants.begin(); it != g_gesture.tenants.end(); ) {\n        GestureTenant* t = it->second.get();\n        // Prune a tenant whose stream has closed (handle .close()'d or GC'd).\n        // The stream's teardown removed its inference task (a barrier), so the\n        // onGestures closure can no longer run \u2014 safe to drop. Default mic is\n        // never invalid.\n        if (!listenHostValid(t->streamId)) {\n            stopListening(t);   // frees onGesture (detach is a no-op \u2014 stream gone)\n            it = g_gesture.tenants.erase(it);\n            continue;\n        }\n        drainTenant(ctx, t);\n        ++it;\n    }\n}\n\nvoid cleanupGestureBindings(JSContext* /*ctx*/) {\n    for (auto& kv : g_gesture.tenants) stopListening(kv.second.get());\n    g_gesture.tenants.clear();\n    g_gesture.audioEngine = nullptr;\n    g_gesture.inference   = nullptr;\n    g_gesture.ctx         = nullptr;\n}"
 ]
 namespace gesture {
+  void init();
   long enrollFromAudio(DOMString name, Float32Array samples, optional GesturePolicyOptions policy);
   boolean remove(DOMString name);
   void clear();

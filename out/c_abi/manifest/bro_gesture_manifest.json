@@ -1,0 +1,564 @@
+{
+  "version": "1.0.0",
+  "subsystem": "gesture",
+  "namespaces": {
+    "bro.gesture": {
+      "functions": {
+        "init": {
+          "symbol": "bro_gesture_init",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "enrollFromAudio": {
+          "symbol": "bro_gesture_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_gesture_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_gesture_clear",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "templates": {
+          "symbol": "bro_gesture_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": []
+        },
+        "inspect": {
+          "symbol": "bro_gesture_inspect",
+          "returnType": "dynamic",
+          "returnClass": "GestureInspection",
+          "paramTypes": [
+            "str"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_gesture_reset",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "listen": {
+          "symbol": "bro_gesture_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_gesture_stop",
+          "returnType": "void",
+          "paramTypes": []
+        },
+        "isActive": {
+          "symbol": "bro_gesture_isActive",
+          "returnType": "bool",
+          "paramTypes": []
+        },
+        "sampleRate": {
+          "symbol": "bro_gesture_sampleRate",
+          "returnType": "i32",
+          "paramTypes": []
+        }
+      },
+      "properties": {}
+    }
+  },
+  "classes": {
+    "bro.gesture.GestureStreamView": {
+      "name": "GestureStreamView",
+      "methods": {
+        "enrollFromAudio": {
+          "symbol": "bro_GestureStreamView_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_GestureStreamView_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_GestureStreamView_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "templates": {
+          "symbol": "bro_GestureStreamView_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_GestureStreamView_inspect",
+          "returnType": "dynamic",
+          "returnClass": "GestureInspection",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_GestureStreamView_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "listen": {
+          "symbol": "bro_GestureStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_GestureStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_GestureStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_GestureStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_GestureStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GestureStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GestureStreamView_destroy"
+      }
+    },
+    "GestureStreamView": {
+      "name": "GestureStreamView",
+      "methods": {
+        "enrollFromAudio": {
+          "symbol": "bro_GestureStreamView_enrollFromAudio",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic",
+            "str",
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "remove": {
+          "symbol": "bro_GestureStreamView_remove",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "clear": {
+          "symbol": "bro_GestureStreamView_clear",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "templates": {
+          "symbol": "bro_GestureStreamView_templates",
+          "returnType": "dynamic",
+          "returnClass": "sequence",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "inspect": {
+          "symbol": "bro_GestureStreamView_inspect",
+          "returnType": "dynamic",
+          "returnClass": "GestureInspection",
+          "paramTypes": [
+            "dynamic",
+            "str"
+          ]
+        },
+        "reset": {
+          "symbol": "bro_GestureStreamView_reset",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "listen": {
+          "symbol": "bro_GestureStreamView_listen",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic",
+            "dynamic"
+          ]
+        },
+        "stop": {
+          "symbol": "bro_GestureStreamView_stop",
+          "returnType": "void",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "isActive": {
+          "symbol": "bro_GestureStreamView_isActive",
+          "returnType": "bool",
+          "paramTypes": [
+            "dynamic"
+          ]
+        },
+        "sampleRate": {
+          "symbol": "bro_GestureStreamView_sampleRate",
+          "returnType": "i32",
+          "paramTypes": [
+            "dynamic"
+          ]
+        }
+      },
+      "properties": {
+        "active": {
+          "getter": "bro_GestureStreamView_get_active",
+          "setter": null,
+          "returnType": "bool"
+        }
+      },
+      "constructor": {
+        "symbol": "bro_GestureStreamView_create",
+        "returnType": "dynamic",
+        "paramTypes": []
+      },
+      "destructor": {
+        "symbol": "bro_GestureStreamView_destroy"
+      }
+    }
+  },
+  "symbols": [
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "enrollFromAudio",
+      "symbol": "bro_GestureStreamView_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic",
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "remove",
+      "symbol": "bro_GestureStreamView_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "clear",
+      "symbol": "bro_GestureStreamView_clear",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "templates",
+      "symbol": "bro_GestureStreamView_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "inspect",
+      "symbol": "bro_GestureStreamView_inspect",
+      "returnType": "dynamic",
+      "returnClass": "GestureInspection",
+      "paramTypes": [
+        "dynamic",
+        "str"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "reset",
+      "symbol": "bro_GestureStreamView_reset",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "listen",
+      "symbol": "bro_GestureStreamView_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "stop",
+      "symbol": "bro_GestureStreamView_stop",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "isActive",
+      "symbol": "bro_GestureStreamView_isActive",
+      "returnType": "bool",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "method",
+      "receiver": "bro.gesture.GestureStreamView",
+      "name": "sampleRate",
+      "symbol": "bro_GestureStreamView_sampleRate",
+      "returnType": "i32",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.init",
+      "symbol": "bro_gesture_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.init",
+      "symbol": "bro_gesture_init",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.enrollFromAudio",
+      "symbol": "bro_gesture_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.enrollFromAudio",
+      "symbol": "bro_gesture_enrollFromAudio",
+      "returnType": "i32",
+      "paramTypes": [
+        "str",
+        "dynamic",
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.remove",
+      "symbol": "bro_gesture_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.remove",
+      "symbol": "bro_gesture_remove",
+      "returnType": "bool",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.clear",
+      "symbol": "bro_gesture_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.clear",
+      "symbol": "bro_gesture_clear",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.templates",
+      "symbol": "bro_gesture_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.templates",
+      "symbol": "bro_gesture_templates",
+      "returnType": "dynamic",
+      "returnClass": "sequence",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.inspect",
+      "symbol": "bro_gesture_inspect",
+      "returnType": "dynamic",
+      "returnClass": "GestureInspection",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.inspect",
+      "symbol": "bro_gesture_inspect",
+      "returnType": "dynamic",
+      "returnClass": "GestureInspection",
+      "paramTypes": [
+        "str"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.reset",
+      "symbol": "bro_gesture_reset",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.reset",
+      "symbol": "bro_gesture_reset",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.listen",
+      "symbol": "bro_gesture_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.listen",
+      "symbol": "bro_gesture_listen",
+      "returnType": "void",
+      "paramTypes": [
+        "dynamic"
+      ]
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.stop",
+      "symbol": "bro_gesture_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.stop",
+      "symbol": "bro_gesture_stop",
+      "returnType": "void",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.isActive",
+      "symbol": "bro_gesture_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.isActive",
+      "symbol": "bro_gesture_isActive",
+      "returnType": "bool",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.gesture.sampleRate",
+      "symbol": "bro_gesture_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    },
+    {
+      "kind": "function",
+      "jsPath": "bro.sampleRate",
+      "symbol": "bro_gesture_sampleRate",
+      "returnType": "i32",
+      "paramTypes": []
+    }
+  ]
+}
