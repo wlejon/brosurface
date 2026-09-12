@@ -49,14 +49,10 @@ the existing files use, so downstream consumers of those files see no format cha
 Fidelity gate: for a migrated namespace, the generated page must carry all content of the
 hand-written one (mechanical diff, reviewed once per namespace).
 
-### 3.3 qjsbind binding TU
-Anchor: any mid-sized binding, e.g. `bro/src/js/math_bindings.cpp` (marshalling helpers +
-`mfn()` static-function trampoline idiom), and `bro/src/js/CMakeLists.txt` for how TUs
-join the build. The emitted TU must define the same `install<Name>Bindings(...)` entry
-point the hand-written file defines, so the build wiring (`engine_init.cpp`) is untouched.
-Known landmine (from campaign memory, verify in qjsbind): QuickJS TypedArray constructor
-argv is read regardless of argc — always pass all three slots. Opaque JSValues held by
-native objects need `gc_mark` or Debug asserts fire / Release leaks.
+### 3.3 qjsbind binding TU (retired)
+bro no longer has a QuickJS interpreter and this emitter was removed. IDL files still
+carrying `cpp_prologue` / `install_body` strings of QuickJS binding source are carrying
+dead payload; no emitter reads it and it should be deleted from the IDL.
 
 ### 3.4 bronze_host binding TU + globals manifest
 Anchors: `bro/src/bronze_host/host_class.cpp` (the HostClass three-call shape: constructor
