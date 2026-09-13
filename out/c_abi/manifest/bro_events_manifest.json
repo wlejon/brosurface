@@ -161,46 +161,6 @@
         "symbol": "bro_Event_destroy"
       }
     },
-    "bro.events.CustomEvent": {
-      "name": "CustomEvent",
-      "methods": {},
-      "properties": {
-        "detail": {
-          "getter": "bro_CustomEvent_get_detail",
-          "setter": null,
-          "returnType": "dynamic",
-          "returnClass": "any"
-        }
-      },
-      "constructor": {
-        "symbol": "bro_CustomEvent_create",
-        "returnType": "dynamic",
-        "paramTypes": []
-      },
-      "destructor": {
-        "symbol": "bro_CustomEvent_destroy"
-      }
-    },
-    "CustomEvent": {
-      "name": "CustomEvent",
-      "methods": {},
-      "properties": {
-        "detail": {
-          "getter": "bro_CustomEvent_get_detail",
-          "setter": null,
-          "returnType": "dynamic",
-          "returnClass": "any"
-        }
-      },
-      "constructor": {
-        "symbol": "bro_CustomEvent_create",
-        "returnType": "dynamic",
-        "paramTypes": []
-      },
-      "destructor": {
-        "symbol": "bro_CustomEvent_destroy"
-      }
-    },
     "bro.events.UIEvent": {
       "name": "UIEvent",
       "methods": {},
