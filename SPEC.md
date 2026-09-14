@@ -9,7 +9,7 @@ authoring time; **re-read them before relying on details** — the tree moves.
 
 In scope: the declarative surface (namespaces like `bro.noise`/`bro.time`, classes like
 `Blob`/`ImageBitmap`/`AudioContext`, global functions, events, constants, feature gates)
-and the five emitters. Out of scope: the DOM core (Element/Node/document — deeply
+and the three emitters (`.d.ts`, docs, natives). Out of scope: the DOM core (Element/Node/document — deeply
 entangled with layout and event dispatch; revisit only after the model is proven on
 peripheral namespaces), and any reimplementation of runtime machinery (qjsbind, HostClass,
 marshalling helpers, GC contracts — the generator *calls* these).
@@ -20,8 +20,9 @@ Start from WebIDL's vocabulary (interfaces, namespaces, attributes, operations, 
 enums, dictionaries) but do not chase WebIDL conformance — the language must express
 bro-isms first-class:
 
-- **Feature gates**: `[gate=BRO_WITH_AI]` on a namespace drives the availability-stub
-  emitter and the `{ available: false }` shape.
+- **Feature gates**: `[gate=BRO_WITH_AI]` on a namespace wraps its generated
+  registration TU in `#if`; a compiled-out subsystem registers nothing and its wrapper is
+  not installed (there are no `{ available: false }` stubs).
 - **bro marshalling shapes**: vectors cross as `{x,y,z}` objects *or* arrays on the way in
   and always objects on the way out (see the marshalling-helpers comment at the top of
   `bro/src/js/math_bindings.cpp` — this convention is shared by scene/audio APIs). The IDL
@@ -49,45 +50,68 @@ the existing files use, so downstream consumers of those files see no format cha
 Fidelity gate: for a migrated namespace, the generated page must carry all content of the
 hand-written one (mechanical diff, reviewed once per namespace).
 
-### 3.3 qjsbind binding TU (retired)
-bro no longer has a QuickJS interpreter and this emitter was removed. IDL files still
-carrying `cpp_prologue` / `install_body` strings of QuickJS binding source are carrying
-dead payload; no emitter reads it and it should be deleted from the IDL.
+### 3.3 Natives (`gen/emit_natives.mjs`, planned by `gen/natives_plan.mjs`)
+The one binding emitter. bro's runtime is bronze; the engine reaches JavaScript as
+*natives* registered with `embed::registerNative` (anchors: `bronze/src/embed/embed.h`
+`NativeSignature`/`registerNative`/`nativeClassPrototype`, `bronze/src/abi/bronze_native_type.h`
+for the closed type vocabulary and `bronze_native_buffer`, `bronze/src/lower/lower_native.cpp`
+for what the compiler lowers to a direct call, and bro's convention in
+`bro/src/bronze_host/host_natives.h` + `js/bro_core.js`: every native under one
+`__bro_native.<ns>` root, public `bro.*` shapes assembled by a JS wrapper).
 
-### 3.4 bronze_host binding TU + globals manifest
-Anchors: `bro/src/bronze_host/host_class.cpp` (the HostClass three-call shape: constructor
-via makeFunction, read `prototype` to mint it, decorate once, birth instances with
-makeHandle's 4-arg form — instances born on the prototype keep their inline caches; the
-deliberately-leaked Persistent is documented in the file header), `host_image.cpp` (the
-original of that shape), `dom_globals.cpp` (`installWebHostGlobals` — registration order),
-`web_host.globals` (the manifest; its header comment states the identical-lists invariant),
-and `bro/src/bronze_host/README.md`. The emitter must produce, from one declaration: the
-`host_<name>.cpp` TU, its `install*` call for `dom_globals.cpp`'s foot, and the manifest
-lines — generated as one unit so the lists cannot diverge. Note bronze embed facts (verify
-against `D:/projects/bronze`): an unregistered manifest global is a `fatal()`, not a
-catchable miss; a raw bronze Value is stale after any allocating call (GC contract);
-HostClass gives real prototypes and `instanceof`.
+Per subsystem named in `idl/natives.list`, four files under `out/natives/<sub>/`:
 
-### 3.5 Availability stub
-Anchor: `bro/src/js/feature_stubs.cpp` (header comment explains the scheme: the stub TU is
-always compiled, `#if !BRO_WITH_X` guards each block, same install entry point as the real
-binding, installs `bro.<name>.available === false` + clear error). Emit each namespace's
-stub block from its `[gate=...]` attribute.
+- `native_<sub>_decl.h` — one `extern "C"` prototype per native, typed in bronze's
+  vocabulary: `double`/`int32_t`/`bool`/`const char*`; `uint64_t` for a callback
+  (`dynamic`, to be kept in a `Persistent`); `(const T*, uint32_t)` per typed-array
+  parameter; `void*` for a class handle; a trailing `bronze_native_buffer* out` for a
+  typed-array result (`release == NULL` → the runtime copies; set → zero-copy, `[transfer]`).
+  Names: `bro_<sub>_<member>`, `_get`/`_set` for properties, `bro_<sub>_<Class>_ctor`/`_dtor`/
+  `_<member>`. The bodies are hand-written in bro; the compiler checks them against this header.
+- `native_<sub>_register.cpp` — `registerNatives_<sub>(std::string*)`, every registration
+  with its `NativeSignature` (Function / Getter / Setter / Constructor kinds). Class instance
+  members are Function-kind natives taking the handle first: the wrapper's receiver is
+  dynamic, so a Method-kind registration would be unreachable from it (lower_native.cpp).
+  The class prototype is published as `__bro_native.<sub>.<Class>Proto` for the wrapper to
+  chain. `[gate=…]` wraps the whole TU in `#if`; off, the function registers nothing.
+- `<sub>.js` — the wrapper: mounts, dictionary parameters unpacked in declaration order
+  (absent optional → IDL default; absent typed array → empty array; an optional scalar with
+  no default crosses as `bool <x>_given, T <x>`), `sequence<double>` → `Float64Array`,
+  vec2/vec3/vec4/quat/color dual-accept, result dictionaries reassembled from `<op>_<member>`
+  reads over a per-thread stash (or one `JSON.parse` for `[json]`), lists as count + indexed
+  reads, classes as JS functions whose prototype the native prototype chains onto so
+  `instanceof` matches. Natives are spelled by full dotted path (the direct-call spelling).
+  `[manual]` members get a placeholder comment and no native.
+- `module.globals` — the bare identifiers the wrapper reads, for `--host-globals`.
+
+The vocabulary is closed. `schema/native_types.mjs` resolves each IDL type to a shape or
+refuses it with the IDL line and the nearest expressible spelling (`any` → a declared
+dictionary, `[json]`, `Function`, or `[manual]`; `sequence<Class>` → one handle per call;
+an optional handle → required or `[manual]`; …). Nothing degrades to `dynamic`.
+
+Verification: `tools/compile_check.mjs` compiles every generated `register.cpp` and a
+stub-body TU against bronze's headers with the gate on and off (g++, clang++ or cl);
+`tools/compare_registrations.mjs` diffs the generated registrations against bro's
+hand-written `native_<sub>.cpp` by path + kind + signature.
+
+IDL files still carrying `cpp_prologue` / `install_body` / `bh_*` strings from the retired
+QuickJS and bronze_host emitters are carrying dead payload; no emitter reads it.
 
 ## 4. Equivalence protocol (the oracle)
 
 A migrated namespace is accepted only when, in a scratch **git worktree** of bro (never
 committed, never pushed):
 
-1. The generated TU(s) replace the hand-written one(s) in the build (file swap, no other
-   edits).
+1. The generated registration TU and wrapper replace the hand-written registration and
+   wrapper section in the build; the hand-written bodies are re-pointed at the generated
+   prototypes (no other edits).
 2. The full bro test suite runs with **that namespace's tests passing unchanged**, and no
    other test newly failing. Windows: VS multi-config, `cmake --build build --config
    Release`; tests via the project harness (`tests/`), headless GPU by default —
    never `--no-gpu`.
-3. For bronze_host surfaces: the `tests/bronze_host` checks pass, and the app.dll ABI-stamp
-   discipline holds (rebuild CLI + shared runtime + delete-and-rebuild bro-headless.exe
-   when the fingerprint moves — see the bro CLAUDE.md build notes).
+3. The `tests/bronze_host` checks pass, and the app.dll ABI-stamp discipline holds
+   (rebuild CLI + shared runtime + delete-and-rebuild bro-headless.exe when the
+   fingerprint moves — see the bro CLAUDE.md build notes).
 4. Behavioral diffs discovered against the hand-written binding are triaged explicitly:
    either the IDL is wrong (fix it) or the hand-written binding had a bug (file it in the
    report — do NOT silently replicate or silently fix; both trees' owners decide).
@@ -102,8 +126,8 @@ committed, never pushed):
 2. **Callback lifetime**: bindings capture `Engine*` and JS function refs; the QuickJS
    context must outlive all DOM elements. State the generated-code lifetime rules per
    target (who roots what, when it releases) once, in the runtime-support layer.
-3. **Error convention**: exceptions vs error-return per API family; availability errors
-   uniform via the stub shape.
+3. **Error convention**: exceptions vs error-return per API family; a compiled-out
+   subsystem is simply absent (its wrapper is not installed).
 4. **Realms**: iframes and Workers have their own realms; installs are per-realm. The
    generator must emit installs that are realm-parameterized the same way the hand-written
    ones are (check how `sub_document.cpp` / worker bindings re-install).
@@ -126,9 +150,9 @@ Pick three of different character; suggested, subject to census:
 - **`Blob`/`File` family** — real classes with prototypes, `instanceof`, and cross-API
   reach (fetch, `<img>`, workers) — exercises HostClass and the class-shaped `.d.ts`.
 
-Each pilot ships: IDL file, all five emitted artifacts, equivalence-protocol run (§4) for
-both binding layers, and a short delta report (LOC generated vs LOC replaced; behavioral
-diffs found).
+Each pilot ships: IDL file, all emitted artifacts (`.d.ts`, docs, the four natives files),
+an equivalence-protocol run (§4), and a short delta report (LOC generated vs LOC replaced;
+behavioral diffs found).
 
 ## 8. Environment facts (verify before relying)
 

@@ -260,7 +260,7 @@ interface Mesh {
   Mesh center();
   Mesh fitToBox(unrestricted double size);
   Mesh transform(sequence<unrestricted double> matrix);
-  Mesh applySkinning(SkinData skin, sequence<unrestricted double> matrices);
+  [manual] Mesh applySkinning(SkinData skin, sequence<unrestricted double> matrices);
   Mesh applyMorphTarget(Mesh target, unrestricted double weight);
   Mesh computeNormals(optional unrestricted double creaseAngle);
   Mesh invertNormals();
@@ -318,28 +318,28 @@ interface Mesh {
   static Mesh fromSTL(ArrayBuffer buffer);
   static Mesh fromFBX(ArrayBuffer buffer);
   static Mesh fromVOX(ArrayBuffer buffer);
-  static Mesh merge(sequence<Mesh> meshes);
+  [manual] static Mesh merge(sequence<Mesh> meshes);
   static Mesh marchingCubes(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh surfaceNets(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh dualContouring(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh sweep(sequence<unrestricted double> path, sequence<unrestricted double> profile);
-  static Mesh bezierSweep(sequence<sequence<unrestricted double>> controlPoints, sequence<sequence<unrestricted double>> profile, optional MeshBezierSweepOptions opts);
-  static Mesh leafCard(any shape, optional MeshLeafCardOptions opts);
+  [manual] static Mesh bezierSweep(sequence<sequence<unrestricted double>> controlPoints, sequence<sequence<unrestricted double>> profile, optional MeshBezierSweepOptions opts);
+  [manual] static Mesh leafCard(any shape, optional MeshLeafCardOptions opts);
   static Mesh flower(optional MeshFlowerOptions opts);
-  static Mesh blob(optional MeshBlobOptions opts);
-  static sequence<MeshBranchSegment> spaceColonize(sequence<sequence<unrestricted double>> attractors, sequence<sequence<unrestricted double>> seedPoints, sequence<unrestricted double> initialDirection, optional MeshSpaceColonizationOptions opts);
+  [manual] static Mesh blob(optional MeshBlobOptions opts);
+  [manual] static sequence<MeshBranchSegment> spaceColonize(sequence<sequence<unrestricted double>> attractors, sequence<sequence<unrestricted double>> seedPoints, sequence<unrestricted double> initialDirection, optional MeshSpaceColonizationOptions opts);
   static sequence<MeshBranchSegment> thickenBranches(sequence<MeshBranchSegment> segments, optional unrestricted double leafRadius, optional unrestricted double pipeExp);
   static Mesh meshBranches(sequence<MeshBranchSegment> segments, optional long sides);
-  static MeshPlacedLeaves placeLeavesOnBranches(sequence<MeshBranchSegment> segments, optional MeshLeafPlacementOptions opts);
-  static Mesh scatterLeaves(sequence<MeshBranchSegment> segments, Mesh leaf, optional MeshLeafPlacementOptions opts);
-  static object tree(optional MeshTreeOptions opts);
+  [manual] static MeshPlacedLeaves placeLeavesOnBranches(sequence<MeshBranchSegment> segments, optional MeshLeafPlacementOptions opts);
+  [manual] static Mesh scatterLeaves(sequence<MeshBranchSegment> segments, Mesh leaf, optional MeshLeafPlacementOptions opts);
+  [manual] static object tree(optional MeshTreeOptions opts);
   static sequence<MeshLSystemModule> parseLSystem(DOMString text);
-  static Int32Array packAnchors(sequence<sequence<unrestricted double>> candidates, optional object opts);
-  static sequence<MeshBranchSegment> lsystemToBranches(sequence<MeshLSystemModule> modules, optional object opts);
-  static object capsuleField(sequence<object> capsules, optional sequence<object> spheres, optional unrestricted double cellSize);
-  static object capsuleFieldFromSegments(sequence<MeshBranchSegment> segments, optional unrestricted double radiusScale, optional sequence<object> extraSpheres);
-  static MeshDracoDecoded decodeDraco(ArrayBufferView bytes);
-  static ArrayBuffer encodeDraco(object meshData, optional MeshDracoEncodeOptions opts);
+  [manual] static Int32Array packAnchors(sequence<sequence<unrestricted double>> candidates, optional object opts);
+  [manual] static sequence<MeshBranchSegment> lsystemToBranches(sequence<MeshLSystemModule> modules, optional object opts);
+  [manual] static object capsuleField(sequence<object> capsules, optional sequence<object> spheres, optional unrestricted double cellSize);
+  [manual] static object capsuleFieldFromSegments(sequence<MeshBranchSegment> segments, optional unrestricted double radiusScale, optional sequence<object> extraSpheres);
+  [manual] static MeshDracoDecoded decodeDraco(ArrayBufferView bytes);
+  [manual] static ArrayBuffer encodeDraco(object meshData, optional MeshDracoEncodeOptions opts);
 };
 
 [
@@ -367,7 +367,7 @@ interface ProgressiveMesh {
   cpp_file="mesh_bindings.cpp"
 ]
 interface PolyMesh {
-  constructor(optional Mesh mesh);
+  [manual] constructor(optional Mesh mesh);
   readonly attribute long vertexCount;
   readonly attribute long faceCount;
   readonly attribute long edgeCount;

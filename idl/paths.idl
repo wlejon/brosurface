@@ -30,7 +30,8 @@
   cpp_namespace="bro::js",
   cpp_install="installAssetPathBindings",
   prefix="bro.",
-  install_signature="void installAssetPathBindings(JSContext* ctx)"
+  install_signature="void installAssetPathBindings(JSContext* ctx)",
+  flatten
 ]
 namespace paths {
   /**

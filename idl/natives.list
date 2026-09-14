@@ -1,0 +1,13 @@
+# idl/natives.list — the subsystems (IDL basenames) the natives emitter
+# (gen/emit_natives.mjs) generates for, one per line. A subsystem listed here
+# must be carried by the bronze native vocabulary in full: every member the
+# vocabulary refuses is either respelled in the IDL or marked [manual].
+#
+# Everything not listed is documented (docs, .d.ts) but has no generated
+# natives yet.
+time
+window
+settings
+paths
+mesh
+lm

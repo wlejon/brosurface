@@ -424,8 +424,10 @@ function emitBroAlias(aliasName, targetName, doc) {
 }
 
   // 5. Global Namespaces
-  const isGlobalNs = (ns) => getAttr(ns, 'prefix') === '' || ns.name === ['Phys', 'ics'].join('');
-  const isFlatNs = (ns) => ns.name === ['pa', 'ths'].join('');
+  // [prefix=""] mounts the namespace as a global of its own name; [flatten]
+  // spreads its members directly onto `bro`.
+  const isGlobalNs = (ns) => getAttr(ns, 'prefix') === '';
+  const isFlatNs = (ns) => !!(ns.attributes || []).some(a => a.name === 'flatten');
 
   const globalNamespaces = namespaces.filter(isGlobalNs);
   for (const ns of globalNamespaces) {

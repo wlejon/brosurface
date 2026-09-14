@@ -120,13 +120,28 @@ export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
   'engine_wrapper', 'element_base', 'element_registry', 'layered_store',
   'audio_stream_tap',
 
-  // bronze_host emitter
+  // Retired bronze_host emitter (dead payload still carried by some IDLs)
   'bh_file', 'bh_header', 'bh_namespace', 'bh_includes', 'bh_install',
   'bh_install_body', 'bh_prologue', 'bh_epilogue', 'bh_class_var',
   'bh_decorate', 'bh_no_proto_methods', 'bh_instance_field', 'bh_global',
   'bh_body', 'bh_ctor', 'bh_call', 'bh_arity', 'bh_custom', 'bh_getter',
   'bh_setter', 'bh_state_body', 'bh_state_fn', 'bh_static_body',
   'bh_static_call',
+
+  // Natives emitter (gen/emit_natives.mjs; schema/native_types.mjs)
+  //   manual     an operation / attribute / constructor the generator leaves
+  //              to hand-written JS: a placeholder comment in the wrapper,
+  //              no native
+  //   json       a dictionary that crosses as JSON in one `str`, in both
+  //              directions, instead of member by member
+  //   transfer   a typed-array result the body hands over zero-copy: it must
+  //              set bronze_native_buffer::release
+  //   view       an interface whose handles are views the host owns: no
+  //              destructor is registered
+  //   finalize   `insweep` (default) or `deferred`: when the destructor runs
+  //   flatten    a namespace whose members mount on the prefix object itself
+  //              (`bro.appDir`, not `bro.<ns>.appDir`)
+  'manual', 'json', 'transfer', 'view', 'finalize', 'flatten',
 ]);
 
 export class ValidationError {

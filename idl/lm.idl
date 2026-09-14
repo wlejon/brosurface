@@ -444,7 +444,7 @@ interface LMModel {
    * @param opts Sampling and stopping options
    * @returns Generated token ids (excluding prompt)
    */
-  sequence<long> generate((sequence<long> or Int32Array) promptIds, optional GenerateOptions opts);
+  [manual] sequence<long> generate((sequence<long> or Int32Array) promptIds, optional GenerateOptions opts);
 
   /**
    * Run synchronous streaming generation with per-token callbacks.
@@ -453,7 +453,7 @@ interface LMModel {
    * @param onToken Callback invoked with each generated token id
    * @returns All newly generated token ids
    */
-  sequence<long> generateStream((sequence<long> or Int32Array) promptIds, GenerateOptions opts, Function onToken);
+  [manual] sequence<long> generateStream((sequence<long> or Int32Array) promptIds, GenerateOptions opts, Function onToken);
 };
 
 /**
@@ -521,7 +521,7 @@ interface Qwen35Model {
    * @param opts Generation options including images
    * @returns Generated token ids
    */
-  Int32Array generate(DOMString prompt, optional GenerateOptions opts);
+  [manual] Int32Array generate(DOMString prompt, optional GenerateOptions opts);
 };
 
 /**
@@ -589,7 +589,7 @@ interface Qwen3VLModel {
    * @param opts Generation options including images
    * @returns Generated token ids
    */
-  Int32Array generate(DOMString prompt, optional GenerateOptions opts);
+  [manual] Int32Array generate(DOMString prompt, optional GenerateOptions opts);
 };
 
 /**
@@ -641,7 +641,7 @@ interface NllbModel {
    * @param opts Translation options (numBeams, onDone for async)
    * @returns Translated string in sync mode, or AsyncHandle if onDone provided
    */
-  (DOMString or AsyncHandle) translate(DOMString text, DOMString srcLang, DOMString tgtLang, optional NllbTranslateOptions opts);
+  [manual] (DOMString or AsyncHandle) translate(DOMString text, DOMString srcLang, DOMString tgtLang, optional NllbTranslateOptions opts);
 };
 
 /**
@@ -658,14 +658,14 @@ interface ClipModel {
    * @param text Single prompt string or array of prompt strings
    * @returns Float32Array or array of Float32Array embeddings
    */
-  (Float32Array or sequence<Float32Array>) encodeText((DOMString or sequence<DOMString>) text);
+  [manual] (Float32Array or sequence<Float32Array>) encodeText((DOMString or sequence<DOMString>) text);
 
   /**
    * Compute normalized image embedding in the shared space.
    * @param image ImageBitmap or ImageData object
    * @returns Projected Float32Array image embedding
    */
-  Float32Array encodeImage(object image);
+  [manual] Float32Array encodeImage(object image);
 
   /**
    * Compute cosine similarity in [-1, 1] between text and image.
@@ -673,7 +673,7 @@ interface ClipModel {
    * @param image ImageBitmap or ImageData
    * @returns Cosine score or array of scores
    */
-  (unrestricted double or sequence<unrestricted double>) score((DOMString or sequence<DOMString>) text, object image);
+  [manual] (unrestricted double or sequence<unrestricted double>) score((DOMString or sequence<DOMString>) text, object image);
 };
 
 /**
@@ -824,5 +824,5 @@ namespace lm {
    * @param opts Generation options including onToken and onDone callbacks
    * @returns AsyncHandle for cancellation
    */
-  AsyncHandle generate(object model, (sequence<long> or DOMString) prompt, optional GenerateOptions opts);
+  [manual] AsyncHandle generate(object model, (sequence<long> or DOMString) prompt, optional GenerateOptions opts);
 };
