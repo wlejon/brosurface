@@ -47,7 +47,7 @@ interface ListenStream {
   readonly attribute GestureStreamView gesture;
 
   void retain(optional long seconds = 0);
-  Float32Array? audio(long long startFrame, long long endFrame);
+  [manual] Float32Array? audio(long long startFrame, long long endFrame);
   long long frame();
   ListenRetentionInfo info();
   void feed(Float32Array samples);
@@ -66,11 +66,11 @@ interface ListenStream {
   install_body="registerListenStreamClass(ctx);\n\n    JSValue global = JS_GetGlobalObject(ctx);\n    JSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\n    if (JS_IsUndefined(broObj) || JS_IsException(broObj)) {\n        JS_FreeValue(ctx, broObj);\n        broObj = JS_NewObject(ctx);\n        JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n    }\n\n    JSValue listen = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, listen, \"open\",\n        JS_NewCFunction(ctx, js_open, \"open\", 1));\n    JS_SetPropertyStr(ctx, listen, \"supported\",\n        JS_NewCFunction(ctx, js_supported, \"supported\", 0));\n    JS_SetPropertyStr(ctx, listen, \"apps\",\n        JS_NewCFunction(ctx, js_apps, \"apps\", 0));\n    JS_SetPropertyStr(ctx, listen, \"retain\",\n        JS_NewCFunction(ctx, js_retain, \"retain\", 1));\n    JS_SetPropertyStr(ctx, listen, \"audio\",\n        JS_NewCFunction(ctx, js_audio, \"audio\", 2));\n    JS_SetPropertyStr(ctx, listen, \"frame\",\n        JS_NewCFunction(ctx, js_frame, \"frame\", 0));\n    JS_SetPropertyStr(ctx, listen, \"info\",\n        JS_NewCFunction(ctx, js_info, \"info\", 0));\n    JS_SetPropertyStr(ctx, broObj, \"listen\", listen);\n\n    JS_FreeValue(ctx, broObj);\n    JS_FreeValue(ctx, global);"
 ]
 namespace listen {
-  ListenStream open(optional ListenSource source);
+  [manual] ListenStream open(optional ListenSource source);
   boolean supported();
   sequence<AudioApp> apps();
   void retain(optional long seconds = 0);
-  Float32Array? audio(long long startFrame, long long endFrame);
+  [manual] Float32Array? audio(long long startFrame, long long endFrame);
   long long frame();
   ListenRetentionInfo info();
 };

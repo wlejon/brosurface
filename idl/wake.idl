@@ -49,7 +49,7 @@ interface WakeStreamView {
   boolean isLoaded();
   void setThreshold(double threshold);
   WakeStats? stats();
-  any feed(Float32Array samples, optional long sampleRate);
+  [manual] any feed(Float32Array samples, optional long sampleRate);
 };
 
 [
@@ -79,5 +79,5 @@ namespace wake {
   boolean isLoaded();
   void setThreshold(double threshold);
   WakeStats? stats();
-  any feed(Float32Array samples, optional long sampleRate);
+  [manual] any feed(Float32Array samples, optional long sampleRate);
 };

@@ -119,7 +119,7 @@ interface KwsStreamView {
   KwsProgress? progress();
   KwsPosterior? posterior(optional long topK = 3);
   KwsStats? stats();
-  sequence<KwsEvent>? feed(Float32Array samples);
+  [manual] sequence<KwsEvent>? feed(Float32Array samples);
 };
 
 [
@@ -159,5 +159,5 @@ namespace kws {
   KwsProgress? progress();
   KwsPosterior? posterior(optional long topK = 3);
   KwsStats? stats();
-  sequence<KwsEvent>? feed(Float32Array samples);
+  [manual] sequence<KwsEvent>? feed(Float32Array samples);
 };
