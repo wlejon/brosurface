@@ -178,22 +178,22 @@ interface SceneNode {
   SceneNode lookAt(sequence<unrestricted double> target, optional sequence<unrestricted double> up);
 
   // Mesh & Skinned mesh methods
-  SceneNode setMaterial(object mat);
+  [manual] SceneNode setMaterial(object mat);
   SceneNode setSkeleton(Skeleton skeleton);
   SceneNode addClip(DOMString name, SkeletalAnimation anim);
-  Float32Array? getBoneWorldMatrix(any nameOrIndex);
+  [manual] Float32Array? getBoneWorldMatrix(any nameOrIndex);
   SceneNode addBlendSpace1D(DOMString name, sequence<BlendSpace1DClip> clips);
   SceneNode addBlendSpace2D(DOMString name, sequence<BlendSpace2DClip> clips);
   SceneNode setBlendPos(DOMString name, unrestricted double x, optional unrestricted double y);
-  object? blendState(DOMString name);
+  [manual] object? blendState(DOMString name);
   SceneNode playLayer(long layer, DOMString clipName, optional unrestricted double weight, optional unrestricted double fadeTime);
   SceneNode stopLayer(long layer, optional unrestricted double fadeTime);
   SceneNode setLayerWeight(long layer, unrestricted double weight);
-  SceneNode addStateMachine(DOMString name, AnimStateMachineDef def);
+  [manual] SceneNode addStateMachine(DOMString name, AnimStateMachineDef def);
   boolean travel(DOMString name, DOMString targetState);
   SceneNode setRootMotion(boolean enabled);
-  object consumeRootMotion();
-  SceneNode play(optional DOMString clipName, optional object opts);
+  [manual] object consumeRootMotion();
+  [manual] SceneNode play(optional DOMString clipName, optional object opts);
   SceneNode stop();
   SceneNode pause();
   SceneNode resume();
@@ -242,24 +242,24 @@ interface SceneGraph {
   readonly attribute sequence<unrestricted double> cameraEye;
 
   SceneNode createNode(optional SceneNodeOptions opts);
-  SceneNode createShape(optional object opts);
-  SceneNode createSprite(optional object opts);
-  SceneNode createPhysicsNode(optional object opts);
-  SceneNode createMesh(optional MeshNodeOptions opts);
-  SceneNode createSkinnedMesh(optional SkinnedMeshNodeOptions opts);
-  SceneNode createInstancedMesh(optional InstancedMeshNodeOptions opts);
-  SceneNode createGaussianSplat(optional GaussianSplatNodeOptions opts);
+  [manual] SceneNode createShape(optional object opts);
+  [manual] SceneNode createSprite(optional object opts);
+  [manual] SceneNode createPhysicsNode(optional object opts);
+  [manual] SceneNode createMesh(optional MeshNodeOptions opts);
+  [manual] SceneNode createSkinnedMesh(optional SkinnedMeshNodeOptions opts);
+  [manual] SceneNode createInstancedMesh(optional InstancedMeshNodeOptions opts);
+  [manual] SceneNode createGaussianSplat(optional GaussianSplatNodeOptions opts);
   SceneNode createHtmlNode(optional HtmlNodeOptions opts);
   SceneNode createLight(optional LightNodeOptions opts);
   SceneNode createParticles(optional ParticleNodeOptions opts);
-  SceneNode createParticles3D(optional Particles3DNodeOptions opts);
+  [manual] SceneNode createParticles3D(optional Particles3DNodeOptions opts);
   SceneNode createDecal(optional DecalNodeOptions opts);
   SceneNode createReflectionProbe(optional ReflectionProbeNodeOptions opts);
   Tween createTween();
   AnimationPlayer createAnimationPlayer();
   Terrain createTerrain(optional TerrainConfig opts);
-  ClipmapTerrain createClipmapTerrain(optional ClipmapTerrainConfig opts);
-  TileWorld createTileWorld(optional TileWorldConfig opts);
+  [manual] ClipmapTerrain createClipmapTerrain(optional ClipmapTerrainConfig opts);
+  [manual] TileWorld createTileWorld(optional TileWorldConfig opts);
 
   SceneNode? findById(long id);
   SceneNode? findByName(DOMString name);
@@ -267,7 +267,7 @@ interface SceneGraph {
 
   void setCamera(optional SceneCameraOptions opts);
   SceneNode createCamera(optional SceneCameraOptions opts);
-  void setActiveCamera(SceneNode? camera);
+  void setActiveCamera(SceneNode camera);
 
   void setToneMap(optional ToneMapConfig opts);
   void setAmbient(optional AmbientConfig opts);
@@ -294,10 +294,10 @@ interface SceneGraph {
   void syncPhysics();
   SceneRaycastResult? raycast(sequence<unrestricted double> origin, sequence<unrestricted double> direction);
   sequence<unrestricted double> unprojectLocal(SceneNode node, sequence<unrestricted double> screenPoint);
-  ImageData toImageData();
-  ArrayBuffer captureFrame(optional DOMString format, optional unrestricted double quality);
-  object asTexture();
+  [manual] ImageData toImageData();
+  [manual] ImageData captureFrame(optional DOMString format, optional unrestricted double quality);
+  [manual] object asTexture();
   void bindAudioListenerToCamera(boolean bind);
-  void attachAIWorld(object aiWorld, optional object opts);
+  [manual] void attachAIWorld(object aiWorld, optional object opts);
   void detachAIWorld();
 };

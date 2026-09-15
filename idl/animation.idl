@@ -86,8 +86,8 @@ dictionary AnimStateMachineDef {
   install_body="// No install needed\n(void)ctx;"
 ]
 interface Tween {
-  Tween to(object target, TweenPropertyTargets props, unrestricted double duration, optional DOMString easing);
-  Tween parallel(sequence<Tween> tweens);
+  [manual] Tween to(object target, TweenPropertyTargets props, unrestricted double duration, optional DOMString easing);
+  [manual] Tween parallel(sequence<Tween> tweens);
   Tween call(Function callback);
   Tween loop(optional long count);
   Tween start();
@@ -102,9 +102,9 @@ interface Tween {
   cpp_file="scene_bindings_anim.cpp"
 ]
 interface AnimationPlayer {
-  void addClip(DOMString name, any clip);
-  void clipDef(DOMString name, AnimationClipDef def);
-  void play(DOMString clipName, optional object opts);
+  [manual] void addClip(DOMString name, any clip);
+  [manual] void clipDef(DOMString name, AnimationClipDef def);
+  [manual] void play(DOMString clipName, optional object opts);
   void pause();
   void resume();
   void stop();

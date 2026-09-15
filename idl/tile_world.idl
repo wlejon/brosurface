@@ -108,7 +108,7 @@ interface TileWorld {
   void setOrigin(unrestricted double x, unrestricted double y, unrestricted double z);
   boolean advance(unrestricted double dtMs);
 
-  void addObjectKind(long kindId, object spec);
+  [manual] void addObjectKind(long kindId, object spec);
   void addObject(long kindId, unrestricted double x, unrestricted double y, unrestricted double z);
   void clearObjects(optional long kindId);
   long objectCount(long kind);
@@ -116,7 +116,7 @@ interface TileWorld {
 
   void rebuild();
   void rebuildAll();
-  void configure(object cfg);
+  [manual] void configure(object cfg);
   ArrayBuffer save();
   boolean load(ArrayBuffer data);
   void destroy();

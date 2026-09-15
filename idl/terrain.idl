@@ -195,7 +195,7 @@ interface Terrain {
   readonly attribute unrestricted double planetRadius;
 
   /** World-space origin offset [x, y, z] of this terrain manager. */
-  readonly attribute sequence<unrestricted double>? origin;
+  readonly attribute sequence<unrestricted double> origin;
 
   /**
    * Stream and generate terrain chunks around camera position (x, y, z) in world space.
@@ -265,7 +265,7 @@ interface Terrain {
    *
    * @param fn Height source callback or null to restore procedural generator
    */
-  void setHeightSource(Function? fn);
+  void setHeightSource(Function fn);
 
   unrestricted double heightAt(unrestricted double x, unrestricted double z);
   sequence<unrestricted double> normalAt(unrestricted double x, unrestricted double z);

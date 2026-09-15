@@ -97,13 +97,13 @@ interface ClipmapTerrain {
   readonly attribute unrestricted double cellScale;
   readonly attribute unrestricted double planetRadius;
 
-  ClipmapTerrain setHeightLayer(long index, ClipmapHeightLayerOptions? desc);
+  [manual] ClipmapTerrain setHeightLayer(long index, ClipmapHeightLayerOptions? desc);
   ClipmapTerrain setSnowLine(unrestricted double m);
-  ClipmapTerrain setChartCenter(unrestricted double? x, optional unrestricted double z);
+  [manual] ClipmapTerrain setChartCenter(unrestricted double? x, optional unrestricted double z);
   ClipmapTerrain setDetail(ClipmapDetailOptions desc);
   ClipmapTerrain setMaterials(ClipmapMaterialsOptions desc);
   ClipmapTerrain setForest(ClipmapForestOptions desc);
-  ClipmapTerrain setSurfaceLayer(any indexOrDesc, optional ClipmapSurfaceLayerOptions? desc);
+  [manual] ClipmapTerrain setSurfaceLayer(any indexOrDesc, optional ClipmapSurfaceLayerOptions? desc);
   ClipmapTerrain update(unrestricted double camX, unrestricted double camY, unrestricted double camZ);
   DOMString shaderSource(DOMString stage);
   unrestricted double elevationAt(unrestricted double x, unrestricted double z);

@@ -175,7 +175,7 @@ interface ShapeNode {
 interface SpriteNode {
   attribute DOMString texture;
   attribute sequence<unrestricted double> size;
-  void addAnimation(DOMString name, object animSpec);
+  [manual] void addAnimation(DOMString name, object animSpec);
   void play(DOMString name);
   void stop();
 };

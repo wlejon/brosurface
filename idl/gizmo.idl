@@ -171,7 +171,7 @@ namespace gizmo {
   /**
    * The handle currently under the cursor ('x' | 'y' | 'z' | 'xy' | 'yz' | 'xz' | 'view' | 'center' | null).
    */
-  [getter_body="auto* e = getEngine(ctx);\nif (!e) return JS_NULL;\nconst char* s = nullptr;\nswitch (e->gizmo().hovered()) {\ncase engine::GizmoAxis::X: s = \"x\"; break;\ncase engine::GizmoAxis::Y: s = \"y\"; break;\ncase engine::GizmoAxis::Z: s = \"z\"; break;\ncase engine::GizmoAxis::XY: s = \"xy\"; break;\ncase engine::GizmoAxis::YZ: s = \"yz\"; break;\ncase engine::GizmoAxis::XZ: s = \"xz\"; break;\ncase engine::GizmoAxis::View: s = \"view\"; break;\ncase engine::GizmoAxis::Center: s = \"center\"; break;\ndefault: return JS_NULL;\n}\nreturn JS_NewString(ctx, s);"]
+  [manual, getter_body="auto* e = getEngine(ctx);\nif (!e) return JS_NULL;\nconst char* s = nullptr;\nswitch (e->gizmo().hovered()) {\ncase engine::GizmoAxis::X: s = \"x\"; break;\ncase engine::GizmoAxis::Y: s = \"y\"; break;\ncase engine::GizmoAxis::Z: s = \"z\"; break;\ncase engine::GizmoAxis::XY: s = \"xy\"; break;\ncase engine::GizmoAxis::YZ: s = \"yz\"; break;\ncase engine::GizmoAxis::XZ: s = \"xz\"; break;\ncase engine::GizmoAxis::View: s = \"view\"; break;\ncase engine::GizmoAxis::Center: s = \"center\"; break;\ndefault: return JS_NULL;\n}\nreturn JS_NewString(ctx, s);"]
   readonly attribute DOMString? hovered;
 
   /**
