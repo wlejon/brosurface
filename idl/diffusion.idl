@@ -27,7 +27,7 @@ interface PipelineState {};
 namespace diffusion {
   readonly attribute DOMString version;
   void init();
-  Pipeline createPipeline(object config);
-  Pipeline loadModel(DOMString dir, optional object opts);
-  Float32Array expandNoise(Float32Array src, object opts);
+  [manual] Pipeline createPipeline(object config);
+  [manual] Pipeline loadModel(DOMString dir, optional object opts);
+  [manual] Float32Array expandNoise(Float32Array src, object opts);
 };

@@ -23,6 +23,6 @@ interface TripoSplatPipeline {};
 ]
 namespace triposplat {
   void init();
-  TripoSplatPipeline load(object config);
+  [manual] TripoSplatPipeline load(object config);
   void cancel();
 };

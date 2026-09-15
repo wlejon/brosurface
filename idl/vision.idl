@@ -16,58 +16,58 @@
 [custom, cpp_file="vision_bindings.cpp"]
 interface DepthEstimator {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Sam {
   readonly attribute DOMString device;
   readonly attribute boolean hasImage;
-  any setImage(any image, optional object opts);
-  object segment(optional object opts);
-  any segmentEverything(any image, optional object opts);
+  [manual] any setImage(any image, optional object opts);
+  [manual] object segment(optional object opts);
+  [manual] any segmentEverything(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface NormalEstimator {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Hed {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Lineart {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Mlsd {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Openpose {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Segformer {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Birefnet {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
@@ -78,19 +78,19 @@ interface StyleGAN3 {
   readonly attribute long wDim;
   readonly attribute long imgResolution;
   readonly attribute long imgChannels;
-  object generate(Float32Array z, optional object opts);
+  [manual] object generate(Float32Array z, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Dinov2 {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [custom, cpp_file="vision_bindings.cpp"]
 interface Dinov3 {
   readonly attribute DOMString device;
-  object estimate(any image, optional object opts);
+  [manual] object estimate(any image, optional object opts);
 };
 
 [
@@ -108,16 +108,16 @@ interface Dinov3 {
 ]
 namespace vision {
   void init();
-  any loadDepth(DOMString modelDir, optional object opts);
-  any loadSam(DOMString modelDir, optional object opts);
-  any loadNormal(DOMString modelDir, optional object opts);
-  any loadHed(DOMString modelDir, optional object opts);
-  any loadLineart(DOMString modelDir, optional object opts);
-  any loadMlsd(DOMString modelDir, optional object opts);
-  any loadOpenpose(DOMString modelDir, optional object opts);
-  any loadSegformer(DOMString modelDir, optional object opts);
-  any loadBirefnet(DOMString modelDir, optional object opts);
-  any loadStyleGAN3(DOMString modelDir, optional object opts);
-  any loadDinov2(DOMString modelDir, optional object opts);
-  any loadDinov3(DOMString modelDir, optional object opts);
+  [manual] any loadDepth(DOMString modelDir, optional object opts);
+  [manual] any loadSam(DOMString modelDir, optional object opts);
+  [manual] any loadNormal(DOMString modelDir, optional object opts);
+  [manual] any loadHed(DOMString modelDir, optional object opts);
+  [manual] any loadLineart(DOMString modelDir, optional object opts);
+  [manual] any loadMlsd(DOMString modelDir, optional object opts);
+  [manual] any loadOpenpose(DOMString modelDir, optional object opts);
+  [manual] any loadSegformer(DOMString modelDir, optional object opts);
+  [manual] any loadBirefnet(DOMString modelDir, optional object opts);
+  [manual] any loadStyleGAN3(DOMString modelDir, optional object opts);
+  [manual] any loadDinov2(DOMString modelDir, optional object opts);
+  [manual] any loadDinov3(DOMString modelDir, optional object opts);
 };
