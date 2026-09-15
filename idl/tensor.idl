@@ -28,11 +28,11 @@ interface GpuTensor {
   readonly attribute long bytes;
 
   void zero();
-  void resize(long rows, long cols, optional (DOMString or long) dtype);
+  [manual] void resize(long rows, long cols, optional (DOMString or long) dtype);
   DOMString dtype();
   GpuTensor clone();
-  void upload((Float32Array or object) src);
-  (Float32Array or void) download(optional object dst);
+  [manual] void upload((Float32Array or object) src);
+  [manual] (Float32Array or void) download(optional object dst);
   void uploadFp16(Uint16Array data);
   Uint16Array downloadFp16();
   void uploadInt8(Int8Array data);
@@ -57,7 +57,7 @@ namespace tensor {
 
   void init();
   void sync();
-  GpuTensor createTensor(long rows, optional long cols = 1, optional (DOMString or long) dtype = "fp32");
+  [manual] GpuTensor createTensor(long rows, optional long cols = 1, optional (DOMString or long) dtype = "fp32");
 
   void linearForward(GpuTensor W, GpuTensor b, GpuTensor x, GpuTensor y);
   void linearBackward(GpuTensor W, GpuTensor x, GpuTensor dY, GpuTensor dX, GpuTensor dW, GpuTensor dB);
@@ -75,7 +75,7 @@ namespace tensor {
   void clamp(GpuTensor y, double lo, double hi);
   void buildSlotMask(GpuTensor x, long offset, long K, long stride, GpuTensor mask);
   void copyD2D(GpuTensor src, long srcOff, GpuTensor dst, long dstOff, long n);
-  void cast(GpuTensor src, GpuTensor dst, (DOMString or long) outDtype);
+  [manual] void cast(GpuTensor src, GpuTensor dst, (DOMString or long) outDtype);
 
   void siluForward(GpuTensor x, GpuTensor y);
   void siluBackward(GpuTensor x, GpuTensor dY, GpuTensor dX);
@@ -93,10 +93,10 @@ namespace tensor {
   void gegluExactForward(GpuTensor X, GpuTensor Y);
   void gegluExactBackward(GpuTensor X, GpuTensor dY, GpuTensor dX);
 
-  void softmaxForward(GpuTensor logits, GpuTensor probs, optional GpuTensor? mask);
+  [manual] void softmaxForward(GpuTensor logits, GpuTensor probs, optional GpuTensor? mask);
   void softmaxBackward(GpuTensor probs, GpuTensor dProbs, GpuTensor dLogits);
 
-  object layernormForward(GpuTensor x, GpuTensor gamma, GpuTensor beta, GpuTensor y, GpuTensor xhat, optional double eps = 1e-5);
+  [manual] object layernormForward(GpuTensor x, GpuTensor gamma, GpuTensor beta, GpuTensor y, GpuTensor xhat, optional double eps = 1e-5);
   void layernormBackward(GpuTensor dY, GpuTensor xhat, GpuTensor gamma, double rstd, GpuTensor dX, GpuTensor dGamma, GpuTensor dBeta);
   void layernormForwardInferenceBatched(GpuTensor X_RD, GpuTensor gamma, GpuTensor beta, GpuTensor Y_RD, optional double eps = 1e-5);
   void layernormForwardInferenceBatchedFp16(GpuTensor X_RD, GpuTensor gamma, GpuTensor beta, GpuTensor Y_RD, optional double eps = 1e-5);
@@ -122,36 +122,36 @@ namespace tensor {
   void sumCols(GpuTensor X, GpuTensor Y);
   void argmaxRows(GpuTensor X, GpuTensor Idx);
 
-  void attentionForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor Attn, GpuTensor Y_pre_Wo, GpuTensor O);
-  void attentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor Attn, GpuTensor Y_pre_Wo, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
-  void mhaForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
-  void mhaBackward(GpuTensor dO, GpuTensor X, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
+  [manual] void attentionForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor Attn, GpuTensor Y_pre_Wo, GpuTensor O);
+  [manual] void attentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor Attn, GpuTensor Y_pre_Wo, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
+  [manual] void mhaForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
+  [manual] void mhaBackward(GpuTensor dO, GpuTensor X, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
 
-  void selfAttentionForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor O);
-  void selfAttentionForwardTrain(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
-  void selfAttentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
+  [manual] void selfAttentionForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor O);
+  [manual] void selfAttentionForwardTrain(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
+  [manual] void selfAttentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
 
-  void crossAttentionForward(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor O);
-  void crossAttentionForwardWithAttn(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor? attnLogitBias, long numHeads, GpuTensor O, GpuTensor AttnAvg);
-  void crossAttentionForwardTrain(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
-  void crossAttentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Ctx, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dCtx, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
+  [manual] void crossAttentionForward(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor O);
+  [manual] void crossAttentionForwardWithAttn(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor? attnLogitBias, long numHeads, GpuTensor O, GpuTensor AttnAvg);
+  [manual] void crossAttentionForwardTrain(GpuTensor X, GpuTensor Ctx, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor O);
+  [manual] void crossAttentionBackward(GpuTensor dO, GpuTensor X, GpuTensor Ctx, GpuTensor Qh, GpuTensor Kh, GpuTensor Vh, GpuTensor Attnh, GpuTensor Yconcat, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, long numHeads, GpuTensor dX, GpuTensor dCtx, GpuTensor dWq, GpuTensor dWk, GpuTensor dWv, GpuTensor dWo);
 
   void attentionTokenMoments(GpuTensor Attn, long h_lat, long w_lat, GpuTensor mass, GpuTensor centroid);
   void buildCausalMaskRow(long L, long q, GpuTensor mask);
 
-  void selfAttentionBiasForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor? attnBias, long numHeads, double scale, GpuTensor O);
-  void flashAttentionForward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
-  void flashAttentionWindowedForward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor? mask, long numHeads, long window, GpuTensor O);
-  void flashAttentionBackward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor O, GpuTensor dO, GpuTensor? mask, long numHeads, boolean causal, GpuTensor dQ, GpuTensor dK, GpuTensor dV);
-  void flashAttentionQkvoForward(GpuTensor X, GpuTensor? Ctx, GpuTensor Wq, GpuTensor? bq, GpuTensor Wk, GpuTensor? bk, GpuTensor Wv, GpuTensor? bv, GpuTensor Wo, GpuTensor? bo, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
-  void flashAttentionQkvoBackward(object opts);
-  void flashAttentionProjectKv(GpuTensor ctx, GpuTensor Wk, GpuTensor? bk, GpuTensor Wv, GpuTensor? bv, GpuTensor K_out, GpuTensor V_out);
-  void flashAttentionQWithKvCachedForward(GpuTensor X, GpuTensor K, GpuTensor V, GpuTensor Wq, GpuTensor? bq, GpuTensor Wo, GpuTensor? bo, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
+  [manual] void selfAttentionBiasForward(GpuTensor X, GpuTensor Wq, GpuTensor Wk, GpuTensor Wv, GpuTensor Wo, GpuTensor? mask, GpuTensor? attnBias, long numHeads, double scale, GpuTensor O);
+  [manual] void flashAttentionForward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
+  [manual] void flashAttentionWindowedForward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor? mask, long numHeads, long window, GpuTensor O);
+  [manual] void flashAttentionBackward(GpuTensor Q, GpuTensor K, GpuTensor V, GpuTensor O, GpuTensor dO, GpuTensor? mask, long numHeads, boolean causal, GpuTensor dQ, GpuTensor dK, GpuTensor dV);
+  [manual] void flashAttentionQkvoForward(GpuTensor X, GpuTensor? Ctx, GpuTensor Wq, GpuTensor? bq, GpuTensor Wk, GpuTensor? bk, GpuTensor Wv, GpuTensor? bv, GpuTensor Wo, GpuTensor? bo, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
+  [manual] void flashAttentionQkvoBackward(object opts);
+  [manual] void flashAttentionProjectKv(GpuTensor ctx, GpuTensor Wk, GpuTensor? bk, GpuTensor Wv, GpuTensor? bv, GpuTensor K_out, GpuTensor V_out);
+  [manual] void flashAttentionQWithKvCachedForward(GpuTensor X, GpuTensor K, GpuTensor V, GpuTensor Wq, GpuTensor? bq, GpuTensor Wo, GpuTensor? bo, GpuTensor? mask, long numHeads, boolean causal, GpuTensor O);
   void flashAttentionDecode(GpuTensor Q, GpuTensor K_cache, GpuTensor V_cache, long validLen, long numHeads, GpuTensor O, optional long numKvHeads, optional double attnSoftcap = 0, optional long window = 0);
   void flashAttentionDecodeMasked(GpuTensor Q, GpuTensor K_cache, GpuTensor V_cache, GpuTensor dMask, long numHeads, GpuTensor O, optional long numKvHeads, optional double attnSoftcap = 0, optional long window = 0);
   void kvCacheAppend(GpuTensor K_new, GpuTensor V_new, long curLen, GpuTensor K_cache, GpuTensor V_cache);
 
-  void conv2dForward(GpuTensor X, GpuTensor Wt, GpuTensor? bias, long N, long C_in, long H, long W, long C_out, long kH, long kW, long sH, long sW, long pH, long pW, long dH, long dW, long groups, GpuTensor Y);
+  [manual] void conv2dForward(GpuTensor X, GpuTensor Wt, GpuTensor? bias, long N, long C_in, long H, long W, long C_out, long kH, long kW, long sH, long sW, long pH, long pW, long dH, long dW, long groups, GpuTensor Y);
   void conv2dBackwardInput(GpuTensor Wt, GpuTensor dY, long N, long C_in, long H, long W, long C_out, long kH, long kW, long sH, long sW, long pH, long pW, long dH, long dW, long groups, GpuTensor dX);
   void conv2dBackwardWeight(GpuTensor X, GpuTensor dY, long N, long C_in, long H, long W, long C_out, long kH, long kW, long sH, long sW, long pH, long pW, long dH, long dW, long groups, GpuTensor dWt);
   void conv2dBackwardBias(GpuTensor dY, long N, long C_out, long H_out, long W_out, GpuTensor dB);
@@ -172,25 +172,25 @@ namespace tensor {
   void l2NormalizeNchwForward(GpuTensor X, long N, long C, long H, long W, double eps, GpuTensor Y);
   void convexUpsampleForward(GpuTensor X, GpuTensor Mask, long N, long C, long H, long W, long scale, GpuTensor Y);
 
-  void resblockForward(object opts);
-  void resblockBackward(object opts);
+  [manual] void resblockForward(object opts);
+  [manual] void resblockBackward(object opts);
 
-  void maskedMeanPoolForward(GpuTensor X, GpuTensor? mask, GpuTensor y);
-  void maskedMeanPoolBackward(GpuTensor dY, GpuTensor? mask, long K, GpuTensor dX);
+  [manual] void maskedMeanPoolForward(GpuTensor X, GpuTensor? mask, GpuTensor y);
+  [manual] void maskedMeanPoolBackward(GpuTensor dY, GpuTensor? mask, long K, GpuTensor dX);
   double mseVecForward(GpuTensor pred, GpuTensor target);
   void mseVecBackward(GpuTensor pred, GpuTensor target, GpuTensor dPred);
   void mseVecPerSample(GpuTensor pred, GpuTensor target, GpuTensor dPred, GpuTensor lossPerSample);
-  double softmaxXentFused(GpuTensor logits, GpuTensor target, GpuTensor? mask, GpuTensor probs, GpuTensor dLogits);
-  void softmaxXentFusedBatched(GpuTensor logits_BL, GpuTensor target_BL, GpuTensor? mask, GpuTensor headOffsets, long n_heads, GpuTensor probs_BL, GpuTensor dLogits_BL, GpuTensor lossPerSample);
+  [manual] double softmaxXentFused(GpuTensor logits, GpuTensor target, GpuTensor? mask, GpuTensor probs, GpuTensor dLogits);
+  [manual] void softmaxXentFusedBatched(GpuTensor logits_BL, GpuTensor target_BL, GpuTensor? mask, GpuTensor headOffsets, long n_heads, GpuTensor probs_BL, GpuTensor dLogits_BL, GpuTensor lossPerSample);
 
   void embeddingLookupForward(GpuTensor table, GpuTensor idxAsInt32, long B, GpuTensor out);
   void embeddingLookupBackward(GpuTensor dOut, GpuTensor idxAsInt32, long B, GpuTensor dTable);
 
-  void concatRows(sequence<GpuTensor> parts, GpuTensor out);
-  void splitRows(GpuTensor in_, sequence<GpuTensor> parts);
-  void concatBatchedRows(sequence<GpuTensor> parts, GpuTensor out);
-  void concatNchwChannels(sequence<GpuTensor> parts, long N, long H, long W, sequence<long> C_per_part, GpuTensor out);
-  void concatNchwChannelsBackward(GpuTensor dY, long N, long H, long W, sequence<long> C_per_part, sequence<GpuTensor> dParts);
+  [manual] void concatRows(sequence<GpuTensor> parts, GpuTensor out);
+  [manual] void splitRows(GpuTensor in_, sequence<GpuTensor> parts);
+  [manual] void concatBatchedRows(sequence<GpuTensor> parts, GpuTensor out);
+  [manual] void concatNchwChannels(sequence<GpuTensor> parts, long N, long H, long W, sequence<long> C_per_part, GpuTensor out);
+  [manual] void concatNchwChannelsBackward(GpuTensor dY, long N, long H, long W, sequence<long> C_per_part, sequence<GpuTensor> dParts);
 
   void sgdStep(GpuTensor param, GpuTensor grad, GpuTensor velocity, double lr, double momentum);
   void adamStep(GpuTensor param, GpuTensor grad, GpuTensor m, GpuTensor v, double lr, double beta1, double beta2, double eps, long step);

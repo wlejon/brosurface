@@ -37,7 +37,7 @@ namespace flora {
    * @param opts Simulation initialization options (rngSeed, climate, shadow grid).
    * @return World instance handle.
    */
-  FloraWorld createWorld(optional object opts);
+  [manual] FloraWorld createWorld(optional object opts);
 
   /**
    * Procedural leaf cluster geometry generator.
@@ -46,7 +46,7 @@ namespace flora {
    * @param opts Leaf cluster configuration options.
    * @return Mesh instance containing generated leaf vertices and indices.
    */
-  object leafCluster(any phyllotaxy, optional object opts);
+  [manual] object leafCluster(any phyllotaxy, optional object opts);
 
   void setWind(double strength, optional double dirX = 0, optional double dirY = 0);
   void wind(double strength, optional double dirX = 0, optional double dirY = 0);
@@ -54,10 +54,10 @@ namespace flora {
   void density(double density);
   void update(double dt);
   void clear();
-  void placement(object config);
-  void addPlacement(object config);
-  object batches();
-  object getBatches();
+  [manual] void placement(object config);
+  [manual] void addPlacement(object config);
+  [manual] object batches();
+  [manual] object getBatches();
 };
 
 [
@@ -68,7 +68,7 @@ interface FloraWorld {
   /**
    * Register a branch module prototype into the world state.
    */
-  long addPrototype(object spec);
+  [manual] long addPrototype(object spec);
 
   /**
    * Add a voronoi site defining spatial dominance and archetype distribution.
@@ -78,7 +78,7 @@ interface FloraWorld {
   /**
    * Add a plant specimen into the ecosystem.
    */
-  long addPlant(object spec);
+  [manual] long addPlant(object spec);
 
   /**
    * Remove a plant specimen by index (swap-and-pop).
@@ -93,42 +93,42 @@ interface FloraWorld {
   /**
    * Query full runtime and species snapshot for a plant.
    */
-  object? plantInfo(long plantIdx);
+  [manual] object? plantInfo(long plantIdx);
 
   /**
    * Update climate temperature and precipitation parameters in real-time.
    */
-  FloraWorld setClimate(object opts);
+  [manual] FloraWorld setClimate(object opts);
 
   /**
    * Sample the world shadow grid at a world-space coordinate [x, y, z].
    */
-  double? sampleShadow(sequence<double> pos);
+  [manual] double? sampleShadow(sequence<double> pos);
 
   /**
    * Verify integrity of world module hierarchy.
    */
-  DOMString? validate();
+  [manual] DOMString? validate();
 
   /**
    * Emit procedural mesh geometry for all living plant branches.
    */
-  object emitMesh(optional long sides = 6);
+  [manual] object emitMesh(optional long sides = 6);
 
   /**
    * Emit linear branch segments with radii and parent indices.
    */
-  sequence<object> emitSegments();
+  [manual] sequence<object> emitSegments();
 
   /**
    * Emit foliage particle points.
    */
-  sequence<object> emitFoliage();
+  [manual] sequence<object> emitFoliage();
 
   /**
    * Emit blossom and flowering anchor points.
    */
-  sequence<object> emitBloomAnchors();
+  [manual] sequence<object> emitBloomAnchors();
 
   /**
    * Current simulation time in seconds.
