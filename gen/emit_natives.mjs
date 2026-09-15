@@ -457,13 +457,14 @@ export function planSubsystems(idlDir, subsystems) {
     throw new Error(`IDL validation failed:\n${valErrors.map((e) => '  ' + e.toString()).join('\n')}`);
   }
   const known = new Set(entries.map((e) => e.subsystem));
+  const allNativeSubs = new Set([...readNativesList(idlDir), ...subsystems]);
   for (const s of subsystems) {
     if (!known.has(s)) throw new Error(`natives subsystem '${s}' has no idl/${s}.idl`);
   }
   const plans = [];
   const errors = [];
   for (const s of subsystems) {
-    const plan = planNatives(entries, s, subsystems);
+    const plan = planNatives(entries, s, allNativeSubs);
     for (const e of plan.errors) {
       const src = sourceMap.get(e.file);
       if (src && !e.sourceSnippet) {

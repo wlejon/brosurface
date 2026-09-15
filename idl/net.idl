@@ -13,6 +13,14 @@
  *   bro.net.host(7777);
  */
 
+[json]
+dictionary NetStats {
+  double ping;
+  double packetLoss;
+  double bytesSent;
+  double bytesRecv;
+};
+
 [
   cpp_file="net_bindings.cpp",
   cpp_header="js/net_bindings.h",
@@ -34,15 +42,15 @@ namespace net {
   void disconnectAll();
   void send(long peerId, (ArrayBuffer or ArrayBufferView) data, optional long channel = 0);
   void broadcast((ArrayBuffer or ArrayBufferView) data, optional long channel = 0);
-  void sendClone(long peerId, any value, optional long channel = 0);
-  void broadcastClone(any value, optional long channel = 0);
+  [manual] void sendClone(long peerId, any value, optional long channel = 0);
+  [manual] void broadcastClone(any value, optional long channel = 0);
   sequence<long> peers();
-  DOMString? getPeerAddress(long peerId);
-  object stats();
-  object? getPeerStats(long peerId);
+  DOMString getPeerAddress(long peerId);
+  NetStats stats();
+  NetStats getPeerStats(long peerId);
   void setPeerSimulatedLoss(long peerId, double chance, double latencyMin, double latencyMax);
 
-  attribute EventHandler onconnect;
-  attribute EventHandler ondisconnect;
-  attribute EventHandler onmessage;
+  [manual] attribute EventHandler onconnect;
+  [manual] attribute EventHandler ondisconnect;
+  [manual] attribute EventHandler onmessage;
 };
