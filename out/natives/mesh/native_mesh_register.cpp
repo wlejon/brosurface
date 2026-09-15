@@ -10,8 +10,6 @@
 
 #include "native_mesh_decl.h"
 
-#if BRO_WITH_3D
-
 #include "embed/embed.h"
 
 #include <initializer_list>
@@ -226,16 +224,3 @@ bool registerNatives_mesh(std::string* error) {
 }
 
 }  // namespace bro::bronze_host
-
-#else  // !(BRO_WITH_3D)
-
-#include <string>
-
-namespace bro::bronze_host {
-
-// Compiled out: nothing is registered and mesh.js is not to be installed.
-bool registerNatives_mesh(std::string*) { return true; }
-
-}  // namespace bro::bronze_host
-
-#endif  // BRO_WITH_3D

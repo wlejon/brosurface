@@ -33,34 +33,93 @@
 extern "C" {
 #endif
 
-// bro.settings.load
-//   registered at __bro_native.settings.load
-void bro_settings_load(void);
-
-// bro.settings.save
-//   registered at __bro_native.settings.save
-void bro_settings_save(void);
-
 // bro.settings.get
 //   registered at __bro_native.settings.get
 const char* bro_settings_get(const char* key);
 
-// bro.settings.set
-//   registered at __bro_native.settings.set
-void bro_settings_set(const char* key, const char* val);
+// bro.settings.getAllJson
+//   registered at __bro_native.settings.getAllJson
+const char* bro_settings_getAllJson(const char* category);
+
+// bro.settings.getDefaultsJson
+//   registered at __bro_native.settings.getDefaultsJson
+const char* bro_settings_getDefaultsJson(const char* category);
+
+// bro.settings.setString
+//   registered at __bro_native.settings.setString
+void bro_settings_setString(const char* key, const char* value);
+
+// bro.settings.setNumber
+//   registered at __bro_native.settings.setNumber
+void bro_settings_setNumber(const char* key, double value);
+
+// bro.settings.setBool
+//   registered at __bro_native.settings.setBool
+void bro_settings_setBool(const char* key, bool value);
+
+// bro.settings.setDefaultString
+//   registered at __bro_native.settings.setDefaultString
+void bro_settings_setDefaultString(const char* key, const char* value);
+
+// bro.settings.setDefaultNumber
+//   registered at __bro_native.settings.setDefaultNumber
+void bro_settings_setDefaultNumber(const char* key, double value);
+
+// bro.settings.setDefaultBool
+//   registered at __bro_native.settings.setDefaultBool
+void bro_settings_setDefaultBool(const char* key, bool value);
 
 // bro.settings.reset
 //   registered at __bro_native.settings.reset
-//   category_given: false when the value was not passed (no declared default)
-void bro_settings_reset(bool category_given, const char* category);
+void bro_settings_reset(const char* category);
+
+// bro.settings.defineAction
+//   registered at __bro_native.settings.defineAction
+void bro_settings_defineAction(const char* action, const char* keysJoined, double deadzone);
+
+// bro.settings.rebindAction
+//   registered at __bro_native.settings.rebindAction
+void bro_settings_rebindAction(const char* action, const char* keysJoined);
+
+// bro.settings.resetAction
+//   registered at __bro_native.settings.resetAction
+void bro_settings_resetAction(const char* action);
+
+// bro.settings.resetAllActions
+//   registered at __bro_native.settings.resetAllActions
+void bro_settings_resetAllActions(void);
+
+// bro.settings.actionKeysJson
+//   registered at __bro_native.settings.actionKeysJson
+const char* bro_settings_actionKeysJson(const char* action);
+
+// bro.settings.keyAction
+//   registered at __bro_native.settings.keyAction
+const char* bro_settings_keyAction(const char* key);
+
+// bro.settings.actionStrength
+//   registered at __bro_native.settings.actionStrength
+double bro_settings_actionStrength(const char* action);
 
 // bro.settings.isActionPressed
 //   registered at __bro_native.settings.isActionPressed
 bool bro_settings_isActionPressed(const char* action);
 
-// bro.settings.getActionStrength
-//   registered at __bro_native.settings.getActionStrength
-double bro_settings_getActionStrength(const char* action);
+// bro.settings.actionsJson
+//   registered at __bro_native.settings.actionsJson
+const char* bro_settings_actionsJson(void);
+
+// bro.settings.appActionsJson
+//   registered at __bro_native.settings.appActionsJson
+const char* bro_settings_appActionsJson(void);
+
+// bro.settings.displayModesJson
+//   registered at __bro_native.settings.displayModesJson
+const char* bro_settings_displayModesJson(void);
+
+// bro.settings.onChange
+//   registered at __bro_native.settings.onChange
+void bro_settings_onChange(uint64_t listener);
 
 #ifdef __cplusplus
 }  // extern "C"

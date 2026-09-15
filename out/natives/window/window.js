@@ -49,12 +49,6 @@
         __bro_native.window.getPosition();
         return { x: __bro_native.window.getPosition_x(), y: __bro_native.window.getPosition_y() };
     });
-    fn(ns_window, "getPositionX", function getPositionX() {
-        return __bro_native.window.getPositionX();
-    });
-    fn(ns_window, "getPositionY", function getPositionY() {
-        return __bro_native.window.getPositionY();
-    });
     fn(ns_window, "setPosition", function setPosition(x, y) {
         if (x === undefined) throw new TypeError("bro.window.setPosition: x is required");
         if (y === undefined) throw new TypeError("bro.window.setPosition: y is required");
@@ -63,12 +57,6 @@
     fn(ns_window, "getMinSize", function getMinSize() {
         __bro_native.window.getMinSize();
         return { width: __bro_native.window.getMinSize_width(), height: __bro_native.window.getMinSize_height() };
-    });
-    fn(ns_window, "getMinWidth", function getMinWidth() {
-        return __bro_native.window.getMinWidth();
-    });
-    fn(ns_window, "getMinHeight", function getMinHeight() {
-        return __bro_native.window.getMinHeight();
     });
     fn(ns_window, "setMinSize", function setMinSize(width, height) {
         if (width === undefined) throw new TypeError("bro.window.setMinSize: width is required");
@@ -79,12 +67,6 @@
         __bro_native.window.getMaxSize();
         return { width: __bro_native.window.getMaxSize_width(), height: __bro_native.window.getMaxSize_height() };
     });
-    fn(ns_window, "getMaxWidth", function getMaxWidth() {
-        return __bro_native.window.getMaxWidth();
-    });
-    fn(ns_window, "getMaxHeight", function getMaxHeight() {
-        return __bro_native.window.getMaxHeight();
-    });
     fn(ns_window, "setMaxSize", function setMaxSize(width, height) {
         if (width === undefined) throw new TypeError("bro.window.setMaxSize: width is required");
         if (height === undefined) throw new TypeError("bro.window.setMaxSize: height is required");
@@ -94,12 +76,9 @@
         const n = __bro_native.window.getDisplays();
         const out = new Array(n);
         for (let i = 0; i < n; i++) {
-            out[i] = { id: __bro_native.window.getDisplays_id(i), name: __bro_native.window.getDisplays_name(i), bounds: { x: __bro_native.window.getDisplays_bounds_x(i), y: __bro_native.window.getDisplays_bounds_y(i), width: __bro_native.window.getDisplays_bounds_width(i), height: __bro_native.window.getDisplays_bounds_height(i) }, workArea: { x: __bro_native.window.getDisplays_workArea_x(i), y: __bro_native.window.getDisplays_workArea_y(i), width: __bro_native.window.getDisplays_workArea_width(i), height: __bro_native.window.getDisplays_workArea_height(i) }, refreshRate: __bro_native.window.getDisplays_refreshRate(i), contentScale: __bro_native.window.getDisplays_contentScale(i), isPrimary: __bro_native.window.getDisplays_isPrimary(i), isCurrent: __bro_native.window.getDisplays_isCurrent(i) };
+            out[i] = { id: __bro_native.window.getDisplays_id(i), name: __bro_native.window.getDisplays_name(i), x: __bro_native.window.getDisplays_x(i), y: __bro_native.window.getDisplays_y(i), width: __bro_native.window.getDisplays_width(i), height: __bro_native.window.getDisplays_height(i), workX: __bro_native.window.getDisplays_workX(i), workY: __bro_native.window.getDisplays_workY(i), workWidth: __bro_native.window.getDisplays_workWidth(i), workHeight: __bro_native.window.getDisplays_workHeight(i), refreshRate: __bro_native.window.getDisplays_refreshRate(i), contentScale: __bro_native.window.getDisplays_contentScale(i), isPrimary: __bro_native.window.getDisplays_isPrimary(i), isCurrent: __bro_native.window.getDisplays_isCurrent(i) };
         }
         return out;
-    });
-    fn(ns_window, "getDisplayCount", function getDisplayCount() {
-        return __bro_native.window.getDisplayCount();
     });
     fn(ns_window, "moveToDisplay", function moveToDisplay(id) {
         if (id === undefined) throw new TypeError("bro.window.moveToDisplay: id is required");

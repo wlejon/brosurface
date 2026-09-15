@@ -59,37 +59,30 @@ bool registerNatives_window(std::string* error) {
         fn("__bro_native.window.getPosition", p(&bro_window_getPosition), "void", {}, error) &&
         fn("__bro_native.window.getPosition_x", p(&bro_window_getPosition_x), "i32", {}, error) &&
         fn("__bro_native.window.getPosition_y", p(&bro_window_getPosition_y), "i32", {}, error) &&
-        fn("__bro_native.window.getPositionX", p(&bro_window_getPositionX), "i32", {}, error) &&
-        fn("__bro_native.window.getPositionY", p(&bro_window_getPositionY), "i32", {}, error) &&
         fn("__bro_native.window.setPosition", p(&bro_window_setPosition), "void", {"i32", "i32"}, error) &&
         fn("__bro_native.window.getMinSize", p(&bro_window_getMinSize), "void", {}, error) &&
         fn("__bro_native.window.getMinSize_width", p(&bro_window_getMinSize_width), "i32", {}, error) &&
         fn("__bro_native.window.getMinSize_height", p(&bro_window_getMinSize_height), "i32", {}, error) &&
-        fn("__bro_native.window.getMinWidth", p(&bro_window_getMinWidth), "i32", {}, error) &&
-        fn("__bro_native.window.getMinHeight", p(&bro_window_getMinHeight), "i32", {}, error) &&
         fn("__bro_native.window.setMinSize", p(&bro_window_setMinSize), "void", {"i32", "i32"}, error) &&
         fn("__bro_native.window.getMaxSize", p(&bro_window_getMaxSize), "void", {}, error) &&
         fn("__bro_native.window.getMaxSize_width", p(&bro_window_getMaxSize_width), "i32", {}, error) &&
         fn("__bro_native.window.getMaxSize_height", p(&bro_window_getMaxSize_height), "i32", {}, error) &&
-        fn("__bro_native.window.getMaxWidth", p(&bro_window_getMaxWidth), "i32", {}, error) &&
-        fn("__bro_native.window.getMaxHeight", p(&bro_window_getMaxHeight), "i32", {}, error) &&
         fn("__bro_native.window.setMaxSize", p(&bro_window_setMaxSize), "void", {"i32", "i32"}, error) &&
         fn("__bro_native.window.getDisplays", p(&bro_window_getDisplays), "i32", {}, error) &&
         fn("__bro_native.window.getDisplays_id", p(&bro_window_getDisplays_id), "f64", {"i32"}, error) &&
         fn("__bro_native.window.getDisplays_name", p(&bro_window_getDisplays_name), "str", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_bounds_x", p(&bro_window_getDisplays_bounds_x), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_bounds_y", p(&bro_window_getDisplays_bounds_y), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_bounds_width", p(&bro_window_getDisplays_bounds_width), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_bounds_height", p(&bro_window_getDisplays_bounds_height), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_workArea_x", p(&bro_window_getDisplays_workArea_x), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_workArea_y", p(&bro_window_getDisplays_workArea_y), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_workArea_width", p(&bro_window_getDisplays_workArea_width), "i32", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplays_workArea_height", p(&bro_window_getDisplays_workArea_height), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_x", p(&bro_window_getDisplays_x), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_y", p(&bro_window_getDisplays_y), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_width", p(&bro_window_getDisplays_width), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_height", p(&bro_window_getDisplays_height), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_workX", p(&bro_window_getDisplays_workX), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_workY", p(&bro_window_getDisplays_workY), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_workWidth", p(&bro_window_getDisplays_workWidth), "i32", {"i32"}, error) &&
+        fn("__bro_native.window.getDisplays_workHeight", p(&bro_window_getDisplays_workHeight), "i32", {"i32"}, error) &&
         fn("__bro_native.window.getDisplays_refreshRate", p(&bro_window_getDisplays_refreshRate), "f64", {"i32"}, error) &&
         fn("__bro_native.window.getDisplays_contentScale", p(&bro_window_getDisplays_contentScale), "f64", {"i32"}, error) &&
         fn("__bro_native.window.getDisplays_isPrimary", p(&bro_window_getDisplays_isPrimary), "bool", {"i32"}, error) &&
         fn("__bro_native.window.getDisplays_isCurrent", p(&bro_window_getDisplays_isCurrent), "bool", {"i32"}, error) &&
-        fn("__bro_native.window.getDisplayCount", p(&bro_window_getDisplayCount), "i32", {}, error) &&
         fn("__bro_native.window.moveToDisplay", p(&bro_window_moveToDisplay), "bool", {"f64"}, error);
     if (!ok) return false;
     return true;

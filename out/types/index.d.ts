@@ -2370,9 +2370,17 @@ interface WakeStats {
 }
 
 /**
- * Desktop coordinates and dimensions of a rectangle bounds.
+ * Display device descriptor.
  */
-interface DisplayBounds {
+interface DisplayInfo {
+  /**
+   *  Stable SDL display identifier.
+   */
+  id?: number;
+  /**
+   *  Display device name.
+   */
+  name?: string;
   /**
    *  X coordinate in desktop pixels.
    */
@@ -2389,28 +2397,22 @@ interface DisplayBounds {
    *  Height in desktop pixels.
    */
   height?: number;
-}
-
-/**
- * Display device descriptor.
- */
-interface DisplayInfo {
   /**
-   *  Stable SDL display identifier.
+   *  Usable work area X in desktop pixels.
    */
-  id?: number;
+  workX?: number;
   /**
-   *  Display device name.
+   *  Usable work area Y in desktop pixels.
    */
-  name?: string;
+  workY?: number;
   /**
-   *  Full display bounds.
+   *  Usable work area width in desktop pixels.
    */
-  bounds?: DisplayBounds;
+  workWidth?: number;
   /**
-   *  Usable work area bounds minus taskbars and docks.
+   *  Usable work area height in desktop pixels.
    */
-  workArea?: DisplayBounds;
+  workHeight?: number;
   /**
    *  Refresh rate in Hz.
    */
@@ -5666,6 +5668,40 @@ declare class WakeStreamView {
 
 /**
  * =============================================================================
+ * Web Animations API
+ * =============================================================================
+ *
+ * Implements the W3C Web Animations API for DOM elements.
+ * Provides element.animate(), element.getAnimations(), and Animation object controls.
+ *
+ * @example
+ *   const anim = element.animate([
+ *     { transform: 'translateY(0px)', opacity: 1 },
+ *     { transform: 'translateY(100px)', opacity: 0 }
+ *   ], { duration: 1000, iterations: Infinity });
+ *   anim.pause();
+ */
+declare class Animation {
+  currentTime: number;
+  playbackRate: number;
+  readonly playState: string;
+  readonly pending: boolean;
+  readonly finished: Promise<Animation>;
+  readonly ready: Promise<Animation>;
+  onfinish: ((event: any) => any) | null;
+  oncancel: ((event: any) => any) | null;
+  play(): void;
+  pause(): void;
+  finish(): void;
+  cancel(): void;
+  reverse(): void;
+}
+
+declare class WebAnimations {
+}
+
+/**
+ * =============================================================================
  * WebGL2RenderingContext — WebGL 2.0 Graphics Rendering Pipeline
  * =============================================================================
  *
@@ -5747,40 +5783,6 @@ declare class WebGL2RenderingContext {
   getUniformLocation(program: WebGLProgram | null, name: string): WebGLUniformLocation | null;
   drawArrays(mode: number, first: number, count: number): void;
   drawElements(mode: number, count: number, type: number, offset: number): void;
-}
-
-/**
- * =============================================================================
- * Web Animations API
- * =============================================================================
- *
- * Implements the W3C Web Animations API for DOM elements.
- * Provides element.animate(), element.getAnimations(), and Animation object controls.
- *
- * @example
- *   const anim = element.animate([
- *     { transform: 'translateY(0px)', opacity: 1 },
- *     { transform: 'translateY(100px)', opacity: 0 }
- *   ], { duration: 1000, iterations: Infinity });
- *   anim.pause();
- */
-declare class Animation {
-  currentTime: number;
-  playbackRate: number;
-  readonly playState: string;
-  readonly pending: boolean;
-  readonly finished: Promise<Animation>;
-  readonly ready: Promise<Animation>;
-  onfinish: ((event: any) => any) | null;
-  oncancel: ((event: any) => any) | null;
-  play(): void;
-  pause(): void;
-  finish(): void;
-  cancel(): void;
-  reverse(): void;
-}
-
-declare class WebAnimations {
 }
 
 /**
@@ -5872,6 +5874,76 @@ declare namespace Physics {
 // ── Global 'bro' Namespace ───────────────────────────────────────────────────
 
 declare namespace bro {
+  function dismiss(): void;
+
+  const width: number;
+  const height: number;
+
+  const fps: number;
+  const frameTime: number;
+  const js: number;
+  const layout: number;
+  const raster: number;
+  const gpu: number;
+  const draw: number;
+  function windowCount(): number;
+  function windowId(index: number): number;
+  function windowTitle(index: number): string;
+  function windowWidth(index: number): number;
+  function windowHeight(index: number): number;
+  function windowFocused(index: number): boolean;
+  function windowMinimized(index: number): boolean;
+
+  const meshDrawn: number;
+  const meshCulled: number;
+  const instancedDrawn: number;
+  const instancedCulled: number;
+  const splatDrawn: number;
+  const splatCulled: number;
+  const particlesDrawn: number;
+  const particlesCulled: number;
+  const billboardsDrawn: number;
+  const billboardsCulled: number;
+  const decalsDrawn: number;
+  const decalsCulled: number;
+  const shadowDrawn: number;
+  const shadowCulled: number;
+  const shadowTilesTotal: number;
+  const shadowTilesRendered: number;
+  const shadowTilesCached: number;
+
+  const heapUsedBytes: number;
+  const heapCommittedBytes: number;
+  const heapReservedBytes: number;
+  const gcCollections: number;
+  const gcPauseNs: number;
+  const shapeTransitions: number;
+
+  function height(): number;
+  function treeJson(): string;
+  function click(id: string): void;
+
+  function show(name: string): void;
+  function panelsJson(): string;
+  function activePanel(): string;
+  function toggle(): void;
+  function isVisible(): boolean;
+  function contentTop(): number;
+
+  const visible: boolean;
+  const dock: string;
+  const width: number;
+  const height: number;
+  const pickerMode: boolean;
+  function appTreeJson(maxDepth: number): string;
+  function childrenJson(parentId: number): string;
+  function selectedJson(): string;
+  function select(id: number): void;
+  function setDock(dock: string): void;
+  function setSize(px: number): void;
+  function setPickerMode(on: boolean): void;
+  function toggle(): void;
+
   /**
    * Absolute native filesystem path of the running application's root directory.
    */
@@ -6919,13 +6991,28 @@ declare namespace bro {
    * =============================================================================
    */
   namespace settings {
-    function load(): void;
-    function save(): void;
     function get(key: string): string;
-    function set(key: string, val: string): void;
-    function reset(category?: string): void;
+    function getAllJson(category: string): string;
+    function getDefaultsJson(category: string): string;
+    function setString(key: string, value: string): void;
+    function setNumber(key: string, value: number): void;
+    function setBool(key: string, value: boolean): void;
+    function setDefaultString(key: string, value: string): void;
+    function setDefaultNumber(key: string, value: number): void;
+    function setDefaultBool(key: string, value: boolean): void;
+    function reset(category: string): void;
+    function defineAction(action: string, keysJoined: string, deadzone: number): void;
+    function rebindAction(action: string, keysJoined: string): void;
+    function resetAction(action: string): void;
+    function resetAllActions(): void;
+    function actionKeysJson(action: string): string;
+    function keyAction(key: string): string;
+    function actionStrength(action: string): number;
     function isActionPressed(action: string): boolean;
-    function getActionStrength(action: string): number;
+    function actionsJson(): string;
+    function appActionsJson(): string;
+    function displayModesJson(): string;
+    function onChange(listener: Function): void;
   }
 
   /**
@@ -7324,19 +7411,12 @@ declare namespace bro {
      * Retrieves current desktop coordinate position of the window.
      */
     function getPosition(): WindowPosition;
-    function getPositionX(): number;
-    function getPositionY(): number;
     function setPosition(x: number, y: number): void;
     function getMinSize(): WindowSize;
-    function getMinWidth(): number;
-    function getMinHeight(): number;
     function setMinSize(width: number, height: number): void;
     function getMaxSize(): WindowSize;
-    function getMaxWidth(): number;
-    function getMaxHeight(): number;
     function setMaxSize(width: number, height: number): void;
     function getDisplays(): DisplayInfo[];
-    function getDisplayCount(): number;
     function moveToDisplay(id: number): boolean;
   }
 
@@ -7350,6 +7430,101 @@ declare namespace bro {
      */
     const gpu: typeof image_gpu;
   }
+}
+
+// ── Global '__bro' Namespace ────────────────────────────────────────────────
+
+declare namespace __bro {
+  /**
+   * =============================================================================
+   * __bro — Internal System Panels & Runtime Telemetry Interface
+   * =============================================================================
+   */
+  namespace splash {
+    function dismiss(): void;
+  }
+
+  namespace viewport {
+    const width: number;
+    const height: number;
+  }
+
+  namespace perf {
+    const fps: number;
+    const frameTime: number;
+    const js: number;
+    const layout: number;
+    const raster: number;
+    const gpu: number;
+    const draw: number;
+    function windowCount(): number;
+    function windowId(index: number): number;
+    function windowTitle(index: number): string;
+    function windowWidth(index: number): number;
+    function windowHeight(index: number): number;
+    function windowFocused(index: number): boolean;
+    function windowMinimized(index: number): boolean;
+    namespace scene {
+      const meshDrawn: number;
+      const meshCulled: number;
+      const instancedDrawn: number;
+      const instancedCulled: number;
+      const splatDrawn: number;
+      const splatCulled: number;
+      const particlesDrawn: number;
+      const particlesCulled: number;
+      const billboardsDrawn: number;
+      const billboardsCulled: number;
+      const decalsDrawn: number;
+      const decalsCulled: number;
+      const shadowDrawn: number;
+      const shadowCulled: number;
+      const shadowTilesTotal: number;
+      const shadowTilesRendered: number;
+      const shadowTilesCached: number;
+    }
+  }
+
+  namespace bronze {
+    const heapUsedBytes: number;
+    const heapCommittedBytes: number;
+    const heapReservedBytes: number;
+    const gcCollections: number;
+    const gcPauseNs: number;
+    const shapeTransitions: number;
+  }
+
+  namespace menu {
+    function height(): number;
+    function treeJson(): string;
+    function click(id: string): void;
+  }
+
+  namespace settingsUI {
+    function show(name: string): void;
+    function panelsJson(): string;
+    function activePanel(): string;
+    function toggle(): void;
+    function isVisible(): boolean;
+    function contentTop(): number;
+  }
+
+  namespace inspector {
+    const visible: boolean;
+    const dock: string;
+    const width: number;
+    const height: number;
+    const pickerMode: boolean;
+    function appTreeJson(maxDepth: number): string;
+    function childrenJson(parentId: number): string;
+    function selectedJson(): string;
+    function select(id: number): void;
+    function setDock(dock: string): void;
+    function setSize(px: number): void;
+    function setPickerMode(on: boolean): void;
+    function toggle(): void;
+  }
+
 }
 /**
  * Custom element registry for registering and querying custom element definitions.

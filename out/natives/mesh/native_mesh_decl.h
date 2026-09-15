@@ -22,8 +22,6 @@
 // A dictionary or list RESULT crosses as reads: the operation runs and keeps its
 // result in a per-thread slot, answering nothing (or the list's length), and the
 // <op>_<member> / <op>_at natives read from that slot until the next call.
-//
-// Gate: BRO_WITH_3D (native_mesh_register.cpp registers nothing when it is off).
 #pragma once
 
 #include <stdbool.h>

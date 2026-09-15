@@ -10,8 +10,6 @@
 
 #include "native_lm_decl.h"
 
-#if BRO_WITH_LM
-
 #include "embed/embed.h"
 
 #include <initializer_list>
@@ -66,7 +64,7 @@ void* p(F* f) { return reinterpret_cast<void*>(f); }
 }  // namespace
 
 bool registerNatives_lm(std::string* error) {
-    const bool ok =
+    bool ok =
         ctor("__bro_native.lm.AsyncHandle", p(&bro_lm_AsyncHandle_ctor), &bro_lm_AsyncHandle_dtor, bronze::runtime::Finalize::InSweep, {}, error) &&
         ctor("__bro_native.lm.QwenTokenizer", p(&bro_lm_QwenTokenizer_ctor), &bro_lm_QwenTokenizer_dtor, bronze::runtime::Finalize::InSweep, {}, error) &&
         ctor("__bro_native.lm.MistralTokenizer", p(&bro_lm_MistralTokenizer_ctor), &bro_lm_MistralTokenizer_dtor, bronze::runtime::Finalize::InSweep, {}, error) &&
@@ -141,7 +139,9 @@ bool registerNatives_lm(std::string* error) {
         fn("__bro_native.lm.T5Model_encode_data", p(&bro_lm_T5Model_encode_data), "f32[]", {}, error) &&
         fn("__bro_native.lm.T5Model_encode_length", p(&bro_lm_T5Model_encode_length), "i32", {}, error) &&
         fn("__bro_native.lm.T5Model_encode_dim", p(&bro_lm_T5Model_encode_dim), "i32", {}, error) &&
-        fn("__bro_native.lm.T5Model_encode_ids", p(&bro_lm_T5Model_encode_ids), "i32[]", {}, error) &&
+        fn("__bro_native.lm.T5Model_encode_ids", p(&bro_lm_T5Model_encode_ids), "i32[]", {}, error);
+#if BRO_WITH_LM
+    ok = ok &&
         fn("__bro_native.lm.init", p(&bro_lm_init), "void", {}, error) &&
         fn("__bro_native.lm.loadQwen", p(&bro_lm_loadQwen), "void", {"str", "str", "bool", "str", "i32", "dynamic", "dynamic"}, error) &&
         fn("__bro_native.lm.loadQwen_model", p(&bro_lm_loadQwen_model), "__bro_native.lm.LMModel", {}, error) &&
@@ -158,6 +158,7 @@ bool registerNatives_lm(std::string* error) {
         fn("__bro_native.lm.loadTokenizer", p(&bro_lm_loadTokenizer), "__bro_native.lm.QwenTokenizer", {"str", "str"}, error) &&
         fn("__bro_native.lm.loadClip", p(&bro_lm_loadClip), "__bro_native.lm.ClipModel", {"str", "str", "bool", "str", "bool", "str", "bool", "str", "bool", "str", "str", "str", "str", "str"}, error) &&
         fn("__bro_native.lm.loadT5", p(&bro_lm_loadT5), "__bro_native.lm.T5Model", {"str", "bool", "str", "bool", "str", "str", "str", "i32", "bool", "bool", "i32", "bool", "i32", "bool", "i32", "bool", "i32", "bool", "i32", "bool", "i32", "str"}, error);
+#endif
     if (!ok) return false;
     publishPrototype("lm", "__bro_native.lm.AsyncHandle", "AsyncHandleProto");
     publishPrototype("lm", "__bro_native.lm.QwenTokenizer", "QwenTokenizerProto");
@@ -173,16 +174,3 @@ bool registerNatives_lm(std::string* error) {
 }
 
 }  // namespace bro::bronze_host
-
-#else  // !(BRO_WITH_LM)
-
-#include <string>
-
-namespace bro::bronze_host {
-
-// Compiled out: nothing is registered and lm.js is not to be installed.
-bool registerNatives_lm(std::string*) { return true; }
-
-}  // namespace bro::bronze_host
-
-#endif  // BRO_WITH_LM

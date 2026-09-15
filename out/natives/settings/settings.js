@@ -17,30 +17,97 @@
 
     // ---- bro.settings --------------------------------------------------------
     const ns_settings = mount(bro, "settings");
-    fn(ns_settings, "load", function load() {
-        __bro_native.settings.load();
-    });
-    fn(ns_settings, "save", function save() {
-        __bro_native.settings.save();
-    });
     fn(ns_settings, "get", function get(key) {
         if (key === undefined) throw new TypeError("bro.settings.get: key is required");
         return __bro_native.settings.get(key);
     });
-    fn(ns_settings, "set", function set(key, val) {
-        if (key === undefined) throw new TypeError("bro.settings.set: key is required");
-        if (val === undefined) throw new TypeError("bro.settings.set: val is required");
-        __bro_native.settings.set(key, val);
+    fn(ns_settings, "getAllJson", function getAllJson(category) {
+        if (category === undefined) throw new TypeError("bro.settings.getAllJson: category is required");
+        return __bro_native.settings.getAllJson(category);
+    });
+    fn(ns_settings, "getDefaultsJson", function getDefaultsJson(category) {
+        if (category === undefined) throw new TypeError("bro.settings.getDefaultsJson: category is required");
+        return __bro_native.settings.getDefaultsJson(category);
+    });
+    fn(ns_settings, "setString", function setString(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setString: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setString: value is required");
+        __bro_native.settings.setString(key, value);
+    });
+    fn(ns_settings, "setNumber", function setNumber(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setNumber: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setNumber: value is required");
+        __bro_native.settings.setNumber(key, value);
+    });
+    fn(ns_settings, "setBool", function setBool(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setBool: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setBool: value is required");
+        __bro_native.settings.setBool(key, value);
+    });
+    fn(ns_settings, "setDefaultString", function setDefaultString(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setDefaultString: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setDefaultString: value is required");
+        __bro_native.settings.setDefaultString(key, value);
+    });
+    fn(ns_settings, "setDefaultNumber", function setDefaultNumber(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setDefaultNumber: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setDefaultNumber: value is required");
+        __bro_native.settings.setDefaultNumber(key, value);
+    });
+    fn(ns_settings, "setDefaultBool", function setDefaultBool(key, value) {
+        if (key === undefined) throw new TypeError("bro.settings.setDefaultBool: key is required");
+        if (value === undefined) throw new TypeError("bro.settings.setDefaultBool: value is required");
+        __bro_native.settings.setDefaultBool(key, value);
     });
     fn(ns_settings, "reset", function reset(category) {
-        __bro_native.settings.reset(category !== undefined, category === undefined ? '' : category);
+        if (category === undefined) throw new TypeError("bro.settings.reset: category is required");
+        __bro_native.settings.reset(category);
+    });
+    fn(ns_settings, "defineAction", function defineAction(action, keysJoined, deadzone) {
+        if (action === undefined) throw new TypeError("bro.settings.defineAction: action is required");
+        if (keysJoined === undefined) throw new TypeError("bro.settings.defineAction: keysJoined is required");
+        if (deadzone === undefined) throw new TypeError("bro.settings.defineAction: deadzone is required");
+        __bro_native.settings.defineAction(action, keysJoined, deadzone);
+    });
+    fn(ns_settings, "rebindAction", function rebindAction(action, keysJoined) {
+        if (action === undefined) throw new TypeError("bro.settings.rebindAction: action is required");
+        if (keysJoined === undefined) throw new TypeError("bro.settings.rebindAction: keysJoined is required");
+        __bro_native.settings.rebindAction(action, keysJoined);
+    });
+    fn(ns_settings, "resetAction", function resetAction(action) {
+        if (action === undefined) throw new TypeError("bro.settings.resetAction: action is required");
+        __bro_native.settings.resetAction(action);
+    });
+    fn(ns_settings, "resetAllActions", function resetAllActions() {
+        __bro_native.settings.resetAllActions();
+    });
+    fn(ns_settings, "actionKeysJson", function actionKeysJson(action) {
+        if (action === undefined) throw new TypeError("bro.settings.actionKeysJson: action is required");
+        return __bro_native.settings.actionKeysJson(action);
+    });
+    fn(ns_settings, "keyAction", function keyAction(key) {
+        if (key === undefined) throw new TypeError("bro.settings.keyAction: key is required");
+        return __bro_native.settings.keyAction(key);
+    });
+    fn(ns_settings, "actionStrength", function actionStrength(action) {
+        if (action === undefined) throw new TypeError("bro.settings.actionStrength: action is required");
+        return __bro_native.settings.actionStrength(action);
     });
     fn(ns_settings, "isActionPressed", function isActionPressed(action) {
         if (action === undefined) throw new TypeError("bro.settings.isActionPressed: action is required");
         return __bro_native.settings.isActionPressed(action);
     });
-    fn(ns_settings, "getActionStrength", function getActionStrength(action) {
-        if (action === undefined) throw new TypeError("bro.settings.getActionStrength: action is required");
-        return __bro_native.settings.getActionStrength(action);
+    fn(ns_settings, "actionsJson", function actionsJson() {
+        return __bro_native.settings.actionsJson();
+    });
+    fn(ns_settings, "appActionsJson", function appActionsJson() {
+        return __bro_native.settings.appActionsJson();
+    });
+    fn(ns_settings, "displayModesJson", function displayModesJson() {
+        return __bro_native.settings.displayModesJson();
+    });
+    fn(ns_settings, "onChange", function onChange(listener) {
+        if (listener === undefined) throw new TypeError("bro.settings.onChange: listener is required");
+        __bro_native.settings.onChange(listener);
     });
 })();

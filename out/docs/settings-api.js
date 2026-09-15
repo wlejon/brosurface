@@ -5,10 +5,6 @@
  * bro.settings — Engine & Display Settings Management
  * =============================================================================
  */
-bro.settings.load = function() {};
-
-bro.settings.save = function() {};
-
 /**
  * @param {string} key
  * @returns {string}
@@ -16,15 +12,95 @@ bro.settings.save = function() {};
 bro.settings.get = function(key) {};
 
 /**
- * @param {string} key
- * @param {string} val
+ * @param {string} category
+ * @returns {string}
  */
-bro.settings.set = function(key, val) {};
+bro.settings.getAllJson = function(category) {};
 
 /**
- * @param {string} [category]
+ * @param {string} category
+ * @returns {string}
+ */
+bro.settings.getDefaultsJson = function(category) {};
+
+/**
+ * @param {string} key
+ * @param {string} value
+ */
+bro.settings.setString = function(key, value) {};
+
+/**
+ * @param {string} key
+ * @param {number} value
+ */
+bro.settings.setNumber = function(key, value) {};
+
+/**
+ * @param {string} key
+ * @param {boolean} value
+ */
+bro.settings.setBool = function(key, value) {};
+
+/**
+ * @param {string} key
+ * @param {string} value
+ */
+bro.settings.setDefaultString = function(key, value) {};
+
+/**
+ * @param {string} key
+ * @param {number} value
+ */
+bro.settings.setDefaultNumber = function(key, value) {};
+
+/**
+ * @param {string} key
+ * @param {boolean} value
+ */
+bro.settings.setDefaultBool = function(key, value) {};
+
+/**
+ * @param {string} category
  */
 bro.settings.reset = function(category) {};
+
+/**
+ * @param {string} action
+ * @param {string} keysJoined
+ * @param {number} deadzone
+ */
+bro.settings.defineAction = function(action, keysJoined, deadzone) {};
+
+/**
+ * @param {string} action
+ * @param {string} keysJoined
+ */
+bro.settings.rebindAction = function(action, keysJoined) {};
+
+/**
+ * @param {string} action
+ */
+bro.settings.resetAction = function(action) {};
+
+bro.settings.resetAllActions = function() {};
+
+/**
+ * @param {string} action
+ * @returns {string}
+ */
+bro.settings.actionKeysJson = function(action) {};
+
+/**
+ * @param {string} key
+ * @returns {string}
+ */
+bro.settings.keyAction = function(key) {};
+
+/**
+ * @param {string} action
+ * @returns {number}
+ */
+bro.settings.actionStrength = function(action) {};
 
 /**
  * @param {string} action
@@ -33,8 +109,22 @@ bro.settings.reset = function(category) {};
 bro.settings.isActionPressed = function(action) {};
 
 /**
- * @param {string} action
- * @returns {number}
+ * @returns {string}
  */
-bro.settings.getActionStrength = function(action) {};
+bro.settings.actionsJson = function() {};
+
+/**
+ * @returns {string}
+ */
+bro.settings.appActionsJson = function() {};
+
+/**
+ * @returns {string}
+ */
+bro.settings.displayModesJson = function() {};
+
+/**
+ * @param {Function} listener
+ */
+bro.settings.onChange = function(listener) {};
 

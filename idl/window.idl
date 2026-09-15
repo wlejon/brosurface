@@ -18,17 +18,6 @@
 /**
  * Desktop coordinates and dimensions of a rectangle bounds.
  */
-dictionary DisplayBounds {
-  /** X coordinate in desktop pixels. */
-  long x;
-  /** Y coordinate in desktop pixels. */
-  long y;
-  /** Width in desktop pixels. */
-  long width;
-  /** Height in desktop pixels. */
-  long height;
-};
-
 /**
  * Display device descriptor.
  */
@@ -37,10 +26,22 @@ dictionary DisplayInfo {
   unsigned long id;
   /** Display device name. */
   DOMString name;
-  /** Full display bounds. */
-  DisplayBounds bounds;
-  /** Usable work area bounds minus taskbars and docks. */
-  DisplayBounds workArea;
+  /** X coordinate in desktop pixels. */
+  long x;
+  /** Y coordinate in desktop pixels. */
+  long y;
+  /** Width in desktop pixels. */
+  long width;
+  /** Height in desktop pixels. */
+  long height;
+  /** Usable work area X in desktop pixels. */
+  long workX;
+  /** Usable work area Y in desktop pixels. */
+  long workY;
+  /** Usable work area width in desktop pixels. */
+  long workWidth;
+  /** Usable work area height in desktop pixels. */
+  long workHeight;
   /** Refresh rate in Hz. */
   double refreshRate;
   /** OS content scale multiplier (1.0 = 100%). */
@@ -121,18 +122,11 @@ namespace window {
    * Retrieves current desktop coordinate position of the window.
    */
   WindowPosition getPosition();
-  long getPositionX();
-  long getPositionY();
   void setPosition(long x, long y);
   WindowSize getMinSize();
-  long getMinWidth();
-  long getMinHeight();
   void setMinSize(long width, long height);
   WindowSize getMaxSize();
-  long getMaxWidth();
-  long getMaxHeight();
   void setMaxSize(long width, long height);
   sequence<DisplayInfo> getDisplays();
-  long getDisplayCount();
   boolean moveToDisplay(unsigned long id);
 };

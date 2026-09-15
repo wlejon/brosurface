@@ -122,8 +122,10 @@ export function renderDeclHeader(plan) {
   out.push('#endif');
   for (const n of plan.natives) {
     out.push('');
+    if (n.gate && !plan.gate) out.push(`#if ${n.gate}`);
     out.push(...nativeComment(n));
     out.push(cPrototype(n));
+    if (n.gate && !plan.gate) out.push(`#endif`);
   }
   out.push('');
   out.push('#ifdef __cplusplus');
@@ -175,19 +177,21 @@ export function renderRegisterCpp(plan) {
   const used = new Set();
   for (const n of plan.natives) {
     if (n.kind === 'dtor') continue;
+    let callStr;
     if (n.kind === 'ctor') {
       used.add('ctor');
-      regs.push(`ctor(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${n.dtor ? `&${n.dtor}` : 'nullptr'}, bronze::runtime::Finalize::${n.finalize}, ${quoted(n.bronzeParams)}, error)`);
+      callStr = `ctor(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${n.dtor ? `&${n.dtor}` : 'nullptr'}, bronze::runtime::Finalize::${n.finalize}, ${quoted(n.bronzeParams)}, error)`;
     } else if (n.kind === 'getter') {
       used.add('getter');
-      regs.push(`getter(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.ret.bronze)}, error)`);
+      callStr = `getter(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.ret.bronze)}, error)`;
     } else if (n.kind === 'setter') {
       used.add('setter');
-      regs.push(`setter(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.bronzeParams[0])}, error)`);
+      callStr = `setter(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.bronzeParams[0])}, error)`;
     } else {
       used.add('fn');
-      regs.push(`fn(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.ret.bronze)}, ${quoted(n.bronzeParams)}, error)`);
+      callStr = `fn(${JSON.stringify(n.jsPath)}, p(&${n.cName}), ${JSON.stringify(n.ret.bronze)}, ${quoted(n.bronzeParams)}, error)`;
     }
+    regs.push({ callStr, gate: (plan.gate ? null : (n.gate || null)) });
   }
   if (regs.length) {
     out.push('ev::NativeSignature sig(const char* ret, std::initializer_list<const char*> params, ev::NativeKind kind) {');
@@ -256,8 +260,27 @@ export function renderRegisterCpp(plan) {
     out.push('    (void)error;');
     out.push('    return true;');
   } else {
-    out.push('    const bool ok =');
-    regs.forEach((r, i) => out.push(`        ${r}${i === regs.length - 1 ? ';' : ' &&'}`));
+    const hasGated = regs.some((r) => r.gate);
+    if (!hasGated) {
+      out.push('    const bool ok =');
+      regs.forEach((r, i) => out.push(`        ${r.callStr}${i === regs.length - 1 ? ';' : ' &&'}`));
+    } else {
+      const ungated = regs.filter((r) => !r.gate);
+      const gated = regs.filter((r) => r.gate);
+      out.push('    bool ok =');
+      ungated.forEach((r, i) => out.push(`        ${r.callStr}${i === ungated.length - 1 ? ';' : ' &&'}`));
+      const gateMap = new Map();
+      for (const r of gated) {
+        if (!gateMap.has(r.gate)) gateMap.set(r.gate, []);
+        gateMap.get(r.gate).push(r.callStr);
+      }
+      for (const [gate, calls] of gateMap) {
+        out.push(`#if ${gate}`);
+        out.push('    ok = ok &&');
+        calls.forEach((c, i) => out.push(`        ${c}${i === calls.length - 1 ? ';' : ' &&'}`));
+        out.push('#endif');
+      }
+    }
     out.push('    if (!ok) return false;');
     for (const n of plan.natives) {
       if (n.kind !== 'ctor') continue;

@@ -240,12 +240,15 @@ export class Validator {
   }
 
   collectSymbols() {
+    const getAttr = (node, name) => node?.attributes?.find(a => a.name === name)?.value;
     for (const file of this.files) {
       for (const def of file.definitions) {
         const name = def.name;
         const loc = def.loc;
+        const prefix = getAttr(def, 'prefix');
+        const symKey = (def.type === 'Namespace' && typeof prefix === 'string' && prefix) ? `${prefix}${name}` : name;
 
-        if (this.isSymbolDeclared(name)) {
+        if (this.isSymbolDeclared(name, def)) {
           this.addError(`Duplicate definition of symbol '${name}'`, loc);
           continue;
         }
@@ -253,7 +256,7 @@ export class Validator {
         if (def.type === 'Interface') {
           this.interfaces.set(name, def);
         } else if (def.type === 'Namespace') {
-          this.namespaces.set(name, def);
+          this.namespaces.set(symKey, def);
         } else if (def.type === 'Dictionary') {
           this.dictionaries.set(name, def);
         } else if (def.type === 'Enum') {
@@ -265,10 +268,22 @@ export class Validator {
     }
   }
 
-  isSymbolDeclared(name) {
+  isSymbolDeclared(name, def) {
+    if (def && def.type === 'Namespace') {
+      const prefix = def.attributes?.find(a => a.name === 'prefix')?.value;
+      const symKey = typeof prefix === 'string' && prefix ? `${prefix}${name}` : name;
+      return (
+        this.interfaces.has(name) ||
+        this.namespaces.has(symKey) ||
+        this.dictionaries.has(name) ||
+        this.enums.has(name) ||
+        this.typedefs.has(name)
+      );
+    }
     return (
       this.interfaces.has(name) ||
       this.namespaces.has(name) ||
+      this.namespaces.has(`bro.${name}`) ||
       this.dictionaries.has(name) ||
       this.enums.has(name) ||
       this.typedefs.has(name)

@@ -84,15 +84,22 @@ class Planner {
   }
 
   plan() {
-    const gates = [];
-    for (const def of this.fileAst.definitions) {
-      if (def.type !== 'Namespace' && def.type !== 'Interface') continue;
-      for (const key of ['gate', 'cpp_guard']) {
-        const g = getAttr(def, key);
-        if (typeof g === 'string' && g.trim() && !gates.includes(g.trim())) gates.push(g.trim());
+    const activeDefs = this.fileAst.definitions.filter((d) => d.type === 'Namespace' || d.type === 'Interface');
+    const allGated = activeDefs.length > 0 && activeDefs.every((d) => {
+      const g = getAttr(d, 'gate') || getAttr(d, 'cpp_guard');
+      return typeof g === 'string' && g.trim().length > 0;
+    });
+    let gate = null;
+    if (allGated) {
+      const gates = [];
+      for (const def of activeDefs) {
+        for (const key of ['gate', 'cpp_guard']) {
+          const g = getAttr(def, key);
+          if (typeof g === 'string' && g.trim() && !gates.includes(g.trim())) gates.push(g.trim());
+        }
       }
+      gate = gates.length === 0 ? null : gates.map((g) => (/\s/.test(g) ? `(${g})` : g)).join(' && ');
     }
-    const gate = gates.length === 0 ? null : gates.map((g) => (/\s/.test(g) ? `(${g})` : g)).join(' && ');
 
     // Every class first: a native that names a class needs its constructor
     // registered before it, and the register order follows the natives list.
@@ -120,24 +127,34 @@ class Planner {
 
   // ---- naming -------------------------------------------------------------
 
-  claimTail(tail, loc) {
-    if (this.tails.has(tail)) {
+  claimTail(tail, loc, scope) {
+    const key = (this.sub === 'dunder_bro' && scope?.nsIdent) ? `${scope.nsIdent}_${tail}` : tail;
+    if (this.tails.has(key)) {
       this.errors.push(new ValidationError(
-        `native name '${tail}' is produced twice (also by ${this.tails.get(tail)}); rename one member`, loc));
+        `native name '${key}' is produced twice (also by ${this.tails.get(key)}); rename one member`, loc));
     }
-    this.tails.set(tail, loc ? `${loc.file}:${loc.line}` : '?');
+    this.tails.set(key, loc ? `${loc.file}:${loc.line}` : '?');
     return tail;
   }
 
-  cName(tail) {
+  cName(tail, scope) {
+    if (this.sub === 'dunder_bro' && scope?.nsIdent) {
+      return `bro_dunder_bro_${cIdent(scope.nsIdent)}_${tail}`;
+    }
     return `bro_${cIdent(this.sub)}_${tail}`;
   }
 
-  jsPath(tail) {
+  jsPath(tail, scope) {
+    if (this.sub === 'dunder_bro' && scope?.nativePath) {
+      return `${NATIVE_ROOT}.${scope.nativePath}.${tail}`;
+    }
     return `${NATIVE_ROOT}.${this.sub}.${tail}`;
   }
 
-  addNative(n) {
+  addNative(n, scope) {
+    if (scope?.gate && !n.gate) {
+      n.gate = scope.gate;
+    }
     this.natives.push(n);
     return n;
   }
@@ -153,7 +170,8 @@ class Planner {
     const prefix = typeof prefixAttr === 'string' ? prefixAttr : 'bro.';
     const parts = prefix.split('.').filter(Boolean);
     const flatten = hasAttr(ns, 'flatten');
-    const chain = flatten ? parts : [...parts, ns.name];
+    const nsName = getAttr(ns, 'js_name') || ns.name.replace(/^dunder_/, '');
+    const chain = flatten ? parts : [...parts, nsName];
     return this.mountChain(chain);
   }
 
@@ -194,6 +212,19 @@ class Planner {
   planNamespace(ns) {
     const mount = this.mountForNamespace(ns);
     const local = `ns_${cIdent(ns.name)}`;
+    const nsGate = getAttr(ns, 'gate') || getAttr(ns, 'cpp_guard') || null;
+    const prefixAttr = getAttr(ns, 'prefix');
+    const prefix = typeof prefixAttr === 'string' ? prefixAttr : '';
+    let nativePath = getAttr(ns, 'native_path');
+    let cNs = getAttr(ns, 'cpp_namespace');
+    if (prefix.startsWith('__bro.')) {
+      const subPath = prefix.slice('__bro.'.length).replace(/\.$/, '');
+      if (!nativePath) nativePath = subPath;
+      if (!cNs) cNs = subPath.replace(/\./g, '_');
+    } else {
+      if (!nativePath) nativePath = ns.name.replace(/^dunder_/, '');
+      if (!cNs) cNs = ns.name.replace(/^dunder_/, '');
+    }
     const members = [];
     for (const m of ns.members) {
       if (m.type === 'ConstantMember') {
@@ -201,9 +232,9 @@ class Planner {
           `Object.defineProperty(${local}, ${JSON.stringify(m.name)}, { value: ${jsLiteral(m.value)}, enumerable: true });`,
         ] });
       } else if (m.type === 'AttributeMember') {
-        members.push(this.planProperty(m, { owner: local, publicPath: mount.publicPath, tail: m.name, self: false, isNamespace: true }));
+        members.push(this.planProperty(m, { owner: local, publicPath: mount.publicPath, tail: m.name, self: false, isNamespace: true, nsIdent: cNs, nativePath, gate: nsGate }));
       } else if (m.type === 'OperationMember') {
-        members.push(this.planOperation(m, { owner: local, publicPath: mount.publicPath, tail: m.name, self: false, isNamespace: true }));
+        members.push(this.planOperation(m, { owner: local, publicPath: mount.publicPath, tail: m.name, self: false, isNamespace: true, nsIdent: cNs, nativePath, gate: nsGate }));
       }
     }
     return { name: ns.name, local, mountExpr: mount.expr, publicPath: mount.publicPath, members };
@@ -316,29 +347,29 @@ class Planner {
     const ret = this.retSpec(shape, hasAttr(m, 'transfer'));
 
     // Read half.
-    const getTail = this.claimTail(`${scope.tail}_get`, m.loc);
+    const getTail = this.claimTail(`${scope.tail}_get`, m.loc, scope);
     const getNative = this.addNative({
-      tail: getTail, cName: this.cName(getTail),
-      jsPath: isNsProp ? this.jsPath(m.name) : this.jsPath(getTail),
+      tail: getTail, cName: this.cName(getTail, scope),
+      jsPath: isNsProp ? this.jsPath(m.name, scope) : this.jsPath(getTail, scope),
       kind: isNsProp ? 'getter' : 'fn',
       ret: ret.cRet, cParams: [...selfParams, ...ret.extraCParams], bronzeParams: [...selfBronze],
       transfer: ret.transfer,
       comment: `${publicMember} read${scope.self ? '' : ''}`,
-    });
+    }, scope);
     const getCall = isNsProp ? getNative.jsPath : `${getNative.jsPath}(${scope.self ? 'this' : ''})`;
     const getLines = ret.result(getCall);
 
     let setLines = null;
     if (!m.readonly) {
-      const setTail = this.claimTail(`${scope.tail}_set`, m.loc);
+      const setTail = this.claimTail(`${scope.tail}_set`, m.loc, scope);
       const arg = this.argPlan(shape, 'v', 'required', 'v', 'v', { what: publicMember, loc: m.loc, setter: true });
       const setNative = this.addNative({
-        tail: setTail, cName: this.cName(setTail),
-        jsPath: isNsProp ? this.jsPath(m.name) : this.jsPath(setTail),
+        tail: setTail, cName: this.cName(setTail, scope),
+        jsPath: isNsProp ? this.jsPath(m.name, scope) : this.jsPath(setTail, scope),
         kind: isNsProp ? 'setter' : 'fn',
         ret: { c: 'void', bronze: 'void' }, cParams: [...selfParams, ...arg.cParams], bronzeParams: [...selfBronze, ...arg.bronzeParams],
         comment: `${publicMember} write`,
-      });
+      }, scope);
       setLines = [...arg.prelude];
       if (isNsProp) setLines.push(`${setNative.jsPath} = ${arg.jsArgs[0]};`);
       else setLines.push(`${setNative.jsPath}(${[scope.self ? 'this' : null, ...arg.jsArgs].filter((x) => x !== null).join(', ')});`);
@@ -366,7 +397,7 @@ class Planner {
     const selfParams = scope.self ? [{ c: 'void*', name: 'self' }] : [];
     const selfBronze = scope.self ? [scope.selfPath] : [];
     const selfArg = scope.self ? ['this'] : [];
-    const tail = this.claimTail(scope.tail, op.loc);
+    const tail = this.claimTail(scope.tail, op.loc, scope);
     const transfer = hasAttr(op, 'transfer');
     const lines = [...args.check, ...args.prelude];
 
@@ -374,7 +405,7 @@ class Planner {
       // The operation runs and stashes; the reads answer from the stash.
       const indexed = shape.kind !== 'dict';
       const native = this.addNative({
-        tail, cName: this.cName(tail), jsPath: this.jsPath(tail), kind: 'fn',
+        tail, cName: this.cName(tail, scope), jsPath: this.jsPath(tail, scope), kind: 'fn',
         ret: shape.kind === 'dict'
           ? (shape.nullable ? { c: 'bool', bronze: 'bool' } : { c: 'void', bronze: 'void' })
           : { c: 'int32_t', bronze: 'i32' },
@@ -382,35 +413,35 @@ class Planner {
         comment: shape.kind === 'dict'
           ? `${publicMember}: runs the operation and keeps its ${shape.dict.name} result in a per-thread slot the ${tail}_<member> reads answer from until the next call${shape.nullable ? '; false = null' : ''}`
           : `${publicMember}: runs the operation, keeps the list in a per-thread slot, and answers its length; ${tail}_${shape.kind === 'seqHandle' ? 'at' : '<member>'}(index) reads from it`,
-      });
+      }, scope);
       const call = `${native.jsPath}(${[...selfArg, ...args.jsArgs].join(', ')})`;
       if (shape.kind === 'dict') {
         if (shape.nullable) lines.push(`if (!${call}) return null;`);
         else lines.push(`${call};`);
-        const obj = this.planDictReads(shape.dict, tail, [], false, transfer);
+        const obj = this.planDictReads(shape.dict, tail, [], false, transfer, scope);
         lines.push(`return ${obj};`);
       } else if (shape.kind === 'seqDict') {
         lines.push(`const n = ${call};`, 'const out = new Array(n);', 'for (let i = 0; i < n; i++) {');
-        const obj = this.planDictReads(shape.dict, tail, [], true, transfer);
+        const obj = this.planDictReads(shape.dict, tail, [], true, transfer, scope);
         lines.push(`${INDENT}out[i] = ${obj};`, '}', 'return out;');
       } else {
-        const atTail = this.claimTail(`${tail}_at`, op.loc);
+        const atTail = this.claimTail(`${tail}_at`, op.loc, scope);
         const at = this.addNative({
-          tail: atTail, cName: this.cName(atTail), jsPath: this.jsPath(atTail), kind: 'fn',
+          tail: atTail, cName: this.cName(atTail, scope), jsPath: this.jsPath(atTail, scope), kind: 'fn',
           ret: { c: 'void*', bronze: shape.path }, cParams: [{ c: 'int32_t', name: 'index' }], bronzeParams: ['i32'],
           comment: `${publicMember}: element [index] of the list ${tail} kept, as a ${shape.className} handle`,
-        });
+        }, scope);
         lines.push(`const n = ${call};`, 'const out = new Array(n);',
           `for (let i = 0; i < n; i++) out[i] = ${at.jsPath}(i);`, 'return out;');
       }
     } else {
       const ret = this.retSpec(shape, transfer);
       const native = this.addNative({
-        tail, cName: this.cName(tail), jsPath: this.jsPath(tail), kind: 'fn',
+        tail, cName: this.cName(tail, scope), jsPath: this.jsPath(tail, scope), kind: 'fn',
         ret: ret.cRet, cParams: [...selfParams, ...args.cParams, ...ret.extraCParams],
         bronzeParams: [...selfBronze, ...args.bronzeParams], transfer: ret.transfer,
         comment: publicMember,
-      });
+      }, scope);
       const call = `${native.jsPath}(${[...selfArg, ...args.jsArgs].join(', ')})`;
       lines.push(...ret.result(call));
     }
@@ -419,7 +450,7 @@ class Planner {
 
   // The reads of a dictionary result: one native per leaf member, an object
   // literal that calls them. `indexed` reads take the list index.
-  planDictReads(dict, tail, pathParts, indexed, transfer) {
+  planDictReads(dict, tail, pathParts, indexed, transfer, scope) {
     const fields = [];
     for (const m of dictionaryMembers(dict, this.ctx)) {
       const memberPath = [...pathParts, m.name];
@@ -427,18 +458,18 @@ class Planner {
       if (r.error) { this.errors.push(r.error); continue; }
       const shape = r.shape;
       if (shape.kind === 'dict') {
-        fields.push(`${m.name}: ${this.planDictReads(shape.dict, tail, memberPath, indexed, transfer)}`);
+        fields.push(`${m.name}: ${this.planDictReads(shape.dict, tail, memberPath, indexed, transfer, scope)}`);
         continue;
       }
       this.noteDependency(shape);
-      const readTail = this.claimTail(`${tail}_${memberPath.join('_')}`, m.loc);
+      const readTail = this.claimTail(`${tail}_${memberPath.join('_')}`, m.loc, scope);
       const ret = this.retSpec(shape, transfer || hasAttr(m, 'transfer'));
       const native = this.addNative({
-        tail: readTail, cName: this.cName(readTail), jsPath: this.jsPath(readTail), kind: 'fn',
+        tail: readTail, cName: this.cName(readTail, scope), jsPath: this.jsPath(readTail, scope), kind: 'fn',
         ret: ret.cRet, cParams: [...(indexed ? [{ c: 'int32_t', name: 'index' }] : []), ...ret.extraCParams],
         bronzeParams: indexed ? ['i32'] : [], transfer: ret.transfer,
         comment: `${dict.name}.${memberPath.join('.')} of the result ${tail} kept${indexed ? ', at [index]' : ''}`,
-      });
+      }, scope);
       const call = `${native.jsPath}(${indexed ? 'i' : ''})`;
       fields.push(`${m.name}: ${ret.expr(call)}`);
     }

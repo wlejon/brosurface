@@ -22,8 +22,6 @@
 // A dictionary or list RESULT crosses as reads: the operation runs and keeps its
 // result in a per-thread slot, answering nothing (or the list's length), and the
 // <op>_<member> / <op>_at natives read from that slot until the next call.
-//
-// Gate: BRO_WITH_LM (native_lm_register.cpp registers nothing when it is off).
 #pragma once
 
 #include <stdbool.h>
@@ -381,78 +379,110 @@ int32_t bro_lm_T5Model_encode_dim(void);
 //   result: i32[] in *out; out->release == NULL, the runtime copies
 void bro_lm_T5Model_encode_ids(bronze_native_buffer* out);
 
+#if BRO_WITH_LM
 // bro.lm.init
 //   registered at __bro_native.lm.init
 void bro_lm_init(void);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadQwen: runs the operation and keeps its LMModelPair result in a per-thread slot the loadQwen_<member> reads answer from until the next call
 //   registered at __bro_native.lm.loadQwen
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void bro_lm_loadQwen(const char* ggufPath, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // LMModelPair.model of the result loadQwen kept
 //   registered at __bro_native.lm.loadQwen_model
 void* bro_lm_loadQwen_model(void);
+#endif
 
+#if BRO_WITH_LM
 // LMModelPair.tokenizer of the result loadQwen kept
 //   registered at __bro_native.lm.loadQwen_tokenizer
 void* bro_lm_loadQwen_tokenizer(void);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadMistral: runs the operation and keeps its MistralModelPair result in a per-thread slot the loadMistral_<member> reads answer from until the next call
 //   registered at __bro_native.lm.loadMistral
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void bro_lm_loadMistral(const char* ggufPath, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // MistralModelPair.model of the result loadMistral kept
 //   registered at __bro_native.lm.loadMistral_model
 void* bro_lm_loadMistral_model(void);
+#endif
 
+#if BRO_WITH_LM
 // MistralModelPair.tokenizer of the result loadMistral kept
 //   registered at __bro_native.lm.loadMistral_tokenizer
 void* bro_lm_loadMistral_tokenizer(void);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadGemma2: runs the operation and keeps its GemmaModelPair result in a per-thread slot the loadGemma2_<member> reads answer from until the next call
 //   registered at __bro_native.lm.loadGemma2
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void bro_lm_loadGemma2(const char* modelDir, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // GemmaModelPair.model of the result loadGemma2 kept
 //   registered at __bro_native.lm.loadGemma2_model
 void* bro_lm_loadGemma2_model(void);
+#endif
 
+#if BRO_WITH_LM
 // GemmaModelPair.tokenizer of the result loadGemma2 kept
 //   registered at __bro_native.lm.loadGemma2_tokenizer
 void* bro_lm_loadGemma2_tokenizer(void);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadQwen35
 //   registered at __bro_native.lm.loadQwen35
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void* bro_lm_loadQwen35(const char* checkpointDir, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadQwen3VL
 //   registered at __bro_native.lm.loadQwen3VL
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void* bro_lm_loadQwen3VL(const char* checkpointDir, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadNllb
 //   registered at __bro_native.lm.loadNllb
 //   opts_tokenizerPath_given: false when the value was not passed (no declared default)
 void* bro_lm_loadNllb(const char* checkpointDir, const char* opts_device, bool opts_tokenizerPath_given, const char* opts_tokenizerPath, int32_t opts_maxSeqLen, uint64_t opts_onReady, uint64_t opts_onError);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadTokenizer
 //   registered at __bro_native.lm.loadTokenizer
 void* bro_lm_loadTokenizer(const char* opts_vocabPath, const char* opts_mergesPath);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadClip
 //   registered at __bro_native.lm.loadClip
 //   opts_weightsPath_given, opts_textPath_given, opts_imagePath_given, opts_projectionPath_given: false when the value was not passed (no declared default)
 void* bro_lm_loadClip(const char* opts_vocabPath, const char* opts_mergesPath, bool opts_weightsPath_given, const char* opts_weightsPath, bool opts_textPath_given, const char* opts_textPath, bool opts_imagePath_given, const char* opts_imagePath, bool opts_projectionPath_given, const char* opts_projectionPath, const char* opts_textPrefix, const char* opts_visionPrefix, const char* opts_projectionPrefix, const char* opts_device);
+#endif
 
+#if BRO_WITH_LM
 // bro.lm.loadT5
 //   registered at __bro_native.lm.loadT5
 //   opts_shards: JSON of sequence<DOMString>
 //   opts_ggufPath_given, opts_weightsPath_given, opts_config_vocabSize_given, opts_config_dModel_given, opts_config_dFf_given, opts_config_dKv_given, opts_config_numHeads_given, opts_config_numLayers_given: false when the value was not passed (no declared default)
 void* bro_lm_loadT5(const char* opts_tokenizerPath, bool opts_ggufPath_given, const char* opts_ggufPath, bool opts_weightsPath_given, const char* opts_weightsPath, const char* opts_shards, const char* opts_prefix, int32_t opts_maxLength, bool opts_quantizeWeights, bool opts_config_vocabSize_given, int32_t opts_config_vocabSize, bool opts_config_dModel_given, int32_t opts_config_dModel, bool opts_config_dFf_given, int32_t opts_config_dFf, bool opts_config_dKv_given, int32_t opts_config_dKv, bool opts_config_numHeads_given, int32_t opts_config_numHeads, bool opts_config_numLayers_given, int32_t opts_config_numLayers, const char* opts_device);
+#endif
 
 #ifdef __cplusplus
 }  // extern "C"

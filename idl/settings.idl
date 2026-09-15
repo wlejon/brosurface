@@ -17,11 +17,26 @@
   cpp_epilogue=""
 ]
 namespace settings {
-  void load();
-  void save();
   DOMString get(DOMString key);
-  void set(DOMString key, DOMString val);
-  void reset(optional DOMString category);
+  DOMString getAllJson(DOMString category);
+  DOMString getDefaultsJson(DOMString category);
+  void setString(DOMString key, DOMString value);
+  void setNumber(DOMString key, double value);
+  void setBool(DOMString key, boolean value);
+  void setDefaultString(DOMString key, DOMString value);
+  void setDefaultNumber(DOMString key, double value);
+  void setDefaultBool(DOMString key, boolean value);
+  void reset(DOMString category);
+  void defineAction(DOMString action, DOMString keysJoined, double deadzone);
+  void rebindAction(DOMString action, DOMString keysJoined);
+  void resetAction(DOMString action);
+  void resetAllActions();
+  DOMString actionKeysJson(DOMString action);
+  DOMString keyAction(DOMString key);
+  double actionStrength(DOMString action);
   boolean isActionPressed(DOMString action);
-  double getActionStrength(DOMString action);
+  DOMString actionsJson();
+  DOMString appActionsJson();
+  DOMString displayModesJson();
+  void onChange(Function listener);
 };

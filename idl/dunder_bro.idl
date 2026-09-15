@@ -1,0 +1,99 @@
+/**
+ * =============================================================================
+ * __bro — Internal System Panels & Runtime Telemetry Interface
+ * =============================================================================
+ */
+
+[prefix="__bro.splash.", flatten]
+namespace dunder_splash {
+  void dismiss();
+};
+
+[prefix="__bro.viewport.", flatten]
+namespace dunder_viewport {
+  readonly attribute double width;
+  readonly attribute double height;
+};
+
+[prefix="__bro.perf.", flatten]
+namespace dunder_perf {
+  readonly attribute double fps;
+  readonly attribute double frameTime;
+  readonly attribute double js;
+  readonly attribute double layout;
+  readonly attribute double raster;
+  readonly attribute double gpu;
+  readonly attribute double draw;
+  long windowCount();
+  double windowId(long index);
+  DOMString windowTitle(long index);
+  double windowWidth(long index);
+  double windowHeight(long index);
+  boolean windowFocused(long index);
+  boolean windowMinimized(long index);
+};
+
+[prefix="__bro.perf.scene.", flatten, cpp_namespace="scene", gate="BRO_WITH_3D", cpp_guard="BRO_WITH_3D"]
+namespace dunder_scene {
+  readonly attribute double meshDrawn;
+  readonly attribute double meshCulled;
+  readonly attribute double instancedDrawn;
+  readonly attribute double instancedCulled;
+  readonly attribute double splatDrawn;
+  readonly attribute double splatCulled;
+  readonly attribute double particlesDrawn;
+  readonly attribute double particlesCulled;
+  readonly attribute double billboardsDrawn;
+  readonly attribute double billboardsCulled;
+  readonly attribute double decalsDrawn;
+  readonly attribute double decalsCulled;
+  readonly attribute double shadowDrawn;
+  readonly attribute double shadowCulled;
+  readonly attribute double shadowTilesTotal;
+  readonly attribute double shadowTilesRendered;
+  readonly attribute double shadowTilesCached;
+};
+
+[prefix="__bro.bronze.", flatten]
+namespace dunder_bronze {
+  readonly attribute double heapUsedBytes;
+  readonly attribute double heapCommittedBytes;
+  readonly attribute double heapReservedBytes;
+  readonly attribute double gcCollections;
+  readonly attribute double gcPauseNs;
+  readonly attribute double shapeTransitions;
+};
+
+[prefix="__bro.menu.", flatten]
+namespace dunder_menu {
+  double height();
+  DOMString treeJson();
+  void click(DOMString id);
+};
+
+[prefix="__bro.settingsUI.", flatten]
+namespace dunder_settingsUI {
+  void show(DOMString name);
+  DOMString panelsJson();
+  DOMString activePanel();
+  void toggle();
+  boolean isVisible();
+  double contentTop();
+};
+
+[prefix="__bro.inspector.", flatten]
+namespace dunder_inspector {
+  readonly attribute boolean visible;
+  readonly attribute DOMString dock;
+  readonly attribute double width;
+  readonly attribute double height;
+  readonly attribute boolean pickerMode;
+  DOMString appTreeJson(long maxDepth);
+  DOMString childrenJson(long parentId);
+  DOMString selectedJson();
+  void select(long id);
+  void setDock(DOMString dock);
+  void setSize(double px);
+  void setPickerMode(boolean on);
+  void toggle();
+};

@@ -428,6 +428,10 @@ function emitBroAlias(aliasName, targetName, doc) {
   // spreads its members directly onto `bro`.
   const isGlobalNs = (ns) => getAttr(ns, 'prefix') === '';
   const isFlatNs = (ns) => !!(ns.attributes || []).some(a => a.name === 'flatten');
+  const isDunderBroNs = (ns) => {
+    const p = getAttr(ns, 'prefix');
+    return typeof p === 'string' && (p === '__bro.' || p.startsWith('__bro.'));
+  };
 
   const globalNamespaces = namespaces.filter(isGlobalNs);
   for (const ns of globalNamespaces) {
@@ -450,7 +454,7 @@ function emitBroAlias(aliasName, targetName, doc) {
   }
 
   // Sub-namespaces
-  const subNamespaces = namespaces.filter(ns => !isGlobalNs(ns) && !isFlatNs(ns));
+  const subNamespaces = namespaces.filter(ns => !isGlobalNs(ns) && !isFlatNs(ns) && !isDunderBroNs(ns));
   for (const ns of subNamespaces) {
     if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
     chunks.push(`  namespace ${ns.name} {\n`);
@@ -473,7 +477,38 @@ function emitBroAlias(aliasName, targetName, doc) {
     }
   }
 
-  chunks.push(`}\n`);
+  chunks.push(`}\n\n`);
+
+  // Global '__bro' Namespace
+  const dunderNamespaces = namespaces.filter(isDunderBroNs);
+  if (dunderNamespaces.length > 0) {
+    chunks.push(`// ── Global '__bro' Namespace ────────────────────────────────────────────────\n\n`);
+    chunks.push(`declare namespace __bro {\n`);
+    const getParts = (ns) => {
+      const p = getAttr(ns, 'prefix');
+      return p ? p.slice('__bro.'.length).replace(/\.$/, '').split('.').filter(Boolean) : [];
+    };
+    const topLevel = dunderNamespaces.filter(s => getParts(s).length === 1);
+    for (const ns of topLevel) {
+      const [nsName] = getParts(ns);
+      if (ns.doc) chunks.push(formatJSDoc(ns.doc, '  '));
+      chunks.push(`  namespace ${nsName} {\n`);
+      chunks.push(emitNamespaceMembers(ns, '    '));
+      const children = dunderNamespaces.filter(s => {
+        const parts = getParts(s);
+        return parts.length === 2 && parts[0] === nsName;
+      });
+      for (const childNs of children) {
+        const [, childName] = getParts(childNs);
+        if (childNs.doc) chunks.push(formatJSDoc(childNs.doc, '    '));
+        chunks.push(`    namespace ${childName} {\n`);
+        chunks.push(emitNamespaceMembers(childNs, '      '));
+        chunks.push(`    }\n`);
+      }
+      chunks.push(`  }\n\n`);
+    }
+    chunks.push(`}\n`);
+  }
 
   // Global variable declarations via [global_var="..."] or [js_global="..."] or non-bro [js_alias="..."]
   for (const iface of interfaces) {

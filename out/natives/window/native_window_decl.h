@@ -77,14 +77,6 @@ int32_t bro_window_getPosition_x(void);
 //   registered at __bro_native.window.getPosition_y
 int32_t bro_window_getPosition_y(void);
 
-// bro.window.getPositionX
-//   registered at __bro_native.window.getPositionX
-int32_t bro_window_getPositionX(void);
-
-// bro.window.getPositionY
-//   registered at __bro_native.window.getPositionY
-int32_t bro_window_getPositionY(void);
-
 // bro.window.setPosition
 //   registered at __bro_native.window.setPosition
 void bro_window_setPosition(int32_t x, int32_t y);
@@ -100,14 +92,6 @@ int32_t bro_window_getMinSize_width(void);
 // WindowSize.height of the result getMinSize kept
 //   registered at __bro_native.window.getMinSize_height
 int32_t bro_window_getMinSize_height(void);
-
-// bro.window.getMinWidth
-//   registered at __bro_native.window.getMinWidth
-int32_t bro_window_getMinWidth(void);
-
-// bro.window.getMinHeight
-//   registered at __bro_native.window.getMinHeight
-int32_t bro_window_getMinHeight(void);
 
 // bro.window.setMinSize
 //   registered at __bro_native.window.setMinSize
@@ -125,14 +109,6 @@ int32_t bro_window_getMaxSize_width(void);
 //   registered at __bro_native.window.getMaxSize_height
 int32_t bro_window_getMaxSize_height(void);
 
-// bro.window.getMaxWidth
-//   registered at __bro_native.window.getMaxWidth
-int32_t bro_window_getMaxWidth(void);
-
-// bro.window.getMaxHeight
-//   registered at __bro_native.window.getMaxHeight
-int32_t bro_window_getMaxHeight(void);
-
 // bro.window.setMaxSize
 //   registered at __bro_native.window.setMaxSize
 void bro_window_setMaxSize(int32_t width, int32_t height);
@@ -149,37 +125,37 @@ double bro_window_getDisplays_id(int32_t index);
 //   registered at __bro_native.window.getDisplays_name
 const char* bro_window_getDisplays_name(int32_t index);
 
-// DisplayBounds.bounds.x of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_bounds_x
-int32_t bro_window_getDisplays_bounds_x(int32_t index);
+// DisplayInfo.x of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_x
+int32_t bro_window_getDisplays_x(int32_t index);
 
-// DisplayBounds.bounds.y of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_bounds_y
-int32_t bro_window_getDisplays_bounds_y(int32_t index);
+// DisplayInfo.y of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_y
+int32_t bro_window_getDisplays_y(int32_t index);
 
-// DisplayBounds.bounds.width of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_bounds_width
-int32_t bro_window_getDisplays_bounds_width(int32_t index);
+// DisplayInfo.width of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_width
+int32_t bro_window_getDisplays_width(int32_t index);
 
-// DisplayBounds.bounds.height of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_bounds_height
-int32_t bro_window_getDisplays_bounds_height(int32_t index);
+// DisplayInfo.height of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_height
+int32_t bro_window_getDisplays_height(int32_t index);
 
-// DisplayBounds.workArea.x of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_workArea_x
-int32_t bro_window_getDisplays_workArea_x(int32_t index);
+// DisplayInfo.workX of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_workX
+int32_t bro_window_getDisplays_workX(int32_t index);
 
-// DisplayBounds.workArea.y of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_workArea_y
-int32_t bro_window_getDisplays_workArea_y(int32_t index);
+// DisplayInfo.workY of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_workY
+int32_t bro_window_getDisplays_workY(int32_t index);
 
-// DisplayBounds.workArea.width of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_workArea_width
-int32_t bro_window_getDisplays_workArea_width(int32_t index);
+// DisplayInfo.workWidth of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_workWidth
+int32_t bro_window_getDisplays_workWidth(int32_t index);
 
-// DisplayBounds.workArea.height of the result getDisplays kept, at [index]
-//   registered at __bro_native.window.getDisplays_workArea_height
-int32_t bro_window_getDisplays_workArea_height(int32_t index);
+// DisplayInfo.workHeight of the result getDisplays kept, at [index]
+//   registered at __bro_native.window.getDisplays_workHeight
+int32_t bro_window_getDisplays_workHeight(int32_t index);
 
 // DisplayInfo.refreshRate of the result getDisplays kept, at [index]
 //   registered at __bro_native.window.getDisplays_refreshRate
@@ -196,10 +172,6 @@ bool bro_window_getDisplays_isPrimary(int32_t index);
 // DisplayInfo.isCurrent of the result getDisplays kept, at [index]
 //   registered at __bro_native.window.getDisplays_isCurrent
 bool bro_window_getDisplays_isCurrent(int32_t index);
-
-// bro.window.getDisplayCount
-//   registered at __bro_native.window.getDisplayCount
-int32_t bro_window_getDisplayCount(void);
 
 // bro.window.moveToDisplay
 //   registered at __bro_native.window.moveToDisplay
