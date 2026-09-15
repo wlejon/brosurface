@@ -69,22 +69,22 @@
     });
     fn(ns_lm, "loadTokenizer", function loadTokenizer(opts) {
         if (opts === undefined) throw new TypeError("bro.lm.loadTokenizer: opts is required");
+        const d_opts = opts;
         if (d_opts.vocabPath === undefined) throw new TypeError("bro.lm.loadTokenizer: opts.vocabPath is required");
         if (d_opts.mergesPath === undefined) throw new TypeError("bro.lm.loadTokenizer: opts.mergesPath is required");
-        const d_opts = opts;
         return __bro_native.lm.loadTokenizer(d_opts.vocabPath, d_opts.mergesPath);
     });
     fn(ns_lm, "loadClip", function loadClip(opts) {
         if (opts === undefined) throw new TypeError("bro.lm.loadClip: opts is required");
+        const d_opts = opts;
         if (d_opts.vocabPath === undefined) throw new TypeError("bro.lm.loadClip: opts.vocabPath is required");
         if (d_opts.mergesPath === undefined) throw new TypeError("bro.lm.loadClip: opts.mergesPath is required");
-        const d_opts = opts;
         return __bro_native.lm.loadClip(d_opts.vocabPath, d_opts.mergesPath, d_opts.weightsPath !== undefined, d_opts.weightsPath === undefined ? '' : d_opts.weightsPath, d_opts.textPath !== undefined, d_opts.textPath === undefined ? '' : d_opts.textPath, d_opts.imagePath !== undefined, d_opts.imagePath === undefined ? '' : d_opts.imagePath, d_opts.projectionPath !== undefined, d_opts.projectionPath === undefined ? '' : d_opts.projectionPath, d_opts.textPrefix === undefined ? "text_model." : d_opts.textPrefix, d_opts.visionPrefix === undefined ? "vision_model." : d_opts.visionPrefix, d_opts.projectionPrefix === undefined ? "" : d_opts.projectionPrefix, d_opts.device === undefined ? "cuda" : d_opts.device);
     });
     fn(ns_lm, "loadT5", function loadT5(opts) {
         if (opts === undefined) throw new TypeError("bro.lm.loadT5: opts is required");
-        if (d_opts.tokenizerPath === undefined) throw new TypeError("bro.lm.loadT5: opts.tokenizerPath is required");
         const d_opts = opts;
+        if (d_opts.tokenizerPath === undefined) throw new TypeError("bro.lm.loadT5: opts.tokenizerPath is required");
         const d_opts_config = d_opts.config === undefined ? {} : d_opts.config;
         return __bro_native.lm.loadT5(d_opts.tokenizerPath, d_opts.ggufPath !== undefined, d_opts.ggufPath === undefined ? '' : d_opts.ggufPath, d_opts.weightsPath !== undefined, d_opts.weightsPath === undefined ? '' : d_opts.weightsPath, d_opts.shards === undefined ? '' : JSON.stringify(d_opts.shards), d_opts.prefix === undefined ? "" : d_opts.prefix, d_opts.maxLength === undefined ? 512 : d_opts.maxLength, d_opts.quantizeWeights === undefined ? false : d_opts.quantizeWeights, d_opts_config.vocabSize !== undefined, d_opts_config.vocabSize === undefined ? 0 : d_opts_config.vocabSize, d_opts_config.dModel !== undefined, d_opts_config.dModel === undefined ? 0 : d_opts_config.dModel, d_opts_config.dFf !== undefined, d_opts_config.dFf === undefined ? 0 : d_opts_config.dFf, d_opts_config.dKv !== undefined, d_opts_config.dKv === undefined ? 0 : d_opts_config.dKv, d_opts_config.numHeads !== undefined, d_opts_config.numHeads === undefined ? 0 : d_opts_config.numHeads, d_opts_config.numLayers !== undefined, d_opts_config.numLayers === undefined ? 0 : d_opts_config.numLayers, d_opts.device === undefined ? "cuda" : d_opts.device);
     });

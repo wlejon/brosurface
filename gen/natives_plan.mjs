@@ -662,7 +662,7 @@ class Planner {
       out.bronzeParams.push(...sub.bronzeParams);
       out.jsArgs.push(...sub.jsArgs);
       out.jsZeros.push(...sub.jsZeros);
-      out.check.push(...sub.check);
+      out.prelude.push(...sub.check);
       out.prelude.push(...sub.prelude);
     });
     return out;
