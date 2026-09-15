@@ -60,9 +60,9 @@ dictionary SttAudioBuffer {
 interface WhisperTokenizer {
   readonly attribute boolean loaded;
 
-  (Int32Array or sequence<long>) encode(DOMString text);
-  DOMString decode((Int32Array or sequence<long>) tokenIds);
-  Int32Array buildPrompt(optional object opts);
+  [manual] (Int32Array or sequence<long>) encode(DOMString text);
+  [manual] DOMString decode((Int32Array or sequence<long>) tokenIds);
+  [manual] Int32Array buildPrompt(optional object opts);
 };
 
 [
@@ -73,7 +73,7 @@ interface WhisperModel {
   readonly attribute boolean loaded;
   readonly attribute DOMString device;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional (Int32Array or sequence<long> or WhisperTranscribeOptions) promptOrOpts, optional WhisperTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional (Int32Array or sequence<long> or WhisperTranscribeOptions) promptOrOpts, optional WhisperTranscribeOptions opts);
   WhisperSession createSession();
 };
 
@@ -84,7 +84,7 @@ interface WhisperModel {
 interface WhisperSession {
   readonly attribute boolean loaded;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional (Int32Array or sequence<long> or WhisperTranscribeOptions) promptOrOpts, optional WhisperTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional (Int32Array or sequence<long> or WhisperTranscribeOptions) promptOrOpts, optional WhisperTranscribeOptions opts);
   void reset();
 };
 
@@ -95,8 +95,8 @@ interface WhisperSession {
 interface ParakeetTokenizer {
   readonly attribute boolean loaded;
 
-  (Int32Array or sequence<long>) encode(DOMString text);
-  DOMString decode((Int32Array or sequence<long>) tokenIds);
+  [manual] (Int32Array or sequence<long>) encode(DOMString text);
+  [manual] DOMString decode((Int32Array or sequence<long>) tokenIds);
 };
 
 [
@@ -107,7 +107,7 @@ interface ParakeetModel {
   readonly attribute boolean loaded;
   readonly attribute DOMString device;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional ParakeetTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional ParakeetTranscribeOptions opts);
   ParakeetSession createSession();
 };
 
@@ -118,7 +118,7 @@ interface ParakeetModel {
 interface ParakeetSession {
   readonly attribute boolean loaded;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional ParakeetTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional ParakeetTranscribeOptions opts);
   void reset();
 };
 
@@ -130,7 +130,7 @@ interface QwenAsrModel {
   readonly attribute boolean loaded;
   readonly attribute DOMString device;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional QwenAsrTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional QwenAsrTranscribeOptions opts);
   QwenAsrSession createSession();
 };
 
@@ -141,7 +141,7 @@ interface QwenAsrModel {
 interface QwenAsrSession {
   readonly attribute boolean loaded;
 
-  AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional QwenAsrTranscribeOptions opts);
+  [manual] AsyncHandle transcribe((Float32Array or SttAudioBuffer) audio, optional QwenAsrTranscribeOptions opts);
   void reset();
 };
 
@@ -152,8 +152,8 @@ interface QwenAsrSession {
 interface QwenAsrStream {
   readonly attribute boolean loaded;
 
-  void feed((Float32Array or SttAudioBuffer) audio);
-  QwenAsrEncodeResult finish();
+  [manual] void feed((Float32Array or SttAudioBuffer) audio);
+  [manual] QwenAsrEncodeResult finish();
 };
 
 [
@@ -170,11 +170,11 @@ interface QwenAsrStream {
 ]
 namespace stt {
   void init();
-  (WhisperModel or AsyncHandle) loadWhisper(DOMString dir, optional WhisperLoadOptions opts);
-  (WhisperTokenizer or AsyncHandle) loadTokenizer(TokenizerLoadOptions opts);
-  (ParakeetModel or AsyncHandle) loadParakeet(DOMString dir, optional WhisperLoadOptions opts);
-  (ParakeetTokenizer or AsyncHandle) loadParakeetTokenizer(DOMString path, optional WhisperLoadOptions opts);
-  (QwenAsrModel or AsyncHandle) loadQwenAsr(DOMString dir, optional WhisperLoadOptions opts);
-  (QwenAsrStream or AsyncHandle) loadQwenAsrStream(DOMString dir, optional QwenAsrStreamOptions opts);
-  AsyncHandle transcribe(object model, (Float32Array or SttAudioBuffer) audio, optional any promptOrOpts, optional object opts);
+  [manual] (WhisperModel or AsyncHandle) loadWhisper(DOMString dir, optional WhisperLoadOptions opts);
+  [manual] (WhisperTokenizer or AsyncHandle) loadTokenizer(TokenizerLoadOptions opts);
+  [manual] (ParakeetModel or AsyncHandle) loadParakeet(DOMString dir, optional WhisperLoadOptions opts);
+  [manual] (ParakeetTokenizer or AsyncHandle) loadParakeetTokenizer(DOMString path, optional WhisperLoadOptions opts);
+  [manual] (QwenAsrModel or AsyncHandle) loadQwenAsr(DOMString dir, optional WhisperLoadOptions opts);
+  [manual] (QwenAsrStream or AsyncHandle) loadQwenAsrStream(DOMString dir, optional QwenAsrStreamOptions opts);
+  [manual] AsyncHandle transcribe(object model, (Float32Array or SttAudioBuffer) audio, optional any promptOrOpts, optional object opts);
 };

@@ -38,22 +38,22 @@ namespace diar {
   /**
    * Asynchronously load Sortformer neural diarization model from directory.
    */
-  AsyncHandle loadSortformer(DOMString modelDir, optional object opts);
+  [manual] AsyncHandle loadSortformer(DOMString modelDir, optional object opts);
 
   /**
    * Asynchronously run offline diarization on audio clip.
    */
-  AsyncHandle diarize(Sortformer model, Float32Array audio, optional object opts);
+  [manual] AsyncHandle diarize(Sortformer model, Float32Array audio, optional object opts);
 
   /**
    * Asynchronously load offline cluster diarizer models (embedding + VAD).
    */
-  AsyncHandle loadClusterDiarizer(DOMString embeddingDir, DOMString vadDir, optional object opts);
+  [manual] AsyncHandle loadClusterDiarizer(DOMString embeddingDir, DOMString vadDir, optional object opts);
 
   /**
    * Asynchronously run clustering diarization on audio clip.
    */
-  AsyncHandle clusterDiarize(ClusterDiarizer model, Float32Array audio, optional object opts);
+  [manual] AsyncHandle clusterDiarize(ClusterDiarizer model, Float32Array audio, optional object opts);
 };
 
 [
@@ -64,7 +64,7 @@ interface Sortformer {
   /**
    * Synchronously run speaker diarization on 16 kHz mono FP32 PCM audio.
    */
-  object diarize(Float32Array audio);
+  [manual] object diarize(Float32Array audio);
 
   /**
    * Create an online streaming diarization session.
@@ -90,7 +90,7 @@ interface SortformerSession {
   /**
    * Feed streaming 16 kHz PCM chunk and return rolling speaker probabilities.
    */
-  object feed(Float32Array audio, optional boolean isLast = true);
+  [manual] object feed(Float32Array audio, optional boolean isLast = true);
 
   /**
    * Reset session cache state.
@@ -116,7 +116,7 @@ interface ClusterDiarizer {
   /**
    * Synchronously run clustering diarization with custom threshold options.
    */
-  object diarize(Float32Array audio, optional object opts);
+  [manual] object diarize(Float32Array audio, optional object opts);
 
   /**
    * Active execution device.

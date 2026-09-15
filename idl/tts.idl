@@ -95,7 +95,7 @@ interface KokoroModel {
   readonly attribute boolean loaded;
   readonly attribute DOMString device;
 
-  Int32Array encodePhonemes(DOMString ipa);
+  [manual] Int32Array encodePhonemes(DOMString ipa);
   Voice loadVoice(DOMString path);
   KokoroSession createSession();
 };
@@ -116,7 +116,7 @@ interface Voice {
 interface KokoroSession {
   readonly attribute boolean loaded;
 
-  AsyncHandle synthesize((Int32Array or sequence<long>) phonemes, Voice voice, optional KokoroSynthesizeOptions opts);
+  [manual] AsyncHandle synthesize((Int32Array or sequence<long>) phonemes, Voice voice, optional KokoroSynthesizeOptions opts);
   void reset();
 };
 
@@ -130,8 +130,8 @@ interface QwenTtsModel {
   readonly attribute DOMString variant;
 
   QwenTtsSession createSession();
-  QwenAudioCodes encodeAudio(Float32Array audio);
-  Float32Array decodeCodes(Int32Array codes);
+  [manual] QwenAudioCodes encodeAudio(Float32Array audio);
+  [manual] Float32Array decodeCodes(Int32Array codes);
 };
 
 [
@@ -142,7 +142,7 @@ interface QwenTtsSession {
   readonly attribute boolean loaded;
   readonly attribute DOMString variant;
 
-  AsyncHandle synthesize(DOMString text, optional QwenSynthesizeOptions opts);
+  [manual] AsyncHandle synthesize(DOMString text, optional QwenSynthesizeOptions opts);
   void reset();
 };
 
@@ -174,7 +174,7 @@ interface SpeakerEncoder {
   readonly attribute boolean loaded;
   readonly attribute DOMString device;
 
-  AsyncHandle embedSpeaker(Float32Array audio, optional SpeakerEncoderEmbedOptions opts);
+  [manual] AsyncHandle embedSpeaker(Float32Array audio, optional SpeakerEncoderEmbedOptions opts);
 };
 
 [
@@ -191,14 +191,14 @@ interface SpeakerEncoder {
 ]
 namespace tts {
   void init();
-  (KokoroModel or AsyncHandle) loadKokoro(DOMString dir, optional KokoroLoadOptions opts);
-  (QwenTtsModel or AsyncHandle) loadQwen(DOMString dir, optional QwenLoadOptions opts);
-  (SupertonicModel or AsyncHandle) loadSupertonic(DOMString dir, optional SupertonicLoadOptions opts);
-  (SpeakerEncoder or AsyncHandle) loadSpeakerEncoder(DOMString dir, optional SpeakerEncoderLoadOptions opts);
-  Int32Array phonemize(DOMString text, optional object opts);
+  [manual] (KokoroModel or AsyncHandle) loadKokoro(DOMString dir, optional KokoroLoadOptions opts);
+  [manual] (QwenTtsModel or AsyncHandle) loadQwen(DOMString dir, optional QwenLoadOptions opts);
+  [manual] (SupertonicModel or AsyncHandle) loadSupertonic(DOMString dir, optional SupertonicLoadOptions opts);
+  [manual] (SpeakerEncoder or AsyncHandle) loadSpeakerEncoder(DOMString dir, optional SpeakerEncoderLoadOptions opts);
+  [manual] Int32Array phonemize(DOMString text, optional object opts);
   void setAssetRoot(DOMString dir);
   void setAssets(TtsAssetsOptions opts);
-  AsyncHandle synthesize(object model, any textOrPhonemes, any voiceOrOpts, optional object opts);
-  AsyncHandle synthesizeStream(object model, any textOrChunks, any voiceOrOpts, optional object opts);
-  AsyncHandle decodeFrom(KokoroModel kokoro, Voice voice, Float32Array asr, Float32Array F0, Float32Array N, long nPhonemes, optional object opts);
+  [manual] AsyncHandle synthesize(object model, any textOrPhonemes, any voiceOrOpts, optional object opts);
+  [manual] AsyncHandle synthesizeStream(object model, any textOrChunks, any voiceOrOpts, optional object opts);
+  [manual] AsyncHandle decodeFrom(KokoroModel kokoro, Voice voice, Float32Array asr, Float32Array F0, Float32Array N, long nPhonemes, optional object opts);
 };
