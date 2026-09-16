@@ -158,9 +158,27 @@ interface SceneNode {
   readonly attribute long id;
   attribute DOMString name;
   attribute boolean visible;
+  attribute unrestricted double x;
+  attribute unrestricted double y;
+  attribute unrestricted double z;
   attribute sequence<unrestricted double> position;
   attribute sequence<unrestricted double> rotation;
+  attribute unrestricted double rotationX;
+  attribute unrestricted double rotationY;
+  attribute unrestricted double rotationZ;
   attribute sequence<unrestricted double> scale;
+  attribute unrestricted double scaleX;
+  attribute unrestricted double scaleY;
+  attribute unrestricted double scaleZ;
+  attribute sequence<unrestricted double> quaternion;
+
+  attribute unrestricted double fov;
+  attribute unrestricted double near;
+  attribute unrestricted double far;
+  attribute unrestricted double aspect;
+  attribute unrestricted double orthoHeight;
+  attribute DOMString projection;
+
   readonly attribute sequence<unrestricted double> worldPosition;
   readonly attribute sequence<unrestricted double> worldMatrix;
   readonly attribute SceneNode? parent;
@@ -176,27 +194,40 @@ interface SceneNode {
   SceneNode setRotation(unrestricted double x, unrestricted double y, unrestricted double z, optional unrestricted double w);
   SceneNode setScale(unrestricted double x, optional unrestricted double y, optional unrestricted double z);
   SceneNode lookAt(sequence<unrestricted double> target, optional sequence<unrestricted double> up);
+  [manual] object localToWorld(unrestricted double x, unrestricted double y, optional unrestricted double z);
+  [manual] object worldToLocal(unrestricted double x, unrestricted double y, optional unrestricted double z);
 
   // Mesh & Skinned mesh methods
   [manual] SceneNode setMaterial(object mat);
-  SceneNode setSkeleton(Skeleton skeleton);
-  SceneNode addClip(DOMString name, SkeletalAnimation anim);
+  [manual] SceneNode setSkeleton(Skeleton skeleton);
+  [manual] SceneNode addClip(DOMString name, any anim);
   [manual] Float32Array? getBoneWorldMatrix(any nameOrIndex);
-  SceneNode addBlendSpace1D(DOMString name, sequence<BlendSpace1DClip> clips);
-  SceneNode addBlendSpace2D(DOMString name, sequence<BlendSpace2DClip> clips);
-  SceneNode setBlendPos(DOMString name, unrestricted double x, optional unrestricted double y);
-  [manual] object? blendState(DOMString name);
-  SceneNode playLayer(long layer, DOMString clipName, optional unrestricted double weight, optional unrestricted double fadeTime);
-  SceneNode stopLayer(long layer, optional unrestricted double fadeTime);
-  SceneNode setLayerWeight(long layer, unrestricted double weight);
-  [manual] SceneNode addStateMachine(DOMString name, AnimStateMachineDef def);
-  boolean travel(DOMString name, DOMString targetState);
-  SceneNode setRootMotion(boolean enabled);
+  [manual] SceneNode addBlendSpace1D(DOMString name, sequence<BlendSpace1DClip> clips);
+  [manual] SceneNode addBlendSpace2D(DOMString name, sequence<BlendSpace2DClip> clips);
+  [manual] SceneNode setBlendPos(DOMString name, unrestricted double x, optional unrestricted double y);
+  [manual] object? blendState(optional DOMString name);
+  [manual] SceneNode playLayer(long layer, DOMString clipName, optional object opts);
+  [manual] SceneNode stopLayer(long layer, optional unrestricted double fadeTime);
+  [manual] SceneNode setLayerWeight(long layer, unrestricted double weight);
+  [manual] SceneNode addStateMachine(any nameOrDef, optional AnimStateMachineDef def);
+  [manual] boolean travel(DOMString name, optional DOMString targetState);
+  [manual] SceneNode setRootMotion(any enabledOrOpts);
   [manual] object consumeRootMotion();
   [manual] SceneNode play(optional DOMString clipName, optional object opts);
-  SceneNode stop();
-  SceneNode pause();
-  SceneNode resume();
+  [manual] SceneNode stop(optional object opts);
+  [manual] SceneNode pause();
+  [manual] SceneNode resume();
+  [manual] long setSkinningMatrices(Float32Array matrices);
+
+  // Animation player & Skinned mesh attributes
+  readonly attribute long boneCount;
+  readonly attribute boolean skinReady;
+  readonly attribute boolean isPlaying;
+  readonly attribute DOMString currentAnimation;
+  readonly attribute unrestricted double animationDuration;
+  attribute unrestricted double animationTime;
+  attribute unrestricted double animationSpeed;
+  readonly attribute DOMString state;
 
   // Instanced mesh methods
   void setInstanceTransform(long index, sequence<unrestricted double> matrix);
