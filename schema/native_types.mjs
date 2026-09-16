@@ -383,10 +383,12 @@ function checkClassReachable(cls, name, ctx, loc, what, typeNode) {
   return null;
 }
 
-// A dictionary parameter unpacks when every member does.
+// A dictionary parameter unpacks when every member does. A [manual] member
+// never crosses (the hand-written wrapper owns it), so its type is not asked.
 function checkUnpackableDictionary(dict, ctx, loc, what, depth = 0) {
   if (depth > 6) return refuse(loc, what, { name: dict.name }, 'a shallower dictionary');
   for (const m of dictionaryMembers(dict, ctx)) {
+    if (hasAttr(m, 'manual')) continue;
     const r = resolveShape(m.dataType, 'member', ctx, m.loc || loc, `member '${m.name}' of dictionary '${dict.name}' (${what})`);
     if (r.error) return r;
     if (r.shape.kind === 'handle' && !m.required && m.defaultValue === null) {
@@ -401,6 +403,7 @@ function checkUnpackableDictionary(dict, ctx, loc, what, depth = 0) {
 function checkReadableDictionary(dict, ctx, loc, what, indexed, depth = 0) {
   if (depth > 6) return refuse(loc, what, { name: dict.name }, 'a shallower dictionary');
   for (const m of dictionaryMembers(dict, ctx)) {
+    if (hasAttr(m, 'manual')) continue;
     const r = resolveShape(m.dataType, 'memberReturn', ctx, m.loc || loc, `member '${m.name}' of dictionary '${dict.name}' (${what})`);
     if (r.error) return r;
     if (r.shape.kind === 'callback') {

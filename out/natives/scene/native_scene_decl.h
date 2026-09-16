@@ -359,7 +359,7 @@ void bro_scene_SceneNode_probeCapture(void* self);
 
 // bro.scene.SceneNode.prototype.savePly
 //   registered at __bro_native.scene.SceneNode_savePly
-void bro_scene_SceneNode_savePly(void* self, const char* path);
+bool bro_scene_SceneNode_savePly(void* self, const char* path);
 
 // bro.scene.SceneGraph.prototype.root read
 //   registered at __bro_native.scene.SceneGraph_root_get
@@ -587,8 +587,7 @@ void bro_scene_SceneGraph_setDepthOfField(void* self, bool opts_focusDistance_gi
 
 // bro.scene.SceneGraph.prototype.setColorLUT
 //   registered at __bro_native.scene.SceneGraph_setColorLUT
-//   opts_texture_given, opts_intensity_given: false when the value was not passed (no declared default)
-void bro_scene_SceneGraph_setColorLUT(void* self, bool opts_texture_given, const char* opts_texture, bool opts_intensity_given, double opts_intensity);
+bool bro_scene_SceneGraph_setColorLUT(void* self, const char* opts_path, int32_t opts_size, double opts_amount);
 
 // bro.scene.SceneGraph.prototype.setFXAA
 //   registered at __bro_native.scene.SceneGraph_setFXAA

@@ -263,9 +263,83 @@ dictionary PhysicsBounds {
   PhysicsVec3 max;
 };
 
+/**
+ * A ragdoll pose. What crosses is the FLAT ARRAY a `pose()` / `localPose()`
+ * read answers with (7 floats per part: position xyz + quaternion xyzw, or 16
+ * per part for a column-major matrix), serialised as JSON; the wrapper hands
+ * `Array.from(pose)` to the native, so a Float32Array is accepted directly.
+ */
 [json]
 dictionary PhysicsPose {
   sequence<double> data;
+};
+
+/** Motor options for `PhysicsRagdoll.driveToPose`. */
+[json]
+dictionary PhysicsRagdollMotorOptions {
+  double frequency;
+  double damping;
+  double maxTorque;
+};
+
+/**
+ * `{ interpolated }` option of `Physics.getTransform` / `getAllTransforms`:
+ * read the render-interpolated transform instead of the last stepped one.
+ */
+dictionary PhysicsTransformOptions {
+  boolean interpolated = false;
+};
+
+/** Driver input of `PhysicsVehicle.setInput`; tracked vehicles read leftRatio/rightRatio. */
+[json]
+dictionary PhysicsVehicleInput {
+  double forward;
+  double right;
+  double brake;
+  double handBrake;
+  double leftRatio;
+  double rightRatio;
+};
+
+/** One wheel's state, from `PhysicsVehicle.wheelState(index)`. */
+[json]
+dictionary PhysicsWheelState {
+  double suspensionLength;
+  double angularVelocity;
+  double steerAngle;
+  double rotationAngle;
+  boolean contact;
+  long contactBody;
+  PhysicsVec3 contactNormal;
+  PhysicsVec3 position;
+  PhysicsQuat rotation;
+};
+
+/** Vehicle state, from `PhysicsVehicle.getState()`. */
+[json]
+dictionary PhysicsVehicleState {
+  double speed;
+  double rpm;
+  long gear;
+};
+
+/** One overlapping body, from the JSON overlap natives. */
+[json]
+dictionary PhysicsOverlapHit {
+  long bodyId;
+  unrestricted double userData;
+};
+
+/**
+ * Query filter of the raw raycast / overlap natives: a layer mask, named
+ * layers, and bodies to ignore.
+ */
+[json]
+dictionary PhysicsQueryFilter {
+  long layerMask;
+  sequence<DOMString> layers;
+  long ignoreBody;
+  sequence<long> ignoreBodies;
 };
 
 [json]
@@ -300,6 +374,10 @@ dictionary PhysicsConstraintMotorOptions {
 interface PhysicsWorldHandle {
   void destroy();
   void step(double dt);
+  /** Makes this world the active one for the `Physics.*` calls that follow (pushes it). */
+  void enter();
+  /** Undoes `enter()` (pops the active world). */
+  void exit();
 };
 
 [global]
@@ -311,6 +389,10 @@ interface PhysicsCharacter {
   PhysicsVec3 getVelocity();
   PhysicsVec3 getLinearVelocity();
   PhysicsCharacterState getState();
+  /** Swaps the character's collision shape (crouch / stand); false if it would overlap. */
+  boolean setShape(PhysicsBodyOptions shape);
+  /** Tag of the inner rigid body other bodies collide with, or -1. */
+  readonly attribute long innerBody;
   void update(double dt);
   void destroy();
 };
@@ -318,19 +400,59 @@ interface PhysicsCharacter {
 [global]
 interface PhysicsVehicle {
   void setDriverInput(double forward, double steer, double brake, double handBrake);
+  /** Driver input as one object; tracked vehicles may give leftRatio/rightRatio. */
+  void setInput(optional PhysicsVehicleInput input = {});
+  /** Motorcycle lean controller on/off. */
+  void setLeanController(boolean enabled);
+  /** Selects a gear (-1 reverse, 0 neutral, 1..n) with a clutch fraction. */
+  void setGear(long gear, optional double clutch = 1.0);
+  /** The state of wheel `index`, or null. */
+  PhysicsWheelState wheelState(long index);
+  /** Speed, engine rpm and current gear. */
+  PhysicsVehicleState getState();
   PhysicsTransform getTransform();
+  readonly attribute long wheelCount;
+  /** Tag of the chassis rigid body. */
+  readonly attribute long chassisBody;
+  /** 'wheeled', 'tracked' or 'motorcycle'. */
+  readonly attribute DOMString type;
+  readonly attribute double speed;
+  readonly attribute double rpm;
+  readonly attribute long gear;
   void destroy();
 };
 
 [global]
 interface PhysicsRagdoll {
-  void driveToPose(PhysicsPose pose, double dt);
-  PhysicsPose getPose();
+  /** World-space pose: 7 floats per part (position xyz, quaternion xyzw). */
+  Float32Array pose();
+  /** Parent-relative pose, same layout as `pose()`. */
+  Float32Array localPose();
+  /** Teleports every part to `pose`. */
+  boolean setPose(PhysicsPose pose);
+  /** Drives the parts toward `pose` with motorised joints. */
+  boolean driveToPose(PhysicsPose pose, optional PhysicsRagdollMotorOptions motor);
+  /** Moves the parts kinematically toward `pose` over `dt` seconds. */
+  boolean driveToPoseKinematic(PhysicsPose pose, double dt);
+  void stopDrive();
+  void addImpulse(double x, double y, double z);
+  void activate();
+  void deactivate();
+  boolean isActive();
+  readonly attribute long partCount;
+  /** Body tag of part `index`, or -1. */
+  long partBody(long index);
+  /** Parent part index of part `index`, or -1 for the root. */
+  long partParent(long index);
+  /** Index of the part named `name`, or -1. */
+  long partIndex(DOMString name);
   void destroy();
 };
 
 [global]
 interface PhysicsSoftBody {
+  /** Tag of the underlying rigid body. */
+  readonly attribute long body;
   readonly attribute long vertexCount;
   PhysicsSoftBodyTopology topology();
   Float32Array vertices();
@@ -351,7 +473,7 @@ namespace Physics {
   long createBody(PhysicsBodyOptions config);
   void destroyBody(long tag);
   void destroyAll();
-  PhysicsTransform getTransform(long tag);
+  PhysicsTransform getTransform(long tag, optional PhysicsTransformOptions opts);
   PhysicsVelocity getVelocity(long tag);
   void setPosition(long tag, double x, double y, double z);
   void setRotation(long tag, double x, double y, double z, double w);
@@ -362,8 +484,13 @@ namespace Physics {
   void addTorque(long tag, double x, double y, double z);
   void setUserData(long tag, unrestricted double data);
   unrestricted double getUserData(long tag);
-  void setLayer(long tag, long layer);
+  /** Moves a body to a named collision layer (see `setLayers`); false if unknown. */
+  boolean setLayer(long tag, DOMString layer);
   void setKinematic(long tag);
+  /**
+   * 'static' | 'dynamic' | 'kinematic', or a boolean (true = static). The
+   * native behind it takes the boolean; the wrapper maps the strings.
+   */
   [manual] void setMotionType(long tag, any type);
   void moveKinematic(long tag, double x, double y, double z, double dt);
 
@@ -388,6 +515,14 @@ namespace Physics {
   sequence<long> overlapBoxRaw(double cx, double cy, double cz, double hx, double hy, double hz);
   sequence<long> overlapPointRaw(double x, double y, double z, optional long mask = 0);
 
+  // The natives behind the [manual] raycast / raycastClosest / overlapShape /
+  // overlapPoint wrappers: a JSON filter in, JSON hits out (null when nothing
+  // was hit).
+  PhysicsRayHit raycastClosestJsonRaw(double ox, double oy, double oz, double dx, double dy, double dz, double maxDist, optional PhysicsQueryFilter filter);
+  sequence<PhysicsRayHit> raycastJsonRaw(double ox, double oy, double oz, double dx, double dy, double dz, double maxDist, optional PhysicsQueryFilter filter);
+  sequence<PhysicsOverlapHit> overlapShapeJsonRaw(PhysicsOverlapShapeOptions config);
+  sequence<PhysicsOverlapHit> overlapPointJsonRaw(double x, double y, double z, optional PhysicsQueryFilter filter);
+
   sequence<PhysicsContact> getContacts();
   void setFrictionCombine(long tag, DOMString mode);
   void setRestitutionCombine(long tag, DOMString mode);
@@ -399,14 +534,18 @@ namespace Physics {
   void setFriction(long tag, double friction);
   void setRestitution(long tag, double restitution);
   PhysicsBodyProperties getBodyProperties(long tag);
-  void setAreaOverride(long tag, PhysicsAreaOverride config);
+  /** False when `tag` is not a sensor body. */
+  boolean setAreaOverride(long tag, PhysicsAreaOverride config);
   void setTimeStep(double dt);
+  /** The fixed step in seconds (1/60 with no world). */
+  double getTimeStep();
   void step(double dt);
   void setInterpolation(boolean enabled);
   boolean getInterpolation();
   boolean isActive(long tag);
   void activate(long tag);
-  Float32Array getAllTransforms(optional long worldHandle);
+  /** Every body's transform, 8 floats per body (tag, position xyz, quaternion xyzw), in one array. */
+  Float32Array getAllTransforms(optional PhysicsTransformOptions opts);
   PhysicsCharacter createCharacter(PhysicsCharacterOptions config);
   PhysicsVehicle createVehicle(PhysicsVehicleOptions config);
   PhysicsRagdoll createRagdoll(PhysicsRagdollOptions config);
@@ -415,8 +554,14 @@ namespace Physics {
   void destroyConstraint(long tag);
   void setConstraintEnabled(long tag, boolean enabled);
   boolean isConstraintEnabled(long tag);
-  void setWheelMotor(long vehicleTag, long wheelIndex, double motorTorque, double brakeTorque);
-  void setConstraintMotor(long tag, PhysicsConstraintMotorOptions config);
+  /**
+   * Adjusts a 'wheel' constraint's motor at run time (no-op for other
+   * constraints): `enabled` as 0/1 (the wrapper maps a boolean), the target
+   * angular `speed` and the `maxTorque` it may apply.
+   */
+  void setWheelMotor(long handle, long enabled, double speed, double maxTorque);
+  /** False when `tag` is not a constraint with a motor. */
+  boolean setConstraintMotor(long tag, PhysicsConstraintMotorOptions config);
   void setConstraintBreakingImpulse(long tag, double impulse);
   double getConstraintBreakingImpulse(long tag);
   sequence<long> getBrokenConstraints();

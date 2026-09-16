@@ -131,7 +131,9 @@ export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
   // Natives emitter (gen/emit_natives.mjs; schema/native_types.mjs)
   //   manual     an operation / attribute / constructor the generator leaves
   //              to hand-written JS: a placeholder comment in the wrapper,
-  //              no native
+  //              no native; on a dictionary member, one that never crosses
+  //              (no read native, no unpacked parameter) and that the
+  //              hand-written wrapper assembles itself
   //   json       a dictionary that crosses as JSON in one `str`, in both
   //              directions, instead of member by member
   //   transfer   a typed-array result the body hands over zero-copy: it must

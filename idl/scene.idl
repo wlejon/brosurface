@@ -270,7 +270,8 @@ interface SceneNode {
   void burst(long count);
   void clear();
   void probeCapture();
-  void savePly(DOMString path);
+  /** Writes a Gaussian-splat node's cloud as a PLY file; false when the write fails. */
+  boolean savePly(DOMString path);
 };
 
 [
@@ -343,7 +344,12 @@ interface SceneGraph {
   void setSSAO(optional SSAOConfig opts);
   void setSSR(optional SSRConfig opts);
   void setDepthOfField(optional DepthOfFieldConfig opts);
-  void setColorLUT(optional ColorLUTConfig opts);
+  /**
+   * Loads a colour-grading LUT strip (`path`, `size` inferred from the strip
+   * when 0, `amount` 0..1) and applies it as the last tonemap stage; false
+   * when the strip fails to decode. Call with no options (or null) to clear.
+   */
+  boolean setColorLUT(optional ColorLUTConfig opts);
   void setFXAA(boolean enabled);
   void setRenderScale(unrestricted double scale);
   void setMSAA(long samples);

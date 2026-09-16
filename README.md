@@ -48,7 +48,8 @@ or `<op>_at(index)`.
 
 Extended attributes the natives emitter reads: `[gate=…]`/`[cpp_guard=…]`, `[flatten]`,
 `[prefix=…]`, `[json]` (dictionary crosses as one JSON string), `[manual]` (no native;
-hand-written JS), `[transfer]` (typed-array result handed over zero-copy), `[view]`
+hand-written JS — on a dictionary member, one that never crosses and the hand-written
+wrapper assembles), `[transfer]` (typed-array result handed over zero-copy), `[view]`
 (class handles the host owns; no destructor), `[finalize=insweep|deferred]`.
 
 ## Structure
@@ -77,4 +78,6 @@ tools/        Verification and sync tooling
 - **Registration diff**: `node tools/compare_registrations.mjs` diffs generated
   registrations against bro's hand-written `native_<sub>.cpp` by path and signature.
 - **Sync**: `npm run sync-to-bro` copies docs, TypeScript declarations and the natives
-  outputs into `bro`.
+  outputs into `bro` — the natives only for the subsystems bro already carries (a
+  `natives/<sub>/native_<sub>_register.cpp` there); the rest live in a sibling
+  library's api tree, or nowhere yet.

@@ -13,6 +13,15 @@
  * The entry-point bodies (bro/src/bronze_host/native_<sub>.cpp) and the
  * [manual] JavaScript are hand-written in bro and never touched here.
  *
+ * Natives go only to the subsystems bro CARRIES: the ones whose generated
+ * register TU, bro/src/bronze_host/natives/<sub>/native_<sub>_register.cpp,
+ * is already there (bro's CMakeLists names it). The rest of idl/natives.list
+ * is carried by a sibling library's own api tree (bromesh, brotensor,
+ * brosoundml, ... register their natives by hand) or by nothing yet, and
+ * copying their outputs into bro would leave files nothing compiles. Adopting
+ * a subsystem in bro is a bro change (the register TU and its include dir in
+ * CMakeLists.txt) that this tool then follows.
+ *
  * Usage:
  *   node tools/sync_to_bro.mjs [--dry-run]
  *   npm run sync-to-bro
@@ -74,11 +83,20 @@ copy(dtsSrc, path.join(BRO_ROOT, 'types', 'index.d.ts'), 'd.ts');
 console.log('\n[Step 4] Copying the natives outputs to bro/src/bronze_host/natives/...');
 const outNatives = path.join(BROSURFACE_ROOT, 'out', 'natives');
 const broNatives = path.join(BRO_ROOT, 'src', 'bronze_host', 'natives');
+const skipped = [];
 for (const plan of plans) {
-  const dir = path.join(outNatives, plan.subsystem);
-  for (const f of fs.readdirSync(dir)) {
-    copy(path.join(dir, f), path.join(broNatives, plan.subsystem, f), `natives:${plan.subsystem}`);
+  const sub = plan.subsystem;
+  if (!fs.existsSync(path.join(broNatives, sub, `native_${sub}_register.cpp`))) {
+    skipped.push(sub);
+    continue;
   }
+  const dir = path.join(outNatives, sub);
+  for (const f of fs.readdirSync(dir)) {
+    copy(path.join(dir, f), path.join(broNatives, sub, f), `natives:${sub}`);
+  }
+}
+if (skipped.length) {
+  console.log(`  ⏭  not carried by bro (no natives/<sub>/native_<sub>_register.cpp there), left alone: ${skipped.join(', ')}`);
 }
 
 console.log('\n════════════════════════════════════════════════════════════════════');

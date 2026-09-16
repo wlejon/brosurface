@@ -104,7 +104,10 @@ interface TileWorld {
   sequence<TileRegionResult> computeRegions(long layer);
   void applyAutotile(long layer, sequence<TileAutotileRule> rules);
 
-  Mesh extractVoxelMesh(optional TileVoxelExtractOptions opts);
+  // [manual]: bromesh mints `Mesh` as a host class, not a `__bro_native.mesh`
+  // class, so the result has no native class path; bro registers the entry
+  // point by hand with a dynamic result (native_scene_tile_ops.cpp).
+  [manual] Mesh extractVoxelMesh(optional TileVoxelExtractOptions opts);
   void setOrigin(unrestricted double x, unrestricted double y, unrestricted double z);
   boolean advance(unrestricted double dtMs);
 

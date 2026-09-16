@@ -449,10 +449,13 @@ class Planner {
   }
 
   // The reads of a dictionary result: one native per leaf member, an object
-  // literal that calls them. `indexed` reads take the list index.
+  // literal that calls them. `indexed` reads take the list index. A [manual]
+  // member has no read: the hand-written wrapper assembles it (from the other
+  // members, typically), so the object literal leaves it out.
   planDictReads(dict, tail, pathParts, indexed, transfer, scope) {
     const fields = [];
     for (const m of dictionaryMembers(dict, this.ctx)) {
+      if (hasAttr(m, 'manual')) continue;
       const memberPath = [...pathParts, m.name];
       const r = resolveShape(m.dataType, 'memberReturn', this.ctx, m.loc, `member '${m.name}' of dictionary '${dict.name}'`);
       if (r.error) { this.errors.push(r.error); continue; }
@@ -615,10 +618,12 @@ class Planner {
   // default and either required members or the dual-accept vector shape,
   // the C side gets a leading `bool <name>_given`, and every member reads
   // as absent when the dictionary is; otherwise an absent dictionary is
-  // the same as one with every member absent, and no flag is needed.
+  // the same as one with every member absent, and no flag is needed. A
+  // [manual] member does not cross (the hand-written wrapper folds it into
+  // the members that do).
   dictArgPlan(shape, src, mode, cName, jsName, info, out) {
     const dict = shape.dict;
-    const members = dictionaryMembers(dict, this.ctx);
+    const members = dictionaryMembers(dict, this.ctx).filter((m) => !hasAttr(m, 'manual'));
     const local = `d_${cName}`;
     const required = mode === 'required';
     const optionalNoDefault = mode === 'optional';

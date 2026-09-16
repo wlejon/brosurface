@@ -16,8 +16,19 @@
  */
 
 /**
- * Desktop coordinates and dimensions of a rectangle bounds.
+ * Desktop coordinates and dimensions of a rectangle.
  */
+dictionary DisplayRect {
+  /** X coordinate in desktop pixels. */
+  long x;
+  /** Y coordinate in desktop pixels. */
+  long y;
+  /** Width in desktop pixels. */
+  long width;
+  /** Height in desktop pixels. */
+  long height;
+};
+
 /**
  * Display device descriptor.
  */
@@ -50,6 +61,10 @@ dictionary DisplayInfo {
   boolean isPrimary;
   /** Whether the active window currently sits on this display. */
   boolean isCurrent;
+  /** The same rectangle as x/y/width/height, nested. */
+  [manual] DisplayRect bounds;
+  /** The same rectangle as workX/workY/workWidth/workHeight, nested. */
+  [manual] DisplayRect workArea;
 };
 
 /**

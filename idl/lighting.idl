@@ -127,9 +127,14 @@ dictionary DepthOfFieldConfig {
   unrestricted double maxBlur;
 };
 
+/** Options of `SceneGraph.setColorLUT`. */
 dictionary ColorLUTConfig {
-  DOMString texture;
-  unrestricted double intensity;
+  /** Path of the LUT strip image (N*N by N pixels); empty clears the LUT. */
+  DOMString path = "";
+  /** Cube size N; 0 infers it from the strip's aspect ratio. */
+  long size = 0;
+  /** Blend between the ungraded (0) and fully graded (1) image. */
+  unrestricted double amount = 1.0;
 };
 
 dictionary FXAAConfig {
