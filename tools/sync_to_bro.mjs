@@ -50,10 +50,18 @@ if (!fs.existsSync(BRO_ROOT)) {
   process.exit(1);
 }
 
+// The generators write LF. On an autocrlf checkout bro's copies sit in the
+// working tree as CRLF, and overwriting them with LF bytes makes git list
+// every synced file as modified with an empty diff. So a copy keeps the
+// destination's line endings when it already exists.
 function copy(src, dst, tag) {
   if (!isDryRun) {
     fs.mkdirSync(path.dirname(dst), { recursive: true });
-    fs.copyFileSync(src, dst);
+    let text = fs.readFileSync(src, 'utf8');
+    if (fs.existsSync(dst) && fs.readFileSync(dst, 'utf8').includes('\r\n')) {
+      text = text.replace(/\r?\n/g, '\r\n');
+    }
+    fs.writeFileSync(dst, text, 'utf8');
   }
   console.log(`  ✅ [${tag}] ${path.basename(src)} -> ${dst}`);
 }
