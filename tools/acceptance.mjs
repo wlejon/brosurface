@@ -114,11 +114,11 @@ interface ProbeDevice {
   // Natives: prototypes, registrations, wrapper and globals all follow the AST,
   // through every shape the emitter carries (namespace getter/setter, typed-array
   // return, dictionary parameter with defaults, [json] result, [manual] member,
-  // class constructor/dtor/instance members).
+  // [strict] string member and parameter, class constructor/dtor/instance members).
   const nativesIdl = (extra) => `
 dictionary ProbeConfig {
   long retries = 3;
-  DOMString label;
+  [strict] DOMString label;
   sequence<double> weights;
 };
 [json] dictionary ProbeReport {
@@ -136,7 +136,7 @@ namespace probe {
 interface ProbeDevice {
   constructor(DOMString id);
   attribute DOMString deviceId;
-  DOMString ping(DOMString payload);
+  DOMString ping([strict] DOMString payload);
   void executeProbe(long timeoutMs, optional boolean force = false);
 ${extra}};
   `.trim();
@@ -188,11 +188,20 @@ ${extra}};
     'toF64(',                       // sequence<double> -> Float64Array
     'bro.probe.openPanel',          // [manual] placeholder comment
     'new __bro_native.probe.ProbeDevice(',
+    // [strict]: the wrapper refuses a non-string before the native lowering
+    // can ToString-coerce it, for a dictionary member and for a parameter.
+    `if (d_cfg.label !== undefined && typeof d_cfg.label !== 'string') throw new TypeError("bro.probe.configure: cfg.label must be a string");`,
+    `if (payload !== undefined && typeof payload !== 'string') throw new TypeError("bro.probe.ProbeDevice.prototype.ping: payload must be a string");`,
   ];
   for (const s of expectJs) {
     if (!jsMut.includes(s)) fail(`Step 2 FAIL: natives wrapper lacks: ${s}`);
   }
   if (!globalsMut.includes('__bro_native') || !globalsMut.includes('bro')) fail('Step 2 FAIL: module.globals lacks the roots the wrapper reads.');
+  // [strict] means a typeof check, which only a string has; on any other type
+  // it is refused, not silently dropped.
+  const strictMisuse = planProbe(nativesIdl('  void tune([strict] long gain);\n'));
+  const misuse = strictMisuse.errors.find((e) => /tune.*\[strict\]/.test(e.message));
+  if (!misuse || !misuse.line) fail('Step 2 FAIL: natives planner accepted [strict] on a non-string parameter.');
 
   // A shape the vocabulary cannot carry is refused with the IDL line and the
   // nearest spelling, never degraded to dynamic.

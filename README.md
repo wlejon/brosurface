@@ -50,7 +50,10 @@ Extended attributes the natives emitter reads: `[gate=…]`/`[cpp_guard=…]`, `
 `[prefix=…]`, `[json]` (dictionary crosses as one JSON string), `[manual]` (no native;
 hand-written JS — on a dictionary member, one that never crosses and the hand-written
 wrapper assembles), `[transfer]` (typed-array result handed over zero-copy), `[view]`
-(class handles the host owns; no destructor), `[finalize=insweep|deferred]`.
+(class handles the host owns; no destructor), `[finalize=insweep|deferred]`, `[strict]`
+(a `DOMString` parameter or dictionary member the wrapper type-checks — a non-string
+is a `TypeError` — instead of letting the native lowering ToString-coerce it; use it on
+a loader path, device or name whose coercion would silently become a wrong path).
 
 ## Structure
 

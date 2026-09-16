@@ -30,11 +30,11 @@
  */
 dictionary MotionLoadOptions {
   /** Path to ARDY g152 weights directory (denoiser, tokenizer, stats) */
-  DOMString checkpoint;
+  [strict] DOMString checkpoint;
   /** Path to merged LLM2Vec Llama-3-8B text encoder weights directory */
-  DOMString textEncoder;
+  [strict] DOMString textEncoder;
   /** Optional target device ('cuda', 'metal', or 'cpu') */
-  DOMString device;
+  [strict] DOMString device;
 };
 
 /**

@@ -143,7 +143,10 @@ export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
   //   finalize   `insweep` (default) or `deferred`: when the destructor runs
   //   flatten    a namespace whose members mount on the prefix object itself
   //              (`bro.appDir`, not `bro.<ns>.appDir`)
-  'manual', 'json', 'transfer', 'view', 'finalize', 'flatten',
+  //   strict     a DOMString parameter or dictionary member the wrapper
+  //              type-checks (a non-string is a TypeError) instead of
+  //              ToString-coercing on the way to the native
+  'manual', 'json', 'transfer', 'view', 'finalize', 'flatten', 'strict',
 ]);
 
 export class ValidationError {
@@ -473,6 +476,7 @@ export class Validator {
 
     for (let i = 0; i < parameters.length; i++) {
       const param = parameters[i];
+      this.validateExtendedAttributes(param, `parameter '${param.name}' of ${contextDesc}`);
       this.validateType(param.dataType, param.loc);
 
       if (param.variadic && i !== parameters.length - 1) {

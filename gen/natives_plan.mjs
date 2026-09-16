@@ -528,7 +528,7 @@ class Planner {
       const r = resolveShape(p.dataType, 'param', this.ctx, p.loc || info.loc, `parameter '${p.name}' of ${info.what}`);
       if (r.error) { this.errors.push(r.error); continue; }
       const mode = !p.optional ? 'required' : (p.defaultValue !== null ? { default: p.defaultValue } : 'optional');
-      const a = this.argPlan(r.shape, p.name, mode, cIdent(p.name), p.name, { what: info.what, loc: p.loc || info.loc });
+      const a = this.argPlan(r.shape, p.name, mode, cIdent(p.name), p.name, { what: info.what, loc: p.loc || info.loc, strict: hasAttr(p, 'strict') });
       out.cParams.push(...a.cParams);
       out.bronzeParams.push(...a.bronzeParams);
       out.jsArgs.push(...a.jsArgs);
@@ -540,7 +540,10 @@ class Planner {
 
   /**
    * One value crossing in. `src` is the JS expression holding it, `mode` is
-   * 'required', 'optional' (no declared default) or {default}.
+   * 'required', 'optional' (no declared default) or {default}. `info.strict`
+   * is the [strict] attribute: a string the wrapper type-checks rather than
+   * letting the native lowering ToString-coerce (a number handed to a loader
+   * path would otherwise become a wrong path, not a TypeError).
    */
   argPlan(shape, src, mode, cName, jsName, info) {
     // jsZeros runs parallel to jsArgs: the expression each argument takes
@@ -551,6 +554,14 @@ class Planner {
     const optionalNoDefault = mode === 'optional';
     const what = `${info.what}: ${jsName}`;
     if (required && !info.setter) out.check.push(`if (${src} === undefined) throw new TypeError(${JSON.stringify(`${what} is required`)});`);
+    if (info.strict) {
+      if (shape.kind !== 'scalar' || shape.bronze !== 'str') {
+        this.errors.push(new ValidationError(
+          `${what}: [strict] applies to a DOMString (the only type the native lowering coerces silently); drop it, or declare a DOMString`, info.loc));
+        return out;
+      }
+      out.check.push(`if (${src} !== undefined && typeof ${src} !== 'string') throw new TypeError(${JSON.stringify(`${what} must be a string`)});`);
+    }
     this.noteDependency(shape);
 
     switch (shape.kind) {
@@ -656,7 +667,7 @@ class Planner {
         memberSrc = `${local}.${m.name}`;
       }
       const mMode = m.required ? 'required' : (m.defaultValue !== null ? { default: m.defaultValue } : 'optional');
-      const sub = this.argPlan(r.shape, memberSrc, mMode, `${cName}_${cIdent(m.name)}`, `${jsName}.${m.name}`, { what: info.what, loc: m.loc || info.loc });
+      const sub = this.argPlan(r.shape, memberSrc, mMode, `${cName}_${cIdent(m.name)}`, `${jsName}.${m.name}`, { what: info.what, loc: m.loc || info.loc, strict: hasAttr(m, 'strict') });
       if (needsFlag) {
         // Absent dictionary: every member argument is its absent value, and
         // no member is required.
