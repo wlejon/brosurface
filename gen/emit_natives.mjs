@@ -35,8 +35,11 @@ const INDENT = '    ';
 export function readNativesList(idlDir) {
   const file = path.join(idlDir, 'natives.list');
   if (!fs.existsSync(file)) return [];
+  // Split on either line ending: an autocrlf checkout hands this file over
+  // with CRLF, and a comment line that kept its `\r` would survive the
+  // strip below as a subsystem name.
   return fs.readFileSync(file, 'utf8')
-    .split('\n')
+    .split(/\r?\n/)
     .map((l) => l.replace(/#.*$/, '').trim())
     .filter(Boolean);
 }
