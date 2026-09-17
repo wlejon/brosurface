@@ -421,8 +421,11 @@ export function renderWrapper(plan) {
     }
     // The handle prototype the registry minted chains to the wrapper's, so
     // `instanceof` answers and a dynamic call reaches the methods below.
+    // Read off globalThis, not as a bare root identifier: a property read of
+    // the root (unlike the direct native calls) is a cached host-global read,
+    // and the cache is per compiled object rather than per thread (mountChain).
     out.push(`${INDENT}{`);
-    out.push(`${INDENT}${INDENT}const proto = ${NATIVE_ROOT}.${sub}.${c.name}Proto;`);
+    out.push(`${INDENT}${INDENT}const proto = globalThis.${NATIVE_ROOT}.${sub}.${c.name}Proto;`);
     out.push(`${INDENT}${INDENT}if (proto === undefined) throw new Error(${JSON.stringify(`${c.publicPath}: native class prototype not published (registerNatives_${sub} did not run)`)});`);
     out.push(`${INDENT}${INDENT}Object.setPrototypeOf(proto, ${c.name}.prototype);`);
     out.push(`${INDENT}}`);

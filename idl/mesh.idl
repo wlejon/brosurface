@@ -294,10 +294,85 @@ dictionary MeshDracoEncodeOptions {
 };
 
 dictionary MeshExtrudeFaceResult {
-  Uint32Array dupVerts;
-  Uint32Array bridgeFaces;
-  Uint32Array bridgeAdjGroup;
+  Int32Array dupVerts;
+  Int32Array bridgeFaces;
+  /** Per bridge face, the group across its boundary edge (-1 at a mesh boundary). */
+  Int32Array bridgeAdjGroup;
+  /** The back-face copy that closes the slab, or -1 without one. */
   long backFace;
+};
+
+dictionary MeshInsetFaceResult {
+  /** The new interior face, or -1 when the inset was refused. */
+  long innerFace;
+  Int32Array innerVerts;
+  Int32Array bridgeFaces;
+};
+
+/** PolyMesh.tessellate(): flat-shaded triangles, one normal per face. */
+dictionary MeshTessellation {
+  Float32Array positions;
+  Float32Array normals;
+  Uint32Array indices;
+  /** Source face of each triangle. */
+  Int32Array triToFace;
+  /** Group of each triangle's source face. */
+  Int32Array triToGroup;
+};
+
+dictionary MeshPolyValidation {
+  /** Structurally sound: every face closes, no dangling links. */
+  boolean valid;
+  /** Every half-edge has a twin. */
+  boolean isClosed;
+  long boundaryHalfEdges;
+  sequence<DOMString> errors;
+};
+
+/** A MagicaVoxel grid: 0 = empty, else an index into `palette` (RGBA x 256). */
+dictionary MeshVoxData {
+  long sizeX;
+  long sizeY;
+  long sizeZ;
+  Uint8Array voxels;
+  Float32Array palette;
+};
+
+/**
+ * A Gaussian splat cloud: the object `scene.createGaussianSplat({ cloud })`
+ * takes. Per-splat streams, `count` splats: `positions` xyz, `scales` xyz
+ * (linear std-dev), `rotations` xyzw unit quaternion, `opacities` [0,1], `sh`
+ * coefficient-major spherical harmonics with 3 * (shDegree + 1)^2 floats
+ * per splat.
+ */
+dictionary MeshSplatCloud {
+  Float32Array positions;
+  Float32Array scales;
+  Float32Array rotations;
+  Float32Array opacities;
+  Float32Array sh;
+  long shDegree;
+  long count;
+};
+
+/** Options for `Mesh.reconstruct`. */
+dictionary MeshReconstructOptions {
+  /** Voxel grid resolution along the longest axis (default 64). */
+  long gridResolution;
+  /** Influence radius per point; 0 (the default) derives it from point density. */
+  unrestricted double supportRadius;
+  /** Threshold for surface extraction (default 0.5). */
+  unrestricted double isoLevel;
+};
+
+/** Everything a glTF file holds; `meshSkeleton[i]` / `animationSkeleton[i]` index `skeletons`. */
+dictionary MeshGltfScene {
+  sequence<Mesh> meshes;
+  sequence<SkinData> skins;
+  sequence<Skeleton> skeletons;
+  sequence<SkeletalAnimation> animations;
+  sequence<long> meshSkeleton;
+  sequence<long> animationSkeleton;
 };
 
 dictionary MeshLSystemModule {
@@ -368,13 +443,15 @@ interface Mesh {
   MeshUVQualityResult measureUVQuality();
   Mesh convexHull();
   sequence<Mesh> convexDecomposition(optional MeshConvexDecompParams params);
-  Uint8Array toGLTF(optional DOMString name);
-  DOMString toOBJ();
-  DOMString toPLY();
-  DOMString toSTL();
-  ArrayBuffer toSTLB();
-  ArrayBuffer toFBX();
-  ArrayBuffer toVOX();
+  /**
+   * Write the mesh to a file; true when the file was written. A relative
+   * path resolves the way `fs.*` resolves it (against the app directory).
+   * glTF takes `{skin, skeleton, animations}` to write a rigged asset.
+   */
+  boolean saveOBJ(DOMString path);
+  boolean savePLY(DOMString path);
+  boolean saveSTL(DOMString path);
+  [manual] boolean saveGLTF(DOMString path, optional object opts);
 
   static Mesh box(optional unrestricted double halfW, optional unrestricted double halfH, optional unrestricted double halfD);
   static Mesh sphere(optional unrestricted double radius, optional long segments, optional long rings);
@@ -395,13 +472,38 @@ interface Mesh {
    * resolution (>= 3, default 8).
    */
   [manual] static Mesh tube(sequence<sequence<unrestricted double>> path, optional any radius, optional long sides, optional MeshTubeOptions opts);
-  static Mesh fromGLTF(ArrayBuffer buffer);
-  static Mesh fromOBJ(DOMString text);
-  static Mesh fromPLY(ArrayBuffer buffer);
-  static Mesh fromSTL(ArrayBuffer buffer);
-  static Mesh fromFBX(ArrayBuffer buffer);
-  static Mesh fromVOX(ArrayBuffer buffer);
+  /**
+   * Read a mesh from a file. A relative path resolves the way `fs.*`
+   * resolves it. A file that cannot be read gives an empty Mesh. An FBX is
+   * a scene, so `loadFBX` gives every mesh in it; a `.vox` is a voxel grid,
+   * not a mesh (`loadVOX` gives the grid, `Mesh.greedyMesh` meshes it);
+   * glTF gives the whole scene: meshes, skins, skeletons, animations.
+   */
+  static Mesh loadOBJ(DOMString path);
+  static Mesh loadPLY(DOMString path);
+  static Mesh loadSTL(DOMString path);
+  static sequence<Mesh> loadFBX(DOMString path);
+  static MeshVoxData loadVOX(DOMString path);
+  [manual] static MeshGltfScene loadGLTF(DOMString path);
+  /** A Gaussian splat `.ply` is a cloud, not a mesh; an unreadable file gives an empty cloud (`count` 0). */
+  static MeshSplatCloud loadSplatPLY(DOMString path);
+  /** Write a splat cloud (the `loadSplatPLY` / `bro.triposplat` shape); true when the file was written. */
+  static boolean saveSplatPLY(DOMString path, MeshSplatCloud cloud);
   [manual] static Mesh merge(sequence<Mesh> meshes);
+  /**
+   * Triangulate a simple 2D polygon (`outer` flat x,y,..., CCW for a +Z
+   * face) with optional `holes` (each flat x,y,..., wound CW) into a mesh
+   * in the plane z = `z`. Degenerate input gives an empty Mesh.
+   */
+  static Mesh polygon2D(sequence<unrestricted double> outer, optional sequence<sequence<unrestricted double>> holes, optional unrestricted double z);
+  /**
+   * Triangulate a planar 3D polygon (`outer` flat x,y,z,..., lying on the
+   * plane with unit `normal`) with optional `holes`; the mesh reuses the
+   * input positions and fills normals with `normal`.
+   */
+  static Mesh polygon3D(sequence<unrestricted double> outer, sequence<sequence<unrestricted double>> holes, sequence<unrestricted double> normal);
+  /** Implicit-surface reconstruction of an oriented point cloud (a Mesh with positions + normals; indices ignored). */
+  static Mesh reconstruct(Mesh pointCloud, optional MeshReconstructOptions opts);
   static Mesh marchingCubes(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh surfaceNets(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh dualContouring(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
@@ -449,17 +551,67 @@ interface ProgressiveMesh {
   readonly attribute long maxVertices;
 };
 
+/**
+ * Half-edge adjacency over N-gon faces: the edit topology a mesh editor
+ * keeps beside the triangle Mesh it renders, so a face survives whatever
+ * triangulation drew it. Build one from triangles (`fromMeshData` /
+ * `fromMesh`, with an optional per-triangle group so coplanar triangles can
+ * be merged back into one face with `mergeFacesByGroup`), from a planar
+ * polygon, or from N-gon soup; `tessellate()` gives triangles back.
+ * Face and vertex indices are stable until `compact()`.
+ */
 interface PolyMesh {
-  [manual] constructor(optional Mesh mesh);
+  /** Empty; the static factories build populated ones. */
+  constructor();
+  static PolyMesh fromMeshData(Float32Array positions, Uint32Array indices, optional Int32Array triToGroup);
+  static PolyMesh fromMesh(Mesh mesh, optional Int32Array triToGroup);
+  /** One N-gon from a simple CCW polygon (as seen from +normal). */
+  static PolyMesh fromPolygon(Float32Array positionsXYZ, sequence<unrestricted double> normal, optional long group);
+  /** N-gon soup: `polyOffsets` (length F+1) delimits each face's run in `polyVerts`. */
+  static PolyMesh fromPolygons(Float32Array positions, Uint32Array polyVerts, Uint32Array polyOffsets, optional Int32Array faceGroups);
+
   readonly attribute long vertexCount;
+  readonly attribute long halfEdgeCount;
   readonly attribute long faceCount;
-  readonly attribute long edgeCount;
+  long faceVertexCount(long faceIdx);
+  sequence<long> faceVertices(long faceIdx);
+  sequence<long> faceHalfEdges(long faceIdx);
+  sequence<unrestricted double> getVertex(long vertexIdx);
+  sequence<unrestricted double> computeFaceNormal(long faceIdx);
+  /** The face's group tag, or -1. */
+  long faceGroup(long faceIdx);
+  void setFaceGroup(long faceIdx, long group);
+  sequence<long> facesInGroup(long groupId);
+  boolean isBoundaryVertex(long vertexIdx);
+  boolean isBoundaryHalfEdge(long halfEdgeIdx);
+  /** Outer + hole loops of vertex indices around one face / one group. */
+  sequence<sequence<long>> findFaceBoundary(long faceIdx);
+  sequence<sequence<long>> findGroupBoundary(long groupId);
+
+  MeshTessellation tessellate();
+  /** `tessellate()` as a Mesh (positions, flat normals, indices). */
   Mesh toMesh();
+  MeshPolyValidation validate();
+
+  long addVertex(unrestricted double x, unrestricted double y, unrestricted double z);
+  /** A face from an ordered vertex loop (3+); call `rematchTwins()` after a batch. */
+  long addFace(sequence<long> vertices, optional long group);
+  void deleteFace(long faceIdx);
+  void translateVertex(long vertexIdx, sequence<unrestricted double> offset);
+  void translateFace(long faceIdx, sequence<unrestricted double> offset);
+  /** Push/pull on a closed solid: seam-duplicate vertices move with the face. */
+  void translateFaceWithRing(long faceIdx, sequence<unrestricted double> offset);
+  /** SketchUp-style extrusion: the face moves by `offset`, a bridge quad per boundary edge, a back face unless `withBack` is false. */
   MeshExtrudeFaceResult extrudeFace(long faceIdx, sequence<unrestricted double> offset, optional boolean withBack, optional long bridgeGroup, optional long backGroup);
+  /** Inset toward the centroid by `amount` (a distance, or a ratio in [0,1) when `asRatio`). */
+  MeshInsetFaceResult insetFace(long faceIdx, unrestricted double amount, optional boolean asRatio, optional long bridgeGroup);
+  /** Split the edge of half-edge `he` at `position` (default: its midpoint); both faces must be triangles. The new vertex, or -1. */
+  long splitEdge(long he, optional sequence<unrestricted double> position);
+  boolean flipEdge(long he);
+  boolean collapseEdge(long he, optional sequence<unrestricted double> position);
   void rematchTwins();
   void mergeFacesByGroup();
   void compact();
-  sequence<sequence<long>> findGroupBoundary(long groupId);
 };
 
 /**

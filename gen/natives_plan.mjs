@@ -193,13 +193,20 @@ class Planner {
 
   // The JS expression of the object at a dotted chain, creating each level
   // it walks, and the public spelling of that object.
+  //
+  // The ROOT of the chain is read off globalThis rather than as a bare
+  // identifier. A bare host-global read is cached in the compiled module's
+  // own data, and that data is one per compiled object, not one per thread:
+  // a wrapper the host also enters on a second thread's realm would
+  // otherwise mount onto whichever realm's root filled the cell first.
+  // `globalThis.x` is never cached, so each entry reads the calling
+  // thread's root.
   mountChain(parts) {
+    this.reads.add('globalThis');
     if (parts.length === 0) {
-      this.reads.add('globalThis');
       return { expr: 'globalThis', publicPath: '' };
     }
-    this.reads.add(parts[0]);
-    let expr = parts[0];
+    let expr = `globalThis.${parts[0]}`;
     for (let i = 1; i < parts.length; i++) {
       this.helpers.add('mount');
       expr = `mount(${expr}, ${JSON.stringify(parts[i])})`;
