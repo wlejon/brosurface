@@ -4,7 +4,7 @@
  * =============================================================================
  *
  * The bromesh C++ library is exposed via these classes and namespaces:
- * Mesh, MeshBVH, ProgressiveMesh, PolyMesh, LSystem.
+ * Mesh, MeshBVH, ProgressiveMesh, PolyMesh, CapsuleField, LSystem.
  */
 
 dictionary MeshOptions {
@@ -71,6 +71,94 @@ dictionary MeshTreeOptions {
   long sides;
   unrestricted double leafRadius;
   unrestricted double pipeExp;
+  long seed;
+  /** Space-colonization tuning for the skeleton pass. */
+  MeshSpaceColonizationOptions colonize;
+};
+
+/** Result of Mesh.tree(): the thickened skeleton plus its swept branch mesh. */
+dictionary MeshTreeResult {
+  sequence<MeshBranchSegment> segments;
+  Mesh branches;
+};
+
+dictionary MeshSweepOptions {
+  boolean closeProfile;
+  boolean capStart;
+  boolean capEnd;
+  boolean miterJoints;
+  /** Per-ring profile scale: a number, or one entry per path point. */
+  any profileScale;
+  /** Per-ring twist in radians: a number, or one entry per path point. */
+  any twist;
+};
+
+dictionary MeshTubeOptions {
+  boolean capStart;
+  boolean capEnd;
+  boolean miterJoints;
+};
+
+dictionary MeshBladeStripOptions {
+  unrestricted double width;
+  unrestricted double thickness;
+  boolean capStart;
+  boolean capEnd;
+  boolean miterJoints;
+  any profileScale;
+  any twist;
+};
+
+dictionary MeshBladePathOptions {
+  sequence<unrestricted double> base;
+  sequence<unrestricted double> tipDir;
+  unrestricted double length;
+  unrestricted double bend;
+  unrestricted double lift;
+  long segments;
+};
+
+/** Capsule obstacle for CapsuleField: the segment a→b swept by `radius`. */
+dictionary MeshCapsule {
+  sequence<unrestricted double> a;
+  sequence<unrestricted double> b;
+  unrestricted double radius;
+  /** Optional identity used by the `excludeTag` query parameters. */
+  long tag;
+};
+
+/** Sphere obstacle / keep-out volume. */
+dictionary MeshSphere {
+  sequence<unrestricted double> center;
+  unrestricted double radius;
+  long tag;
+};
+
+dictionary MeshCapsuleFieldNearest {
+  sequence<unrestricted double> point;
+  sequence<unrestricted double> normal;
+  unrestricted double distance;
+  long tag;
+};
+
+dictionary MeshAnchorPackOptions {
+  unrestricted double minSpacing;
+  unrestricted double minObstacleDistance;
+  long maxCount;
+  unrestricted double seed;
+  /** CapsuleField the anchors must clear by `minObstacleDistance`. */
+  any avoid;
+  sequence<MeshSphere> keepOut;
+};
+
+dictionary MeshTurtleOptions {
+  unrestricted double stepLength;
+  /** Turn angle in radians. */
+  unrestricted double angle;
+  unrestricted double radius;
+  sequence<unrestricted double> position;
+  sequence<unrestricted double> heading;
+  sequence<unrestricted double> up;
 };
 
 dictionary MeshLeafCardOptions {
@@ -129,13 +217,14 @@ dictionary MeshSpaceColonizationOptions {
   unrestricted double obstacleSteer;
 };
 
+/** One segment of a branch skeleton (spaceColonize / lsystemToBranches / tree). */
 dictionary MeshBranchSegment {
-  sequence<unrestricted double> p0;
-  sequence<unrestricted double> p1;
-  unrestricted double r0;
-  unrestricted double r1;
-  sequence<unrestricted double> dir;
+  /** Index of the parent segment, -1 at a root. */
   long parent;
+  sequence<unrestricted double> from;
+  sequence<unrestricted double> to;
+  /** Radius at `from`; 0 until thickenBranches assigns the pipe model. */
+  unrestricted double radius;
   long depth;
 };
 
@@ -299,7 +388,13 @@ interface Mesh {
   static Mesh octahedron(optional unrestricted double radius);
   static Mesh tetrahedron(optional unrestricted double radius);
   static Mesh disk(optional unrestricted double radius, optional long segments);
-  static Mesh tube(sequence<unrestricted double> points, optional unrestricted double radius, optional long segments);
+  /**
+   * Circular-cross-section sweep along `path` (Float32Array(3N) or
+   * [[x,y,z], ...], at least 2 points). `radius` is a constant number or a
+   * per-point list the same length as `path`; `sides` is the ring
+   * resolution (>= 3, default 8).
+   */
+  [manual] static Mesh tube(sequence<sequence<unrestricted double>> path, optional any radius, optional long sides, optional MeshTubeOptions opts);
   static Mesh fromGLTF(ArrayBuffer buffer);
   static Mesh fromOBJ(DOMString text);
   static Mesh fromPLY(ArrayBuffer buffer);
@@ -310,22 +405,34 @@ interface Mesh {
   static Mesh marchingCubes(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh surfaceNets(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
   static Mesh dualContouring(sequence<unrestricted double> values, long dimX, long dimY, long dimZ, unrestricted double isoLevel);
-  static Mesh sweep(sequence<unrestricted double> path, sequence<unrestricted double> profile);
+  /**
+   * Extrude a closed 2D `profile` (Float32Array(2N) or [[x,y], ...]) along a
+   * 3D `path` (Float32Array(3N) or [[x,y,z], ...]).
+   */
+  [manual] static Mesh sweep(sequence<sequence<unrestricted double>> profile, sequence<sequence<unrestricted double>> path, optional MeshSweepOptions opts);
   [manual] static Mesh bezierSweep(sequence<sequence<unrestricted double>> controlPoints, sequence<sequence<unrestricted double>> profile, optional MeshBezierSweepOptions opts);
   [manual] static Mesh leafCard(any shape, optional MeshLeafCardOptions opts);
   static Mesh flower(optional MeshFlowerOptions opts);
+  /** Sweep a 4-vertex diamond profile along `path`: grass / fern / succulent blades. */
+  [manual] static Mesh bladeStrip(sequence<sequence<unrestricted double>> path, optional MeshBladeStripOptions opts);
+  /** Quadratic-Bézier blade spine as [[x,y,z], ...], consumable by bladeStrip / sweep. */
+  [manual] static sequence<sequence<unrestricted double>> bladePath(optional MeshBladePathOptions opts);
   [manual] static Mesh blob(optional MeshBlobOptions opts);
   [manual] static sequence<MeshBranchSegment> spaceColonize(sequence<sequence<unrestricted double>> attractors, sequence<sequence<unrestricted double>> seedPoints, sequence<unrestricted double> initialDirection, optional MeshSpaceColonizationOptions opts);
   static sequence<MeshBranchSegment> thickenBranches(sequence<MeshBranchSegment> segments, optional unrestricted double leafRadius, optional unrestricted double pipeExp);
   static Mesh meshBranches(sequence<MeshBranchSegment> segments, optional long sides);
   [manual] static MeshPlacedLeaves placeLeavesOnBranches(sequence<MeshBranchSegment> segments, optional MeshLeafPlacementOptions opts);
   [manual] static Mesh scatterLeaves(sequence<MeshBranchSegment> segments, Mesh leaf, optional MeshLeafPlacementOptions opts);
-  [manual] static object tree(optional MeshTreeOptions opts);
+  /** spaceColonize → thickenBranches → meshBranches in one call. */
+  [manual] static MeshTreeResult tree(optional MeshTreeOptions opts);
   static sequence<MeshLSystemModule> parseLSystem(DOMString text);
-  [manual] static Int32Array packAnchors(sequence<sequence<unrestricted double>> candidates, optional object opts);
-  [manual] static sequence<MeshBranchSegment> lsystemToBranches(sequence<MeshLSystemModule> modules, optional object opts);
-  [manual] static object capsuleField(sequence<object> capsules, optional sequence<object> spheres, optional unrestricted double cellSize);
-  [manual] static object capsuleFieldFromSegments(sequence<MeshBranchSegment> segments, optional unrestricted double radiusScale, optional sequence<object> extraSpheres);
+  /** Greedy spaced-anchor picker; returns the accepted candidate indices in acceptance order. */
+  [manual] static Int32Array packAnchors(sequence<sequence<unrestricted double>> candidates, optional MeshAnchorPackOptions opts);
+  /** Turtle-interpret a module stream (or an L-system string) into a branch skeleton. */
+  [manual] static sequence<MeshBranchSegment> lsystemToBranches(sequence<MeshLSystemModule> modules, optional MeshTurtleOptions opts);
+  [manual] static CapsuleField capsuleField(optional sequence<MeshCapsule> capsules, optional sequence<MeshSphere> spheres, optional unrestricted double cellSize);
+  /** CapsuleField whose capsules carry the segment index as `tag`, so placement can exclude a leaf's own branch. */
+  [manual] static CapsuleField capsuleFieldFromSegments(sequence<MeshBranchSegment> segments, optional unrestricted double radiusScale, optional sequence<MeshSphere> extraSpheres);
   [manual] static MeshDracoDecoded decodeDraco(ArrayBufferView bytes);
   [manual] static ArrayBuffer encodeDraco(object meshData, optional MeshDracoEncodeOptions opts);
 };
@@ -353,6 +460,26 @@ interface PolyMesh {
   void mergeFacesByGroup();
   void compact();
   sequence<sequence<long>> findGroupBoundary(long groupId);
+};
+
+/**
+ * Capsule + sphere occupancy field: the shared obstacle substrate for
+ * spaceColonize, placeLeavesOnBranches, scatterLeaves and packAnchors.
+ * Queries take a point as [x,y,z] or {x,y,z}; `excludeTag` skips obstacles
+ * carrying that tag (a leaf's own branch).
+ */
+interface CapsuleField {
+  constructor(optional sequence<MeshCapsule> capsules, optional sequence<MeshSphere> spheres, optional unrestricted double cellSize);
+  readonly attribute boolean empty;
+  readonly attribute long capsuleCount;
+  readonly attribute long sphereCount;
+  readonly attribute unrestricted double cellSize;
+  boolean contains(sequence<unrestricted double> point, optional long excludeTag, optional unrestricted double extraClearance);
+  boolean tooClose(sequence<unrestricted double> point, unrestricted double clearance, optional long excludeTag);
+  /** Signed distance to the nearest obstacle surface (negative inside). */
+  unrestricted double distance(sequence<unrestricted double> point, optional long excludeTag);
+  MeshCapsuleFieldNearest? nearest(sequence<unrestricted double> point, optional long excludeTag);
+  boolean intersectsSphere(sequence<unrestricted double> center, unrestricted double radius, optional long excludeTag);
 };
 
 interface LSystem {
