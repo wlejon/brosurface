@@ -20,19 +20,7 @@
 /**
  * Engine asset and application filesystem path resolution namespace.
  */
-[
-  cpp_file="asset_path.cpp",
-  cpp_prologue="namespace {\nstd::string s_basePath;\nconst util::AssetMounts* s_mounts = nullptr;\n}\n\nvoid setAssetPathContext(const std::string& basePath, const util::AssetMounts* mounts) {\n    s_basePath = basePath;\n    s_mounts = mounts;\n}\n\nstd::string resolveAssetPath(const std::string& src) {\n    if (src.size() >= 2 && src[1] == ':') return src;           // C:\\... drive\n    if (!src.empty() && (src[0] == '/' || src[0] == '\\\\')) {\n        if (s_mounts) {\n            std::string m = s_mounts->resolve(src);\n            if (!m.empty()) return m;\n        }\n        // An unmounted absolute path is already a filesystem path.\n        return src;\n    }\n    if (s_basePath.empty()) return src;\n    std::string path = s_basePath;\n    if (path.back() != '/' && path.back() != '\\\\') path += '/';\n    return path + src;\n}\n\nnamespace {\n\nJSValue js_resolvePath(JSContext* ctx, JSValueConst, int argc, JSValueConst* argv) {\n    if (argc < 1) return JS_ThrowTypeError(ctx, \"resolvePath: path required\");\n    const char* s = JS_ToCString(ctx, argv[0]);\n    if (!s) return JS_EXCEPTION;\n    std::string resolved = resolveAssetPath(s);\n    JS_FreeCString(ctx, s);\n    // Hand back a native-separator path: the caller's next move is usually to\n    // spawn a process with it, and Windows tools are happier with backslashes.\n    return JS_NewString(ctx, std::filesystem::path(resolved).make_preferred().string().c_str());\n}\n\n} // namespace",
-  install_body="JSValue global = JS_GetGlobalObject(ctx);\nJSValue broObj = JS_GetPropertyStr(ctx, global, \"bro\");\nif (JS_IsUndefined(broObj)) {\n    JS_FreeValue(ctx, broObj);\n    broObj = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, global, \"bro\", JS_DupValue(ctx, broObj));\n}\n\nJS_SetPropertyStr(ctx, broObj, \"resolvePath\",\n                  JS_NewCFunction(ctx, js_resolvePath, \"resolvePath\", 1));\n\n// The app's own root. Empty when there is no app directory (a bare\n// `bro-headless -e` session), which callers can test for.\nstd::string dir = s_basePath.empty()\n                      ? std::string()\n                      : std::filesystem::path(s_basePath).make_preferred().string();\nJS_SetPropertyStr(ctx, broObj, \"appDir\", JS_NewString(ctx, dir.c_str()));\n\nJS_FreeValue(ctx, broObj);\nJS_FreeValue(ctx, global);",
-  cpp_epilogue="std::string resolveAssetWritePath(const std::string& src) {\n    namespace fs = std::filesystem;\n    fs::path p(src);\n    // No parent to resolve (a bare filename), or already absolute: the read\n    // rules are exactly right.\n    if (p.is_absolute() || !p.has_parent_path()) return resolveAssetPath(src);\n    // Resolve the DIRECTORY and rejoin the filename. Resolving the whole path\n    // would ask a mount to resolve a file that does not exist yet, which is\n    // the one thing the read path cannot answer.\n    std::string dir = resolveAssetPath(p.parent_path().generic_string());\n    return (fs::path(dir) / p.filename()).generic_string();\n}",
-  cpp_header="js/asset_path.h",
-  cpp_includes="#include \"util/asset_mounts.h\"\n#include <filesystem>",
-  cpp_namespace="bro::js",
-  cpp_install="installAssetPathBindings",
-  prefix="bro.",
-  install_signature="void installAssetPathBindings(JSContext* ctx)",
-  flatten
-]
+[cpp_namespace="bro::js", prefix="bro.", flatten]
 namespace paths {
   /**
    * Absolute native filesystem path of the running application's root directory.

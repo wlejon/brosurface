@@ -116,16 +116,7 @@ dictionary MicChunk {
 /**
  * Real-time microphone audio capture and fixed-size chunk streaming namespace.
  */
-[
-  cpp_file="mic_bindings.cpp",
-  cpp_header="js/mic_bindings.h",
-  cpp_includes="<broaudio/engine.h>\n<broaudio/mic_tap.h>\n<qjsbind/qjsbind.h>\n<quickjs.h>\n<atomic>\n<cmath>\n<cstdint>\n<cstdio>\n<cstring>\n<vector>",
-  cpp_namespace="bro::js",
-  cpp_install="installMicBindings",
-  install_signature="void installMicBindings(JSContext* ctx, broaudio::Engine* audioEngine)",
-  prefix="bro.",
-  audio_stream_tap
-]
+[cpp_namespace="bro::js", prefix="bro."]
 namespace mic {
   /**
    * Register a microphone tap and start chunk delivery.

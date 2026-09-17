@@ -3,16 +3,21 @@
 # must be carried by the bronze native vocabulary in full: every member the
 # vocabulary refuses is either respelled in the IDL or marked [manual].
 #
+# These are the engine's own subsystems — the ones bro carries under
+# src/bronze_host/natives/<sub>/ with hand-written bodies in
+# src/bronze_host/native_<sub>.cpp. A sibling library's surface (bro.mesh,
+# bro.lm, bro.tensor, bro.audio, ...) is NOT listed: since the host logic
+# moved into the siblings, each registers its natives by hand in its own
+# src/api/, and a generated tree here would be one nothing compiles. The
+# sibling IDLs stay for the docs and the .d.ts.
+#
 # Everything not listed is documented (docs, .d.ts) but has no generated
-# natives yet.
+# natives.
 time
 window
 settings
 paths
-mesh
-lm
 dunder_bro
-rigging
 net
 physics
 scene
@@ -22,19 +27,4 @@ tile_world
 lighting
 animation
 gizmo
-rave
 motion
-mic
-sense
-gesture
-wake
-kws
-listen
-triposplat
-diffusion
-vision
-diar
-stt
-tts
-flora
-tensor

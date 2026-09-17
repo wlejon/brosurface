@@ -99,34 +99,19 @@ export const GENERIC_TYPES = new Set([
 //
 // Adding a genuinely new attribute means teaching an emitter to read it and
 // adding it here, in that order.
+//
+// This set is exactly what gen/ and schema/native_types.mjs read. The QuickJS
+// (`cpp_*`, `install_*`, the qjsbind wrapper plumbing) and bronze_host (`bh_*`)
+// emitters are gone and their attributes with them — the IDLs carried ~870 of
+// those as dead payload until 2026-09-17, some of them whole C++ function
+// bodies. An IDL naming one now fails validation, which is the point.
 export const KNOWN_EXTENDED_ATTRIBUTES = new Set([
-  // Namespace / interface placement and identity
-  'cpp_file', 'cpp_file_comment', 'cpp_header', 'cpp_namespace',
-  'cpp_install', 'cpp_includes',
-  'cpp_prologue', 'cpp_epilogue', 'cpp_install_body', 'cpp_install_prologue',
-  'install_body', 'install_fn', 'install_prologue', 'install_signature',
-  'header', 'prefix', 'js_alias', 'js_global', 'global', 'global_var',
-  'internal', 'custom', 'base_class',
+  // Placement and identity (gen/natives_plan.mjs, emit_dts.mjs, emit_docs.mjs)
+  'cpp_namespace', 'prefix', 'js_alias', 'js_global', 'global', 'global_var',
 
   // Feature gating. `gate` is the ONE spelling; `cpp_guard` is the raw escape
   // hatch for a guard expression that is not a single BRO_WITH_* flag.
   'gate', 'cpp_guard',
-
-  // qjsbind wrapper plumbing
-  'class_id_var', 'wrapper_struct', 'wrapper_member', 'data_struct',
-  'data_member', 'config_struct', 'factory_helper', 'factory_type',
-  'unwrap_call', 'getter_unwrap', 'getter_body', 'getter_cpp', 'setter_cpp',
-  'cpp_body', 'cpp_call', 'stub_body', 'engine_bound', 'engine_stashed',
-  'engine_wrapper', 'element_base', 'element_registry', 'layered_store',
-  'audio_stream_tap',
-
-  // Retired bronze_host emitter (dead payload still carried by some IDLs)
-  'bh_file', 'bh_header', 'bh_namespace', 'bh_includes', 'bh_install',
-  'bh_install_body', 'bh_prologue', 'bh_epilogue', 'bh_class_var',
-  'bh_decorate', 'bh_no_proto_methods', 'bh_instance_field', 'bh_global',
-  'bh_body', 'bh_ctor', 'bh_call', 'bh_arity', 'bh_custom', 'bh_getter',
-  'bh_setter', 'bh_state_body', 'bh_state_fn', 'bh_static_body',
-  'bh_static_call',
 
   // Natives emitter (gen/emit_natives.mjs; schema/native_types.mjs)
   //   manual     an operation / attribute / constructor the generator leaves

@@ -63,33 +63,19 @@ dictionary GpuMemoryInfo {
 /**
  * Runtime GPU-backend probe and device memory introspection namespace.
  */
-[
-  cpp_file="gpu_bindings.cpp",
-  cpp_header="gpu_bindings.h",
-  cpp_includes="<brotensor/runtime.h>\n<brotensor/tensor.h>\n<cstdlib>\n<cstring>\n<string>",
-  cpp_namespace="bro::js",
-  cpp_install="installGpuBindings",
-  cpp_guard="BRO_WITH_TENSOR",
-  gate="BRO_WITH_TENSOR",
-  install_fn="void installGpuBindings(JSContext* ctx)",
-  stub_body="installFeatureStub(ctx,\n        \"(function(){var b=(globalThis.bro=globalThis.bro||{});\"\n        \"b.gpu={available:false,backend:'cpu',devices:['cpu'],compiledBackends:['cpu'],\"\n        \"deviceName:function(){return null;},\"\n        \"deviceCount:function(d){return (!d||d==='cpu')?1:0;},\"\n        \"memoryInfo:function(){return null;},\"\n        \"trim:function(){return false;}};})();\");",
-  cpp_prologue="static const char* deviceName(brotensor::Device d) {\n    switch (d.type) {\n        case brotensor::DeviceType::CUDA:  return \"cuda\";\n        case brotensor::DeviceType::Metal: return \"metal\";\n        case brotensor::DeviceType::CPU:   return \"cpu\";\n    }\n    return \"cpu\";\n}\n\nstatic brotensor::Device parseDeviceArg(JSContext* ctx, int argc, JSValueConst* argv,\n                                        int argIdx) {\n    if (argc <= argIdx || !JS_IsString(argv[argIdx])) return brotensor::default_device();\n    const char* s = JS_ToCString(ctx, argv[argIdx]);\n    brotensor::Device d = brotensor::default_device();\n    if (s) {\n        std::string spec(s);\n        JS_FreeCString(ctx, s);\n        int index = 0;\n        const std::size_t colon = spec.find(':');\n        if (colon != std::string::npos) {\n            index = std::atoi(spec.c_str() + colon + 1);\n            if (index < 0) index = 0;\n            spec.resize(colon);\n        }\n        if (spec == \"cuda\")       d = brotensor::Device::cuda(index);\n        else if (spec == \"metal\") d = brotensor::Device::metal(index);\n        else if (spec == \"cpu\")   d = brotensor::Device::CPU;\n    }\n    return d;\n}\n\nstatic bool deviceExists(brotensor::Device want) {\n    for (auto d : brotensor::available_devices()) {\n        if (d == want) return true;\n    }\n    return false;\n}",
-  prefix="bro."
-]
+[cpp_namespace="bro::js", cpp_guard="BRO_WITH_TENSOR", gate="BRO_WITH_TENSOR", prefix="bro."]
 namespace gpu {
   /**
    * Whether a GPU device is registered and is the default compute device.
    * `false` on a CPU-only build, and also on a GPU build with no usable device
    * (e.g. no CUDA driver / no card present).
    */
-  [getter_body="brotensor::init();\nreturn JS_NewBool(ctx, brotensor::default_device() != brotensor::Device::CPU);"]
   readonly attribute boolean available;
 
   /**
    * The default compute device: what a freshly-loaded model lands on.
    * One of 'cuda' | 'metal' | 'cpu' (best available: CUDA > Metal > CPU).
    */
-  [getter_body="brotensor::init();\nreturn JS_NewString(ctx, deviceName(brotensor::default_device()));"]
   readonly attribute DOMString backend;
 
   /**
@@ -99,7 +85,6 @@ namespace gpu {
    * reports ['cpu', 'cuda'] — see `deviceCount()` for how many cards, and the
    * 'cuda:N' argument form for addressing a specific one.
    */
-  [getter_body="brotensor::init();\nJSValue arr = JS_NewArray(ctx);\nuint32_t i = 0;\nconst char* last = nullptr;\nfor (auto d : brotensor::available_devices()) {\n    const char* name = deviceName(d);\n    if (last && std::strcmp(last, name) == 0) continue;\n    last = name;\n    JS_SetPropertyUint32(ctx, arr, i++, JS_NewString(ctx, name));\n}\nreturn arr;"]
   readonly attribute sequence<DOMString> devices;
 
   /**
@@ -120,7 +105,6 @@ namespace gpu {
    *     }
    *   }
    */
-  [cpp_body="brotensor::init();\nbrotensor::Device want = parseDeviceArg(ctx, argc, argv, 0);\nint n = 0;\nfor (auto d : brotensor::available_devices()) {\n    if (d.type == want.type) ++n;\n}\nreturn JS_NewInt32(ctx, n);"]
   long deviceCount(optional DOMString device);
 
   /**
@@ -135,7 +119,6 @@ namespace gpu {
    * CI smoke test verifying a release binary actually ships the GPU backend on a
    * GPU-less runner, where the runtime probes can't tell.
    */
-  [getter_body="JSValue arr = JS_NewArray(ctx);\nuint32_t i = 0;\nJS_SetPropertyUint32(ctx, arr, i++, JS_NewString(ctx, \"cpu\"));\n#if defined(BROTENSOR_HAS_CUDA) && BROTENSOR_HAS_CUDA\nJS_SetPropertyUint32(ctx, arr, i++, JS_NewString(ctx, \"cuda\"));\n#endif\n#if defined(BROTENSOR_HAS_METAL) && BROTENSOR_HAS_METAL\nJS_SetPropertyUint32(ctx, arr, i++, JS_NewString(ctx, \"metal\"));\n#endif\nreturn arr;"]
   readonly attribute sequence<DOMString> compiledBackends;
 
   /**
@@ -153,7 +136,6 @@ namespace gpu {
    *     status('Less than 4 GB VRAM free: model may not fit.', 'warn');
    *   }
    */
-  [cpp_body="brotensor::init();\nbrotensor::Device d = parseDeviceArg(ctx, argc, argv, 0);\nif (!deviceExists(d)) return JS_NULL;\nstd::size_t freeBytes = 0, totalBytes = 0;\nif (!brotensor::device_mem_info(d, freeBytes, totalBytes)) return JS_NULL;\nJSValue o = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, o, \"freeBytes\", JS_NewInt64(ctx, static_cast<int64_t>(freeBytes)));\nJS_SetPropertyStr(ctx, o, \"totalBytes\", JS_NewInt64(ctx, static_cast<int64_t>(totalBytes)));\nreturn o;"]
   GpuMemoryInfo? memoryInfo(optional DOMString device);
 
   /**
@@ -172,7 +154,6 @@ namespace gpu {
    *     status(card + ' · ' + (mem.totalBytes / 1e9).toFixed(1) + ' GB');
    *   }
    */
-  [cpp_body="brotensor::init();\nbrotensor::Device d = parseDeviceArg(ctx, argc, argv, 0);\nif (!deviceExists(d)) return JS_NULL;\nstd::string name = brotensor::device_product_name(d);\nif (name.empty()) return JS_NULL;\nreturn JS_NewString(ctx, name.c_str());"]
   DOMString? deviceName(optional DOMString device);
 
   /**
@@ -197,6 +178,5 @@ namespace gpu {
    *   // ... run denoise steps ...
    *   bro.gpu.trim(); // release U-Net scratch before the VAE decode allocates
    */
-  [custom, cpp_body="brotensor::init();\nbrotensor::Device d = parseDeviceArg(ctx, argc, argv, 0);\nif (!deviceExists(d)) return JS_NewBool(ctx, false);\nstd::size_t keepBytes = 0;\nif (argc >= 2 && JS_IsNumber(argv[1])) {\n    int64_t v = 0; JS_ToInt64(ctx, &v, argv[1]);\n    if (v > 0) keepBytes = static_cast<std::size_t>(v);\n}\nreturn JS_NewBool(ctx, brotensor::device_mem_trim(d, keepBytes));"]
   boolean trim(optional DOMString device, optional unsigned long long keepBytes);
 };

@@ -167,17 +167,7 @@ dictionary TerrainRaycastResult {
 /**
  * Chunked procedural and heightmap terrain manager instance.
  */
-[
-  cpp_file="terrain_bindings.cpp",
-  cpp_header="js/terrain_bindings.h",
-  cpp_includes="<qjsbind/qjsbind.h>\n\"scene/terrain_manager.h\"\n\"scene/scene_graph.h\"\n\"js/scene_bindings.h\"\n\"util/log.h\"\n<cstring>\n<string>\n<unordered_set>\n<vector>",
-  cpp_namespace="bro::js",
-  cpp_install="TerrainBindings::install",
-  cpp_guard="BRO_WITH_3D",
-  gate="BRO_WITH_3D",
-  engine_wrapper="scene::TerrainManager",
-  config_struct="scene::TerrainConfig"
-]
+[cpp_namespace="bro::js", cpp_guard="BRO_WITH_3D", gate="BRO_WITH_3D"]
 interface Terrain {
   /** Total number of currently loaded and active chunks. */
   readonly attribute long chunkCount;

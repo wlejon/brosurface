@@ -41,41 +41,21 @@
  * A signal object that allows you to communicate with an asynchronous operation
  * and abort it if desired via an AbortController.
  */
-[
-  cpp_file="abort.cpp",
-  cpp_header="api/api.h",
-  cpp_includes="\"runtime/runtime.h\"\n\"abort.js.h\"\n\n#include <cstring>",
-  cpp_namespace="brokit::api",
-  cpp_install="installAbortController",
-  install_body="JSValue r = JS_Eval(ctx, js_abort, strlen(js_abort), \"<abort>\", JS_EVAL_TYPE_GLOBAL);\nif (JS_IsException(r)) {\n    Runtime::checkException(ctx, r);\n}\nJS_FreeValue(ctx, r);",
-  bh_file="host_abort.cpp",
-  bh_header="bronze_host/bronze_host.h",
-  bh_includes="#include \"bronze_host/host_internal.h\"\n#include \"bronze_host/gl_internal.h\"\n\n#include <span>\n#include <string>\n#include <vector>",
-  bh_namespace="bro::bronze_host",
-  bh_install="installAbortGlobals",
-  bh_class_var="g_signalClass",
-  bh_decorate="decorateSignalProto",
-  bh_no_proto_methods=true,
-  bh_prologue="const char* const kDependentsKey = \"__bronzeAbortDependents\";\n\nvoid hostSignalDtor(void* p) { delete static_cast<HostAbortSignal*>(p); }\n\nHostAbortSignal* signalOf(Value v) {\n    if (!ev::isObject(v)) return nullptr;\n    auto* s = static_cast<HostAbortSignal*>(ev::handleData(v));\n    if (!s || s->tag != kHostSignalTag) return nullptr;\n    return s;\n}\n\nvoid setOn(ev::Persistent& obj, const char* key, Value v) {\n    obj.set(ev::setProperty(obj.get(), key, v));\n}\n\nValue signalAddListener(Value thisValue, std::span<const Value> a) {\n    ev::Persistent self(thisValue);\n    Value typeV = argAt(a, 0);\n    if (ev::isObject(typeV)) return ev::undefined();\n    const std::string type = ev::toUtf8(typeV);\n    addHostListener(self, type, argAt(a, 1));\n    return ev::undefined();\n}\n\nValue signalRemoveListener(Value thisValue, std::span<const Value> a) {\n    ev::Persistent self(thisValue);\n    Value typeV = argAt(a, 0);\n    if (ev::isObject(typeV)) return ev::undefined();\n    const std::string type = ev::toUtf8(typeV);\n    removeHostListener(self, type, argAt(a, 1));\n    return ev::undefined();\n}\n\nValue signalThrowIfAborted(Value thisValue, std::span<const Value>) {\n    ev::Persistent self(thisValue);\n    HostAbortSignal* s = signalOf(self.get());\n    if (!s || !s->aborted) return ev::undefined();\n    Value reason = ev::getProperty(thisValue, \"reason\");\n    return ev::throwValue(reason);\n}\n\nvoid decorateSignalProto(ObjectBuilder& b) {\n    b.def(\"addEventListener\", 2, signalAddListener);\n    b.def(\"removeEventListener\", 2, signalRemoveListener);\n    b.def(\"throwIfAborted\", 0, signalThrowIfAborted);\n}\n\nValue makeSignal() {\n    auto* s = new HostAbortSignal();\n    ObjectBuilder b(g_signalClass.make(s, hostSignalDtor));\n    b.set(\"aborted\", ev::fromBool(false));\n    b.set(\"reason\", ev::undefined());\n    b.set(\"onabort\", ev::null());\n    return b.get();\n}\n\nValue controllerAbort(Value thisValue, std::span<const Value> a) {\n    ev::Persistent self(thisValue);\n    Value reason = argAt(a, 0);\n    ev::Persistent reasonP(reason);\n    Value signal = ev::getProperty(self.get(), \"signal\");\n    hostAbortSignal(signal, reasonP.get());\n    return ev::undefined();\n}\n\nvoid decorateControllerProto(ObjectBuilder& b) {\n    b.def(\"abort\", 1, controllerAbort);\n}\n\nValue makeController() {\n    ObjectBuilder b(g_controllerClass.make(nullptr, [](void*) {}));\n    b.set(\"signal\", makeSignal());\n    return b.get();\n}\n\nValue signalAny(Value, std::span<const Value> a) {\n    ev::Persistent composite(makeSignal());\n\n    Value listV = argAt(a, 0);\n    if (!ev::isObject(listV)) {\n        return ev::throwTypeError(\"AbortSignal.any: argument must be a list of signals\");\n    }\n    ev::Persistent list(listV);\n\n    double lenD = ev::toDouble(ev::getProperty(list.get(), \"length\"));\n    const uint32_t len = (lenD > 0.0) ? static_cast<uint32_t>(lenD) : 0;\n    for (uint32_t i = 0; i < len; ++i) {\n        ev::Persistent source(ev::getElement(list.get(), i));\n        const HostAbortSignal* s = signalOf(source.get());\n        if (!s) continue;\n        if (s->aborted) {\n            Value reason = ev::getProperty(source.get(), \"reason\");\n            hostAbortSignal(composite.get(), reason);\n            return composite.get();\n        }\n        hostListAppend(source, kDependentsKey, composite.get());\n    }\n    return composite.get();\n}\n\nValue signalTimeout(Value, std::span<const Value> a) {\n    const double ms = numAt(a, 0);\n    ev::Persistent signal(makeSignal());\n    hostSetTimeout(\n        [signal]() {\n            ev::Persistent reason(hostMakeDomError(\"TimeoutError\", \"signal timed out\"));\n            hostAbortSignal(signal.get(), reason.get());\n        },\n        ms);\n    return signal.get();\n}",
-  bh_epilogue="const HostAbortSignal* hostAbortSignalOf(Value v) { return signalOf(v); }\n\nValue makeAbortSignalValue() { return makeSignal(); }\n\nValue hostMakeDomError(const char* name, const std::string& message) {\n    ObjectBuilder b;\n    b.set(\"name\", ev::fromUtf8(name));\n    b.set(\"message\", ev::fromUtf8(message));\n    return b.get();\n}\n\nvoid hostAbortSignal(Value signal, Value reason) {\n    HostAbortSignal* s = signalOf(signal);\n    if (!s || s->aborted) return;\n\n    ev::Persistent self(signal);\n    ev::Persistent reasonP(reason);\n    if (ev::isUndefined(reasonP.get())) {\n        reasonP.set(hostMakeDomError(\"AbortError\", \"signal is aborted without reason\"));\n    }\n\n    s->aborted = true;\n    setOn(self, \"reason\", reasonP.get());\n    setOn(self, \"aborted\", ev::fromBool(true));\n\n    dispatchHostEvent(ev::Persistent(self.get()), \"abort\");\n\n    for (ev::Persistent& dep : hostListSnapshot(self, kDependentsKey)) {\n        ev::Persistent reasonNow(ev::getProperty(self.get(), \"reason\"));\n        hostAbortSignal(dep.get(), reasonNow.get());\n    }\n}"
-]
+[cpp_namespace="brokit::api"]
 interface AbortSignal {
   /**
    * Returns true if this signal has been aborted, false otherwise.
    */
-  [bh_instance_field=true]
   readonly attribute boolean aborted;
 
   /**
    * Returns the reason why this signal was aborted, or undefined.
    */
-  [bh_instance_field=true]
   readonly attribute any reason;
 
   /**
    * Event handler callback for the "abort" event.
    */
-  [bh_instance_field=true]
   attribute Function? onabort;
 
   /**
@@ -107,45 +87,33 @@ interface AbortSignal {
    * Returns an AbortSignal instance that is already set to aborted with the given reason.
    * @param reason The abort reason
    */
-  [bh_static_call="ev::makeFunction([](Value, std::span<const Value> a) { ev::Persistent signal(makeSignal()); hostAbortSignal(signal.get(), argAt(a, 0)); return signal.get(); }, 1)"]
   static AbortSignal abort(optional any reason);
 
   /**
    * Returns an AbortSignal instance that will automatically abort after a specified duration in milliseconds.
    * @param milliseconds Duration in milliseconds
    */
-  [bh_static_call="ev::makeFunction(signalTimeout, 1)"]
   static AbortSignal timeout(unsigned long long milliseconds);
 
   /**
    * Returns an AbortSignal that aborts as soon as any of the given signals abort.
    * @param signals Sequence of AbortSignal instances
    */
-  [bh_static_call="ev::makeFunction(signalAny, 1)"]
   static AbortSignal any(sequence<AbortSignal> signals);
 };
 
 /**
  * Controller object that allows aborting DOM and async requests when desired.
  */
-[
-  cpp_file="abort.cpp",
-  bh_file="host_abort.cpp",
-  bh_class_var="g_controllerClass",
-  bh_decorate="decorateControllerProto",
-  bh_no_proto_methods=true
-]
 interface AbortController {
   /**
    * Initializes a new AbortController instance.
    */
-  [bh_body="return makeController();"]
   constructor();
 
   /**
    * Returns the AbortSignal object associated with this controller.
    */
-  [bh_instance_field=true]
   readonly attribute AbortSignal signal;
 
   /**

@@ -21,7 +21,6 @@
 /**
  * Formats numbers, currencies, and percentages according to locale conventions.
  */
-[custom, cpp_file="intl.cpp"]
 interface NumberFormat {
   constructor(optional any locales, optional object options);
 
@@ -41,7 +40,6 @@ interface NumberFormat {
 /**
  * Formats dates and times according to locale conventions.
  */
-[custom, cpp_file="intl.cpp"]
 interface DateTimeFormat {
   constructor(optional any locales, optional object options);
 
@@ -61,7 +59,6 @@ interface DateTimeFormat {
 /**
  * Determines plural category rules for numbers.
  */
-[custom, cpp_file="intl.cpp"]
 interface PluralRules {
   constructor(optional any locales, optional object options);
 
@@ -78,7 +75,6 @@ interface PluralRules {
 /**
  * Compares strings according to locale-specific collation rules.
  */
-[custom, cpp_file="intl.cpp"]
 interface Collator {
   constructor(optional any locales, optional object options);
 
@@ -95,7 +91,6 @@ interface Collator {
 /**
  * Formats lists of items using localized conjunctions and disjunctions.
  */
-[custom, cpp_file="intl.cpp"]
 interface ListFormat {
   constructor(optional any locales, optional object options);
 
@@ -115,7 +110,6 @@ interface ListFormat {
 /**
  * Formats relative time units ('3 days ago', 'in 2 hours').
  */
-[custom, cpp_file="intl.cpp"]
 interface RelativeTimeFormat {
   constructor(optional any locales, optional object options);
 
@@ -135,7 +129,6 @@ interface RelativeTimeFormat {
 /**
  * Returns localized display names for languages, regions, and currencies.
  */
-[custom, cpp_file="intl.cpp"]
 interface DisplayNames {
   constructor(optional any locales, optional object options);
 

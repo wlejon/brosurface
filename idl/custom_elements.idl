@@ -45,16 +45,7 @@ dictionary CustomElementOptions {
 /**
  * Custom element registry for registering and querying custom element definitions.
  */
-[
-  cpp_file="custom_elements.cpp",
-  cpp_header="js/custom_elements.h",
-  cpp_includes="\"js/dom_bindings.h\"\n\"dom/element.h\"\n\"dom/node.h\"\n\"dom/document.h\"\n\"util/log.h\"\n<unordered_map>\n<vector>\n<string>\n<algorithm>\n<cctype>",
-  cpp_namespace="bro::js",
-  cpp_install="installCustomElements",
-  install_signature="void installCustomElements(JSContext* ctx, JSClassID elementClassId, void* documentPtr)",
-  global_var="customElements",
-  element_registry
-]
+[cpp_namespace="bro::js", global_var="customElements"]
 interface CustomElementRegistry {
   /**
    * Register a new custom element definition.
@@ -84,7 +75,6 @@ interface CustomElementRegistry {
 /**
  * Base class for all HTML elements, extended by custom web components.
  */
-[cpp_file="custom_elements.cpp", element_base]
 interface HTMLElement {
   /**
    * Creates a new HTMLElement instance.

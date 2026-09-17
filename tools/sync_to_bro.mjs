@@ -15,12 +15,13 @@
  *
  * Natives go only to the subsystems bro CARRIES: the ones whose generated
  * register TU, bro/src/bronze_host/natives/<sub>/native_<sub>_register.cpp,
- * is already there (bro's CMakeLists names it). The rest of idl/natives.list
- * is carried by a sibling library's own api tree (bromesh, brotensor,
- * brosoundml, ... register their natives by hand) or by nothing yet, and
- * copying their outputs into bro would leave files nothing compiles. Adopting
- * a subsystem in bro is a bro change (the register TU and its include dir in
- * CMakeLists.txt) that this tool then follows.
+ * is already there (bro's CMakeLists names it). Today that is every entry of
+ * idl/natives.list; the check stays so that a subsystem added to the list
+ * before bro adopts it is not copied into a directory nothing compiles.
+ * Adopting a subsystem in bro is a bro change (the register TU and its
+ * include dir in CMakeLists.txt) that this tool then follows. A sibling
+ * library's surface is not on the list at all: its natives are hand-written
+ * in the sibling's own src/api/.
  *
  * Usage:
  *   node tools/sync_to_bro.mjs [--dry-run]

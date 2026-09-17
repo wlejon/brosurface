@@ -181,23 +181,11 @@ dictionary BidiParagraph {
 /**
  * Diagnostic window onto text shaping, cluster mapping, and bidi resolution.
  */
-[
-  cpp_file="text_bindings.cpp",
-  cpp_header="js/text_bindings.h",
-  cpp_includes="\"engine/engine.h\"\n\"render/bidi.h\"\n\"render/renderer.h\"\n\"render/shaped_run.h\"\n<qjsbind/qjsbind.h>\n<string>\n<vector>",
-  cpp_namespace="bro::js",
-  cpp_install="installTextBindings",
-  cpp_guard="BRO_WITH_TEXT_SHAPING",
-  gate="BRO_WITH_TEXT_SHAPING",
-  engine_stashed,
-  prefix="bro.",
-  cpp_prologue="namespace {\n\nrender::Renderer* rendererOf(engine::Engine* eng) {\n    return eng ? eng->renderer() : nullptr;\n}\n\nstruct Opts {\n    std::string    family = \"Arial\";\n    render::FontRef ref{};\n    render::Spacing spacing{};\n};\n\nOpts readOpts(JSContext* ctx, JSValueConst v) {\n    Opts o;\n    if (JS_IsObject(v)) {\n        std::string fam = qjsbind::get_prop_string(ctx, v, \"family\", \"Arial\");\n        if (!fam.empty()) o.family = std::move(fam);\n        o.ref.size   = static_cast<float>(qjsbind::get_prop_number(ctx, v, \"size\", 16.0));\n        o.ref.weight = qjsbind::get_prop_int(ctx, v, \"weight\", 400);\n        o.ref.italic = qjsbind::get_prop_bool(ctx, v, \"italic\", false);\n        o.spacing.letter =\n            static_cast<float>(qjsbind::get_prop_number(ctx, v, \"letterSpacing\", 0.0));\n        o.spacing.word =\n            static_cast<float>(qjsbind::get_prop_number(ctx, v, \"wordSpacing\", 0.0));\n    } else {\n        o.ref.size = 16.0f;\n    }\n    o.ref.family = o.family;\n    return o;\n}\n\nconst render::ShapedRun* shapeArgs(JSContext* ctx, engine::Engine* eng,\n                                   int argc, JSValueConst* argv,\n                                   std::string& textOut, Opts& optsOut) {\n    render::Renderer* r = rendererOf(eng);\n    if (!r || argc < 1) return nullptr;\n    textOut = qjsbind::Convert<std::string>::from_js(ctx, argv[0]);\n    optsOut = readOpts(ctx, argc > 1 ? argv[1] : JS_UNDEFINED);\n    optsOut.ref.family = optsOut.family;\n    return r->shapeText(textOut, optsOut.ref, optsOut.spacing.letter != 0.0f);\n}\n\nJSValue caretToJs(JSContext* ctx, const render::ShapedRun::Caret& c) {\n    JSValue o = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, o, \"x\", JS_NewFloat64(ctx, c.x));\n    JS_SetPropertyStr(ctx, o, \"isLeadingEdge\", JS_NewBool(ctx, c.isLeadingEdge));\n    return o;\n}\n\n} // namespace"
-]
+[cpp_namespace="bro::js", cpp_guard="BRO_WITH_TEXT_SHAPING", gate="BRO_WITH_TEXT_SHAPING", prefix="bro."]
 namespace text {
   /**
    * Whether the UAX #9 Bidirectional algorithm engine is compiled in and available.
    */
-  [getter_body="return JS_NewBool(ctx, render::bidi::available());"]
   readonly attribute boolean bidiAvailable;
 
   /**
@@ -207,7 +195,6 @@ namespace text {
    * @param options Font styling and spacing options
    * @returns Shaped text result with glyph count, width, and cluster array
    */
-  [cpp_body="auto* eng = getEngine(ctx);\nstd::string text;\nOpts opts;\nconst render::ShapedRun* run = shapeArgs(ctx, eng, argc, argv, text, opts);\nif (!run) return JS_NULL;\n\nJSValue out = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, out, \"text\", JS_NewString(ctx, text.c_str()));\nJS_SetPropertyStr(ctx, out, \"glyphCount\",\n                  JS_NewInt32(ctx, static_cast<int>(run->glyphCount())));\nJS_SetPropertyStr(ctx, out, \"width\", JS_NewFloat64(ctx, run->width(opts.spacing)));\n\nauto list = run->clusterList(opts.spacing);\nJSValue arr = JS_NewArray(ctx);\nuint32_t i = 0;\nfor (const auto& c : list) {\n    JSValue e = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, e, \"start\", JS_NewInt32(ctx, static_cast<int>(c.byteStart)));\n    JS_SetPropertyStr(ctx, e, \"end\", JS_NewInt32(ctx, static_cast<int>(c.byteEnd)));\n    JS_SetPropertyStr(ctx, e, \"x\", JS_NewFloat64(ctx, c.x));\n    JS_SetPropertyStr(ctx, e, \"advance\", JS_NewFloat64(ctx, c.advance));\n    JS_SetPropertyStr(ctx, e, \"glyphs\", JS_NewInt32(ctx, static_cast<int>(c.glyphCount)));\n    JS_SetPropertyStr(ctx, e, \"rtl\", JS_NewBool(ctx, c.rtl));\n    JS_SetPropertyUint32(ctx, arr, i++, e);\n}\nJS_SetPropertyStr(ctx, out, \"clusters\", arr);\nreturn out;"]
   ShapedText? shape(DOMString text, optional TextOptions options);
 
   /**
@@ -218,7 +205,6 @@ namespace text {
    * @param byteOffset Zero-based byte offset into text
    * @returns Caret position object
    */
-  [cpp_body="auto* eng = getEngine(ctx);\nstd::string text;\nOpts opts;\nconst render::ShapedRun* run = shapeArgs(ctx, eng, argc, argv, text, opts);\nif (!run) return JS_NULL;\nint32_t off = 0;\nif (argc > 2) JS_ToInt32(ctx, &off, argv[2]);\nauto pos = run->byteOffsetToX(static_cast<std::size_t>(off < 0 ? 0 : off), opts.spacing);\nJSValue out = caretToJs(ctx, pos.primary);\nif (pos.hasSecondary) {\n    JS_SetPropertyStr(ctx, out, \"secondary\", caretToJs(ctx, pos.secondary));\n}\nreturn out;"]
   CaretPosition? byteOffsetToX(DOMString text, optional TextOptions options, optional long byteOffset);
 
   /**
@@ -229,7 +215,6 @@ namespace text {
    * @param x Horizontal pixel position
    * @returns Nearest byte offset
    */
-  [cpp_body="auto* eng = getEngine(ctx);\nstd::string text;\nOpts opts;\nconst render::ShapedRun* run = shapeArgs(ctx, eng, argc, argv, text, opts);\nif (!run) return JS_NULL;\ndouble x = 0;\nif (argc > 2) JS_ToFloat64(ctx, &x, argv[2]);\nreturn JS_NewInt32(ctx, static_cast<int>(\n    run->xToByteOffset(static_cast<float>(x), opts.spacing)));"]
   long xToByteOffset(DOMString text, optional TextOptions options, optional unrestricted double x);
 
   /**
@@ -240,7 +225,6 @@ namespace text {
    * @param byteOffset Zero-based byte offset
    * @returns Cluster byte range
    */
-  [cpp_body="auto* eng = getEngine(ctx);\nstd::string text;\nOpts opts;\nconst render::ShapedRun* run = shapeArgs(ctx, eng, argc, argv, text, opts);\nif (!run) return JS_NULL;\nint32_t off = 0;\nif (argc > 2) JS_ToInt32(ctx, &off, argv[2]);\nauto span = run->clusterRange(static_cast<std::size_t>(off < 0 ? 0 : off));\nJSValue out = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, out, \"start\", JS_NewInt32(ctx, static_cast<int>(span.byteStart)));\nJS_SetPropertyStr(ctx, out, \"end\", JS_NewInt32(ctx, static_cast<int>(span.byteEnd)));\nreturn out;"]
   ClusterRange? clusterRange(DOMString text, optional TextOptions options, optional long byteOffset);
 
   /**
@@ -248,7 +232,6 @@ namespace text {
    *
    * @returns Cache hit and miss counters
    */
-  [cpp_body="auto* eng = getEngine(ctx);\nrender::Renderer* r = rendererOf(eng);\nrender::TextShapingEngine* te = r ? r->textEngine() : nullptr;\nJSValue out = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, out, \"hits\",\n                  JS_NewInt64(ctx, te ? static_cast<int64_t>(te->hits()) : 0));\nJS_SetPropertyStr(ctx, out, \"misses\",\n                  JS_NewInt64(ctx, te ? static_cast<int64_t>(te->misses()) : 0));\nreturn out;"]
   TextCacheStats cacheStats();
 
   /**
@@ -259,7 +242,6 @@ namespace text {
    * @param override Whether directional override is enabled
    * @returns Resolved paragraph structure
    */
-  [cpp_body="if (argc < 1) return JS_NULL;\nconst std::string text = qjsbind::Convert<std::string>::from_js(ctx, argv[0]);\n\nrender::bidi::BaseDirection base = render::bidi::BaseDirection::Auto;\nif (argc > 1 && JS_IsString(argv[1])) {\n    const std::string b = qjsbind::Convert<std::string>::from_js(ctx, argv[1]);\n    if (b == \"ltr\") base = render::bidi::BaseDirection::LTR;\n    else if (b == \"rtl\") base = render::bidi::BaseDirection::RTL;\n}\nrender::bidi::Override ov = render::bidi::Override::Normal;\nif (argc > 2 && JS_ToBool(ctx, argv[2])) ov = render::bidi::Override::Override;\n\nconst render::bidi::Paragraph para =\n    render::bidi::resolveParagraph(text, base, ov);\n\nJSValue out = JS_NewObject(ctx);\nJS_SetPropertyStr(ctx, out, \"paragraphLevel\",\n                  JS_NewInt32(ctx, para.paragraphLevel));\nJS_SetPropertyStr(ctx, out, \"uniform\", JS_NewBool(ctx, para.uniform));\n\nJSValue levels = JS_NewArray(ctx);\nuint32_t li = 0;\nfor (std::size_t i = 0; i < text.size(); ++i) {\n    if ((static_cast<unsigned char>(text[i]) & 0xC0) == 0x80) continue;\n    JS_SetPropertyUint32(ctx, levels, li++,\n                         JS_NewInt32(ctx, para.levels[i]));\n}\nJS_SetPropertyStr(ctx, out, \"levels\", levels);\n\nJSValue runs = JS_NewArray(ctx);\nuint32_t ri = 0;\nfor (const auto& r : para.runs()) {\n    JSValue e = JS_NewObject(ctx);\n    JS_SetPropertyStr(ctx, e, \"start\", JS_NewInt32(ctx, static_cast<int>(r.start)));\n    JS_SetPropertyStr(ctx, e, \"end\", JS_NewInt32(ctx, static_cast<int>(r.end)));\n    JS_SetPropertyStr(ctx, e, \"level\", JS_NewInt32(ctx, r.level));\n    JS_SetPropertyUint32(ctx, runs, ri++, e);\n}\nJS_SetPropertyStr(ctx, out, \"runs\", runs);\nreturn out;"]
   BidiParagraph? bidi(DOMString text, optional DOMString base, optional boolean override);
 
   /**
@@ -268,6 +250,5 @@ namespace text {
    * @param levels Sequence of resolved embedding levels per character
    * @returns Logical index for each visual slot
    */
-  [cpp_body="if (argc < 1 || !JS_IsArray(argv[0])) return JS_NULL;\nuint32_t n = static_cast<uint32_t>(\n    qjsbind::get_prop_int(ctx, argv[0], \"length\", 0));\nstd::vector<render::bidi::Level> levels;\nlevels.reserve(n);\nfor (uint32_t i = 0; i < n; ++i) {\n    JSValue v = JS_GetPropertyUint32(ctx, argv[0], i);\n    int32_t lv = 0;\n    JS_ToInt32(ctx, &lv, v);\n    JS_FreeValue(ctx, v);\n    levels.push_back(static_cast<render::bidi::Level>(lv < 0 ? 0 : lv));\n}\nconst std::vector<int32_t> order = render::bidi::reorderVisual(levels);\nJSValue arr = JS_NewArray(ctx);\nfor (uint32_t i = 0; i < order.size(); ++i) {\n    JS_SetPropertyUint32(ctx, arr, i, JS_NewInt32(ctx, order[i]));\n}\nreturn arr;"]
   sequence<long> bidiReorder(sequence<long> levels);
 };

@@ -81,6 +81,8 @@ tools/        Verification and sync tooling
 - **Registration diff**: `node tools/compare_registrations.mjs` diffs generated
   registrations against bro's hand-written `native_<sub>.cpp` by path and signature.
 - **Sync**: `npm run sync-to-bro` copies docs, TypeScript declarations and the natives
-  outputs into `bro` — the natives only for the subsystems bro already carries (a
-  `natives/<sub>/native_<sub>_register.cpp` there); the rest live in a sibling
-  library's api tree, or nowhere yet.
+  outputs into `bro` — the natives only for the subsystems bro carries (a
+  `natives/<sub>/native_<sub>_register.cpp` there), which is every entry of
+  `idl/natives.list`. A sibling library's surface (`bro.mesh`, `bro.lm`, `bro.tensor`,
+  …) is declared here for its docs and `.d.ts` only; its natives are hand-written in
+  the sibling's own `src/api/`.

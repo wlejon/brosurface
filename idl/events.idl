@@ -33,17 +33,7 @@ dictionary EventInit {
 /**
  * Root interface for DOM event dispatching and propagation.
  */
-[
-  cpp_file="event_bindings.cpp",
-  cpp_header="js/dom_bindings_internal.h",
-  cpp_includes="<qjsbind/qjsbind.h>",
-  cpp_namespace="bro::js",
-  cpp_install="installEventBindings",
-  install_signature="void installEventBindings(JSContext* ctx)",
-  cpp_prologue="\n// ===========================================================================\n// Event wrapper\n// ===========================================================================\n\nstruct EventData {\n    std::string type;\n    bro::dom::Element* target        = nullptr;\n    bro::dom::Element* currentTarget = nullptr;\n    bool bubbles          = false;\n    bool cancelable       = false;\n    bool defaultPrevented = false;\n    double timeStamp      = 0;\n    bool propagationStopped = false;\n};\n\nJSValue wrapEvent(JSContext* ctx, const std::string& type,\n                  bro::dom::Element* target)\n{\n    auto* data = new EventData();\n    data->type          = type;\n    data->target        = target;\n    data->currentTarget = target;\n    data->bubbles       = true;\n    data->cancelable    = true;\n    return qjsbind::wrap<EventData>(ctx, data);\n}\n\nJSValue createUninitializedEvent(JSContext* ctx)\n{\n    // Deliberately not wrapEvent(): an event from document.createEvent() has\n    // no type and neither flag set until initEvent() names it. wrapEvent's\n    // defaults describe an event that is already being dispatched.\n    return qjsbind::wrap<EventData>(ctx, new EventData());\n}\n\n// ===========================================================================\n// Registration\n// ===========================================================================\n",
-  install_body="    // `new Event(type, {bubbles, cancelable})`, per the DOM spec. Without a\n    // global constructor, synthesising an event — the normal way to drive a\n    // component from a test, or to notify listeners of a state change a\n    // script made itself — meant hand-rolling an object literal with a `type`\n    // property and hoping dispatchEvent kept accepting it.\n    qjsbind::Class<EventData>(ctx, \"Event\")\n        .constructor([](JSContext* cx, int argc, JSValueConst* argv) -> EventData* {\n            auto* e = new EventData();\n            if (argc >= 1) {\n                if (const char* t = JS_ToCString(cx, argv[0])) {\n                    e->type = t;\n                    JS_FreeCString(cx, t);\n                }\n            }\n            if (argc >= 2 && JS_IsObject(argv[1])) {\n                JSValue b = JS_GetPropertyStr(cx, argv[1], \"bubbles\");\n                e->bubbles = JS_ToBool(cx, b);\n                JS_FreeValue(cx, b);\n                JSValue c = JS_GetPropertyStr(cx, argv[1], \"cancelable\");\n                e->cancelable = JS_ToBool(cx, c);\n                JS_FreeValue(cx, c);\n            }\n            return e;\n        })\n        .get(\"type\", [](EventData* e) -> std::string { return e->type; })\n        .get(\"target\", [](EventData* e, JSContext* cx) -> JSValue {\n            if (!e->target) return JS_NULL;\n            return DomBindings::wrapElement(cx, e->target);\n        })\n        .get(\"currentTarget\", [](EventData* e, JSContext* cx) -> JSValue {\n            if (!e->currentTarget) return JS_NULL;\n            return DomBindings::wrapElement(cx, e->currentTarget);\n        })\n        .get(\"bubbles\", [](EventData* e) -> bool { return e->bubbles; })\n        .get(\"cancelable\", [](EventData* e) -> bool { return e->cancelable; })\n        .get(\"defaultPrevented\", [](EventData* e) -> bool { return e->defaultPrevented; })\n        .get(\"timeStamp\", [](EventData* e) -> double { return e->timeStamp; })\n        .method(\"preventDefault\", [](EventData* e) {\n            if (e->cancelable) e->defaultPrevented = true;\n        })\n        .method(\"stopPropagation\", [](EventData* e) {\n            e->propagationStopped = true;\n        })\n        // The legacy initializer that goes with document.createEvent(). It is\n        // deprecated on the web and still everywhere in shipped code — the\n        // three.js editor's own UI library builds every one of its `change`\n        // events this way — so an engine that has `new Event()` but not this\n        // one runs the modern half of a page and throws on the rest.\n        // Omitted arguments are false, as the spec says.\n        .method(\"initEvent\", [](EventData* e, std::string type,\n                                bool bubbles, bool cancelable) {\n            e->type       = std::move(type);\n            e->bubbles    = bubbles;\n            e->cancelable = cancelable;\n            // Re-initializing clears the dispatch state, so an event object a\n            // page keeps and re-sends is not still cancelled from last time.\n            e->defaultPrevented   = false;\n            e->propagationStopped = false;\n        });\n\n    js_event_class_id = qjsbind::class_id<EventData>();",
-  cpp_epilogue=""
-]
+[cpp_namespace="bro::js"]
 interface Event {
   /** Initializes a new Event instance. */
   constructor(DOMString type, optional EventInit eventInitDict);
@@ -82,7 +72,6 @@ interface Event {
 /**
  * Event carrying custom user data in the detail property.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface CustomEvent : Event {
   /** User-supplied detail payload. */
   readonly attribute any detail;
@@ -91,7 +80,6 @@ interface CustomEvent : Event {
 /**
  * Base interface for UI and user-input events.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface UIEvent : Event {
   /** Window view context. */
   readonly attribute any view;
@@ -103,7 +91,6 @@ interface UIEvent : Event {
 /**
  * Mouse button and cursor movement event.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface MouseEvent : UIEvent {
   readonly attribute double screenX;
   readonly attribute double screenY;
@@ -125,7 +112,6 @@ interface MouseEvent : UIEvent {
 /**
  * Unified pointer event for mouse, pen, and touch input.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface PointerEvent : MouseEvent {
   /** Unique identifier for the pointer device/contact. */
   readonly attribute long pointerId;
@@ -149,7 +135,6 @@ interface PointerEvent : MouseEvent {
 /**
  * Individual touch contact point on a touch-sensitive surface.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface Touch {
   readonly attribute long identifier;
   readonly attribute object target;
@@ -165,7 +150,6 @@ interface Touch {
 /**
  * List of active touch contact points.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface TouchList {
   readonly attribute unsigned long length;
   Touch? item(unsigned long index);
@@ -174,7 +158,6 @@ interface TouchList {
 /**
  * Multi-touch interaction event.
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface TouchEvent : UIEvent {
   readonly attribute TouchList touches;
   readonly attribute TouchList targetTouches;
@@ -188,7 +171,6 @@ interface TouchEvent : UIEvent {
 /**
  * Multi-finger gesture event (pinch / pan / rotate).
  */
-[custom, cpp_file="event_bindings.cpp"]
 interface GestureEvent : UIEvent {
   /** Gesture scale relative to start. */
   readonly attribute double scale;

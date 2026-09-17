@@ -3,6 +3,15 @@
 Status: v1, authored 2026-08-22. Code anchors were verified against the live bro tree at
 authoring time; **re-read them before relying on details** — the tree moves.
 
+2026-09-17: §§4–7 describe the QuickJS → natives migration, which is complete. Its
+scaffolding — the census tool and `docs/SURFACE-INVENTORY.md`, `docs/DESIGN.md` (the
+retired qjsbind / bronze_host emitters), `docs/TEST-WISHLIST.md`, the M1 doc-diff tools
+and the `[custom]`/`cpp_*`/`bh_*` attributes those emitters read — has been removed;
+`schema/validator.mjs` lists exactly the attributes the live emitters read. What
+brosurface generates now is in README.md; the sibling libraries' surfaces (bro.mesh,
+bro.lm, bro.tensor, …) are declared here for the docs and the `.d.ts` only, their natives
+being hand-written in each sibling's `src/api/` (`idl/natives.list`).
+
 ---
 
 ## 1. Scope and non-goals
